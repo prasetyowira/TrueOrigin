@@ -22,6 +22,7 @@ The Product ID QR Code is bound with ECDSA, where the Brand Owner holds the Priv
     <img src="./src/frontend/public/TrueOriginECDSA.png" style="margin-top:10px;margin-bottom:10px" alt="Signa Product Page" width="750"></a>
 </h1>
 
+Video Demo - Adding New Product ID and Generate ECDSA Key
 ![WhatsAppVideo2024-08-23at2 43 34PM-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/2784dc14-c2ed-45fb-8b94-2cfd906a3830)
 
 
