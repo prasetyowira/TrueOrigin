@@ -4,7 +4,7 @@
     </a>
 </h1>
 
-Update Logs - 15.42 - Readme.MD (Upload Demo Video)
+Update Logs - 15.48 - Readme.MD (Upload Demo Video)
 
 # TrueOrigin - ChainFusion HackerHouse - xChain Track
 ## Overview
@@ -39,6 +39,7 @@ https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW85ZDc4bTRndjdna2Z1Y2o2dHI1MGUyem1
 
 Demo 2 - Redeem Crypto Coin as Incentives
 
+https://drive.google.com/file/d/19EHxr_yh6-Igjgmnam7As8snRdl_b9I4/view?usp=sharing
 
 
 AI Sentiment Analysis
