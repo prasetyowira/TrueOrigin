@@ -4,6 +4,7 @@
     </a>
 </h1>
 
+Update Logs - 15.42 - Readme.MD (Upload Demo Video)
 
 # TrueOrigin - ChainFusion HackerHouse - xChain Track
 ## Overview
@@ -31,6 +32,18 @@ After validating QR codes, customers earn crypto rewards in either ICP or ETH. T
 <h1 align="center">
     <img src="./src/frontend/public/TrueOriginHTTPSOutcalls.png" style="margin-top:10px;margin-bottom:10px" alt="Signa Product Page" width="750"></a>
 </h1>
+
+Demo 1 - Setup Wallet
+
+https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExcW85ZDc4bTRndjdna2Z1Y2o2dHI1MGUyem13Y2ppNzJ1bjFzOXF6aiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/uoji0sELwFOyCOabMe/giphy.gif
+
+Demo 2 - Redeem Crypto Coin as Incentives
+
+
+
+AI Sentiment Analysis
+
+![AI](https://github.com/user-attachments/assets/72087c10-abfc-4d8c-a691-af0eef40fdf0)
 
 
 ## Repository Structure
