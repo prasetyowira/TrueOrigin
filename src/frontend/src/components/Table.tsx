@@ -17,7 +17,7 @@ const Table: React.FC<TableProps> = ({ products }) => {
                         <th className="px-4 py-4">Category</th>
                         <th className="px-4 py-4">Product ID</th>
                         <th className="px-4 py-4 rounded-r-xl">ECDSA Public Key</th>
-                        <th className="px-4 py-4 rounded-r-xl">Product Sentiment</th>
+                        <th className="px-4 py-4 rounded-r-xl">AI Product Sentiment</th>
                     </tr>
                 </thead>
                 <tbody>
