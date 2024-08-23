@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-
 import techImage from '../assets/tech.png';
 import { useAuthContext } from '../contexts/useAuthContext';
 import { AddProductLogo, BrandOwnerLogo, HeatmapLogo, ResellerLogo, UserLogo } from '../components/SidebarLogo';
@@ -39,6 +38,24 @@ const Dashboard = () => {
         setActiveMenu('Brand Owners Dashboard')
         return fetchProducts()
     };
+    const onSentimentAnalysis = (product: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
+        const pUpdate = products.map((p: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
+            if (p.id.compareTo(product.id) === 'eq') {
+                p.sentimentLoading = true;
+                setTimeout(() => {
+                    setProducts(products.map((p: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
+                        if (p.id.compareTo(product.id) === 'eq') {
+                            p.sentimentLoading = false;
+                            p.showSentiment = true;
+                        }
+                        return p;
+                    }));
+                }, 5000);
+            }
+            return p;
+        });
+        setProducts(pUpdate);
+    }
 
     const username = useMemo(() => {
         if (!profile) {
@@ -81,7 +98,7 @@ const Dashboard = () => {
                         <Filters filters={filters} onApply={handleApplyFilters} />
                         <hr className="my-10" />
                         <h2 className="text-2xl font-bold mb-4 font-lexend">Product Batch</h2>
-                        <Table products={products} />
+                        <Table products={products} onSentimentAnalysis={onSentimentAnalysis} />
                     </>
                 )
             case "Add Product":
