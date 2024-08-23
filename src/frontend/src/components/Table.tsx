@@ -17,18 +17,27 @@ const Table: React.FC<TableProps> = ({ products }) => {
                         <th className="px-4 py-4">Category</th>
                         <th className="px-4 py-4">Product ID</th>
                         <th className="px-4 py-4 rounded-r-xl">ECDSA Public Key</th>
+                        <th className="px-4 py-4 rounded-r-xl">Product Sentiment</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {products.map((product, index) => (
-                        <tr key={index} className="text-gray-700">
-                            <td className="px-4 py-2">{product.name}</td>
-                            <td className="px-4 py-2">{product.description}</td>
-                            <td className="px-4 py-2">{product.category}</td>
-                            <td className="px-4 py-2">{product.id.toHex()}</td>
-                            <td className="px-4 py-2">{product.public_key}</td>
-                        </tr>
-                    ))}
+                    {products.map((product, index) => {
+                        const productSentiment = product.metadata.find((m) => m.key === 'sentiment');
+                        let productSentimentStr = `Product sentiment is UNKNOWN`;
+                        if (productSentiment) {
+                            productSentimentStr = `Product sentiment is ${productSentiment.value}`
+                        }
+                        return (
+                            <tr key={index} className="text-gray-700">
+                                <td className="px-4 py-2">{product.name}</td>
+                                <td className="px-4 py-2">{product.description}</td>
+                                <td className="px-4 py-2">{product.category}</td>
+                                <td className="px-4 py-2">{product.id.toHex()}</td>
+                                <td className="px-4 py-2">{product.public_key}</td>
+                                <td className="px-4 py-2">{productSentimentStr}</td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

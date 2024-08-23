@@ -27,12 +27,14 @@ const Dashboard = () => {
         setProducts(products);
     };
     const addProduct = async () => {
+        const sentiment = ['Positive', 'Neutral', 'Negative'];
+        const randomElement = sentiment[Math.floor(Math.random() * sentiment.length)];
         await TrustOrigin_backend.create_product({
             name: productInput.name!,
             description: productInput.description!,
             category: productInput.category!,
             org_id: profile!.org_ids[0]!,
-            metadata: [],
+            metadata: [{ key: 'sentiment', value: randomElement }],
         });
         setActiveMenu('Brand Owners Dashboard')
         return fetchProducts()
