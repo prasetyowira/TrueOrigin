@@ -1,0 +1,29 @@
+{
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=7.0.0",
+        "pnpm": ">=7.0.0",
+        "husky": "9.1.4"
+    },
+    "name": "trustorigin",
+    "scripts": {
+        "setup-declarations": "dfx generate TrustOrigin_backend",
+        "build": "npm run build --workspaces --if-present",
+        "prebuild": "npm run prebuild --workspaces --if-present",
+        "pretest": "npm run prebuild --workspaces --if-present",
+        "start": "npm start --workspaces --if-present",
+        "test": "npm test --workspaces --if-present",
+        "prepare": "husky"
+    },
+    "type": "module",
+    "workspaces": [
+        "src/frontend"
+    ],
+    "dependencies": {
+        "@dfinity/agent": "^2.0.0"
+    },
+    "devDependencies": {
+        "husky": "^9.1.4"
+    },
+    "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
+}

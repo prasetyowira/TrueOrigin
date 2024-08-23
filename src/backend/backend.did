@@ -1,0 +1,240 @@
+type Metadata = record {
+    key: text;
+    value: text;
+};
+
+type Organization = record {
+    id: principal;
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+    private_key: text;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type OrganizationPublic = record {
+    id: principal;
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type OrganizationInput = record {
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+};
+
+type OrganizationResult = variant {
+    organization: Organization;
+    error: GenericError;
+};
+
+type Product = record {
+    id: principal;
+    name: text;
+    org_id: principal;
+    category: text;
+    description: text;
+    metadata: vec Metadata;
+    public_key: text;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type ProductInput = record {
+    name: text;
+    org_id: principal;
+    category: text;
+    description: text;
+    metadata: vec Metadata;
+};
+
+type ProductResult = variant {
+    none: null;
+    product: Product;
+    error: GenericError;
+};
+
+type ProductSerialNumber = record {
+    product_id: principal;
+    serial_no: principal;
+    user_serial_no: text;
+    print_version: nat8;
+    metadata: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type ProductVerification = record {
+    id: principal;
+    product_id: principal;
+    serial_no: principal;
+    print_version: nat8;
+    metadata: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+};
+
+type User = record {
+    id: principal;
+    is_principal: bool;
+    is_enabled: bool;
+    user_role: opt UserRole;
+    org_ids: vec principal;
+    first_name: opt text;
+    last_name: opt text;
+    phone_no: opt text;
+    email: opt text;
+    detail_meta: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type UserDetailsInput = record {
+    first_name: text;
+    last_name: text;
+    phone_no: text;
+    email: text;
+    detail_meta: vec Metadata;
+};
+
+type GenericError = record {
+    message: text;
+    details: vec Metadata;
+};
+
+type UserResult = variant {
+    none: null;
+    user: User;
+    error: GenericError;
+};
+
+type UserRole = variant {
+    Admin;
+    Reseller;
+    BrandOwner;
+};
+
+type Reseller = record {
+    id: principal;
+    org_id: principal;
+    reseller_id: text;
+    name: text;
+    date_joined: nat64;
+    metadata: vec Metadata;
+    ecommerce_urls: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type ResellerInput = record {
+    org_id: principal;
+    name: text;
+    metadata: vec Metadata;
+    ecommerce_urls: vec Metadata;
+};
+
+type ProductSerialNumberResult = variant {
+    result: ProductSerialNumber;
+    error: GenericError;
+};
+
+type UniqueCodeResult = variant {
+    unique_code: text;
+    error: GenericError;
+};
+
+type ProductVerificationStatus = variant {
+    FirstVerification;
+    MultipleVerification;
+    Invalid;
+};
+
+type ProductVerificationResult = variant {
+    status: ProductVerificationStatus;
+    error: GenericError;
+};
+
+type PrivateKeyResult = variant {
+    key: text;
+    error: GenericError;
+};
+
+type VerificationStatus = variant {
+    Success;
+    Invalid;
+};
+
+type ResellerVerificationResultRecord = record {
+    status: VerificationStatus;
+    organization: OrganizationPublic;
+    registered_at: opt nat64;
+};
+
+type ResellerVerificationResult = variant {
+    result: ResellerVerificationResultRecord;
+    error: GenericError;
+};
+
+type ProductUniqueCodeResultRecord = record {
+    unique_code: text;
+    print_version: nat8;
+    product_id: principal;
+    serial_no: principal;
+    created_at: nat64;
+};
+
+type ProductUniqueCodeResult = variant {
+    result: ProductUniqueCodeResultRecord;
+    error: GenericError;
+};
+
+service : {
+    "get_organization_by_id": (id: principal) -> (OrganizationPublic) query;
+    "create_organization": (input: OrganizationInput) -> (OrganizationPublic);
+    "update_organization": (id: principal, input: OrganizationInput) -> (OrganizationPublic);
+    "get_organization_private_key": (id: principal) -> (PrivateKeyResult) query;
+    "find_organizations_by_name": (text) -> (vec OrganizationPublic) query;
+    "create_product": (input: ProductInput) -> (ProductResult);
+    "list_products": (organization_id: principal) -> (vec Product) query;
+    "get_product_by_id": (id: principal) -> (ProductResult) query;
+    "update_product": (id: principal, input: ProductInput) -> (Product);
+    "register": () -> (User);
+    "set_self_role": (role_id: UserRole) -> (UserResult);
+    "register_as_reseller": (ResellerInput) -> (UserResult);
+    "register_as_organization": (OrganizationInput) -> (UserResult);
+    "get_user_by_id": (id: principal) -> (opt User) query;
+    "whoami": () -> (opt User) query;
+    "update_self_details": (input: UserDetailsInput) -> (UserResult);
+    "create_user": (id: principal, input: UserDetailsInput) -> (UserResult);
+    "update_user": (id: principal, input: UserDetailsInput) -> (UserResult);
+    "update_user_orgs": (id: principal, org_ids: vec principal) -> (UserResult);
+    "greet" : (text) -> (text) query;
+    "generate_product_review": (product_id: principal) -> (opt Product);
+    "find_resellers_by_name_or_id": (text) -> (vec Reseller) query;
+    "verify_reseller": (reseller_id: principal, public_key: text) -> (ResellerVerificationResult) query;
+    "generate_reseller_unique_code": (reseller_id: principal) -> (UniqueCodeResult) query;
+    "list_product_serial_number": (organization_id: opt principal, product_id: opt principal) -> (vec ProductSerialNumber) query;
+    "create_product_serial_number": (product_id: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
+    "update_product_serial_number": (product_id: principal, serial_no: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
+    "print_product_serial_number": (product_id: principal, serial_no: principal) -> (ProductUniqueCodeResult);
+    "verify_product": (product_id: principal, serial_no: principal, print_version: nat8, unique_code: text, metadata: vec Metadata) -> (ProductVerificationResult);
+    "list_product_verifications": (organization_id: opt principal, product_id: opt principal, serial_number: opt principal) -> (vec ProductVerification) query;
+    "list_product_verifications_by_user": (user_id: principal, organization_id: opt principal) -> (vec ProductVerification) query;
+};
