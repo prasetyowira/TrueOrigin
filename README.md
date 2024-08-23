@@ -1,11 +1,38 @@
-# TrustOrigin
+<h1 align="center">
+    <a href="#">
+        <img src="./src/frontend/public/TrueOriginLogo.png" style="margin-top:10px;margin-bottom:10px;width:400px;" alt="TrueOrigin Logo" width="800">
+    </a>
+</h1>
+
+
+# TrueOrigin - ChainFusion HackerHouse - xChain Track
 ## Overview
-Read https://docs.google.com/document/d/18ObL7Cn3vZyMrsdZrR0EVymB3uDsKSYbJe7Hxcc1KRk/edit
+TrueOrigin is an innovative anti-counterfeit system built on the Internet Computer Protocol (ICP), serving Brand Owners, Resellers, and Users. It leverages ICP's cross-chain capabilities, ECDSA for Product & Reseller Certification, and HTTPS outcalls for AI-Assisted product sentiment analysis and ETH transactions for Customer's QR Validation incentives.
+
+Users earn ICP or ETH rewards by verifying product authenticity through QR code invalidation, creating a secure and incentivized product verification ecosystem.
+
+<h1 align="center">
+    <img src="./src/frontend/public/TrueOriginProb1.png" style="margin-top:10px;margin-bottom:10px" alt="Signa Product Page" width="750"></a>
+</h1>
+
+## Features
+### ECDSA Features
+The Product ID QR Code is bound with ECDSA, where the Brand Owner holds the Private Key for authentication. This ensures that each product is tamper-proof.
+<h1 align="center">
+    <img src="./src/frontend/public/TrueOriginECDSA.png" style="margin-top:10px;margin-bottom:10px" alt="Signa Product Page" width="750"></a>
+</h1>
+
+### HTTPS Outcalls
+After validating QR codes, customers earn crypto rewards in either ICP or ETH. Transactions involving ETH utilize HTTPS Outcalls protocols.
+<h1 align="center">
+    <img src="./src/frontend/public/TrueOriginHTTPSOutcalls.png" style="margin-top:10px;margin-bottom:10px" alt="Signa Product Page" width="750"></a>
+</h1>
+
 
 ## Repository Structure
 This repo adopted monorepo repository
 
-## Tech stack
+## TechStacks & Architecture
 ### Frontend
 - React
 - TypeScript
@@ -15,14 +42,18 @@ This repo adopted monorepo repository
 ### Backend
 - Rust
 - ICP
+<h1 align="center">
+    <img src="./src/frontend/public/TrueOriginArchi.png" style="margin-top:15px;margin-bottom:15px" alt="Signa Product Page" width="1000"></a>
+</h1>
 
-# `TrustOrigin`
 
-Welcome to your new `TrustOrigin` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+# `TrueOrigin`
+
+Welcome to your new `TrueOrigin` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
 
 To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
 
-To learn more before you start working with `TrustOrigin`, see the following documentation available online:
+To learn more before you start working with `TrueOrigin`, see the following documentation available online:
 
 - [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
 - [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
