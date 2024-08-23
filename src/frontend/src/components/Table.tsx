@@ -1,12 +1,6 @@
 import React from 'react';
+import type { Product } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 
-interface Product {
-    name: string;
-    description: string;
-    category: string;
-    productId: string;
-    publicKey: string;
-}
 
 interface TableProps {
     products: Product[];
@@ -31,8 +25,8 @@ const Table: React.FC<TableProps> = ({ products }) => {
                             <td className="px-4 py-2">{product.name}</td>
                             <td className="px-4 py-2">{product.description}</td>
                             <td className="px-4 py-2">{product.category}</td>
-                            <td className="px-4 py-2">{product.productId}</td>
-                            <td className="px-4 py-2">{product.publicKey}</td>
+                            <td className="px-4 py-2">{product.id.toHex()}</td>
+                            <td className="px-4 py-2">{product.public_key}</td>
                         </tr>
                     ))}
                 </tbody>

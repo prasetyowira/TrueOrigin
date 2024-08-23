@@ -6,23 +6,25 @@ import { useAuthContext } from '../../contexts/useAuthContext';
 // assets
 import WelcomePageImage from '../../assets/Asset-WelcomePage.webp'
 import RoboLoginPageImage from '../../assets/Robo-LoginPage.webp'
-import SignaLogo1 from '../../assets/SignaLogo_v1.png'
-import SignaSignature from '../../assets/SignaSignature.png'
+import TrueOriginLogo from '../../assets/true-origin.png'
 import InternetIdentityLogo from '../../assets/InternetIdentityLogo.png'
 
 const LoginPage = () => {
     const navigate = useNavigate()
-    const { login, isAuthenticated } = useAuthContext()
+    const { login, isAuthenticated, profile } = useAuthContext()
 
     const handleSubmitLogin = () => {
         login();
     }
 
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && profile) {
             navigate('/dashboard')
         }
-    }, [isAuthenticated, navigate])
+        if (isAuthenticated && !profile) {
+            navigate('/auth/choose-role')
+        }
+    }, [isAuthenticated, profile, navigate])
 
     return (
         <div className="flex flex-row bg-white">
@@ -32,13 +34,8 @@ const LoginPage = () => {
                         <div className="flex gap-0 max-md:pr-5">
                             <img
                                 loading="lazy"
-                                src={SignaLogo1}
+                                src={TrueOriginLogo}
                                 className="shrink-0 max-w-full aspect-[1.09] w-[100px]"
-                            />
-                            <img
-                                loading="lazy"
-                                src={SignaSignature}
-                                className="shrink-0 max-w-full aspect-[1.27] w-[120px]"
                             />
                         </div>
                         <div className="mt-7 text-5xl text-[2vw] font-semibold text-center text-cyan-600 max-md:max-w-full">

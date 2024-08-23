@@ -6,8 +6,9 @@ import {
   AuthContextProviderProps,
 } from './interface';
 import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
-import type { User, UserDetailsInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import type { OrganizationInput, ResellerInput, User, UserDetailsInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 import { handleUserResult } from '../../utils';
+import { Principal } from '@dfinity/principal';
 
 const AuthContext = createContext({} as AuthContextInterface);
 
@@ -30,9 +31,10 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({childre
     if (!authClient) return;
     authClient.login({
       identityProvider: IDENTITY_PROVIDER,
-      onSuccess: () => {
+      onSuccess: async () => {
         setIsAuthenticated(true);
-        getProfile();
+        const user = await TrustOrigin_backend.register();
+        setProfile(user);
       },
       maxTimeToLive: MAX_TTL,
     });
@@ -49,8 +51,8 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({childre
     const responseData = await TrustOrigin_backend.whoami();
     if ('err' in responseData) {
         setProfile(null);
-    } else if ('ok' in responseData) {
-        setProfile(responseData[0]);
+    } else if (responseData.length > 0) {
+        setProfile(responseData[0] as User);
     }
   };
 
@@ -91,6 +93,23 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({childre
     setIsAuthenticated(false);
   }, [authClient]);
 
+  const signinAsBrandOwner = useCallback(async (input: OrganizationInput) => {
+    const result = handleUserResult(await TrustOrigin_backend.register_as_organization(input));
+    if (result) {
+      setProfile(result);
+    }
+  }, []);
+
+  const signinAsReseller = useCallback(async (input: ResellerInput) => {
+    const result = handleUserResult(await TrustOrigin_backend.register_as_reseller({
+      ...input,
+      org_id: Principal.anonymous(),
+    }));
+    if (result) {
+      setProfile(result);
+    }
+  }, []);
+
   useEffect(() => {
     AuthClient.create().then(async (client) => {
       const isAnonymous = await client
@@ -100,6 +119,9 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({childre
 
       setAuthClient(client);
       setIsAuthenticated(!isAnonymous);
+      if (!isAnonymous) {
+        getProfile();
+      }
     });
   }, []);
 
@@ -116,6 +138,8 @@ export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({childre
     createProfile,
     updateProfile,
     setSelfRole,
+    signinAsBrandOwner,
+    signinAsReseller,
     login,
     logout,
   };
