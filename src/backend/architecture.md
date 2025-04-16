@@ -70,9 +70,12 @@ TrueOrigin is a decentralized product authentication service built on the Intern
 - `authorize_user_organization()` for verifying permissions
 
 ### `global_state.rs`
-- In-memory data storage using Mutex-protected HashMaps
+- Stable storage implementation using `ic-stable-structures`
+- Data persistence across canister upgrades
+- Memory management for efficient stable memory utilization
 - Random number generation using ICP's `raw_rand()`
-- Provides data structures for entities:
+- Implements `Storable` trait for all entity types
+- Provides stable collections for entities:
   - Organizations
   - Products
   - Users
@@ -82,9 +85,10 @@ TrueOrigin is a decentralized product authentication service built on the Intern
 
 ### `storage.rs`
 - Repository pattern implementation for data access
-- Abstracts direct state manipulation
+- Abstracts stable storage operations
 - Error handling for storage operations
 - Namespaced modules for each entity type
+- Provides consistent interface for interacting with stable storage
 
 ### `models.rs`
 - All core structs & enums:
@@ -154,18 +158,21 @@ TrueOrigin is a decentralized product authentication service built on the Intern
 ---
 
 ## Data Storage Strategy
-- In-memory storage using thread-safe Mutex-protected HashMaps
+- Persistent storage using `ic-stable-structures` ensures data survives canister upgrades
+- StableBTreeMaps for efficient key-value storage
 - Repository pattern via `storage.rs` module
-- No persistent storage implemented yet (future enhancement)
+- Memory management across different entity types
+- Pre and post upgrade lifecycle hooks handle data migration
 
 ---
 
 ## Future Enhancements (Notes)
-- Implement persistent storage using `ic-stable-structures`
 - Add rate limiting for verification attempts
 - Implement reward mechanisms for verified interactions
 - Add sentiment analysis via HTTPS outcalls
+- Implement indexing for more efficient queries
+- Add pagination support for large datasets
 
 ---
 
-_Last updated: [Current Date]_
+_Last updated: 2023-08-15_
