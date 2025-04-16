@@ -4,6 +4,14 @@ use crate::error::GenericError;
 use crate::global_state::{ORGANIZATIONS, USERS};
 use crate::models::Organization;
 
+// TODO: Enhance authorization system with role-based access control
+// Current implementation only checks if a user is associated with an organization
+// Should include:
+// 1. Fine-grained permission system (read, write, admin rights)
+// 2. Role hierarchy (admin, manager, user, etc.)
+// 3. Permission checking at the API level via decorators/macros
+// 4. Audit logging for all authorization checks
+
 pub fn authorize_user_organization(user_id: Principal, org_id: Principal) -> Result<Organization, GenericError> {
     let users = USERS.lock().unwrap();
     let user = users.get(&user_id);

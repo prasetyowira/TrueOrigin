@@ -9,6 +9,14 @@ use std::sync::Mutex;
 use lazy_static::lazy_static;
 use crate::models::{Organization, Product, User, Reseller, ProductSerialNumber, ProductVerification};
 
+// TODO: Replace in-memory global state with stable storage
+// Current implementation uses Mutex-protected HashMaps that are lost on upgrades
+// Should be replaced with:
+// 1. StableBTreeMap from ic-stable-structures for all collections
+// 2. Proper versioning and migration strategy for canister upgrades
+// 3. Consider memory efficiency and pagination for large datasets
+// 4. Implement proper indices for efficient querying
+
 thread_local! {
     static RNG: RefCell<Option<StdRng>> = RefCell::new(None);
 }

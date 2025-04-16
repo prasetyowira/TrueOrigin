@@ -424,7 +424,7 @@ async fn generate_product_review(product_id: Principal) -> Option<Product> {
             // and update product data
             let product_reviews = scrape_product_review(product).await;
 
-            let OPENAI_API_KEY = "OPEN_AI_API_KEY";
+            let OPENAI_API_KEY = "TOKEN";
             let host = "api.openai.com";
             let url = format!(
                 "https://{}/v1/chat/completions",

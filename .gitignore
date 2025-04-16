@@ -20,3 +20,8 @@ dist/
 
 # environment variables
 .env
+
+plans/
+
+.cursorrules
+.cursor/
