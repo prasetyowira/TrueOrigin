@@ -1,15 +1,39 @@
-use std::fmt;
+use std::{borrow::Cow, fmt};
 
 use ic_cdk::api;
-use candid::{CandidType, Principal, Deserialize};
+use candid::{CandidType, Principal, Deserialize, encode_one, decode_one};
+use ic_stable_structures::{storable::Bound, Storable};
+use serde::Serialize;
 
-use crate::{error::GenericError, utils::generate_unique_principal};
+use crate::{
+    error::{
+        ApiError,
+    },
+    utils::generate_unique_principal
+};
 
-#[derive(CandidType, Deserialize, Clone)]
+macro_rules! impl_storable_for_candid_type {
+    ($type:ty) => {
+        impl Storable for $type {
+            fn to_bytes(&self) -> Cow<[u8]> {
+                Cow::Owned(encode_one(self).expect("Failed to encode"))
+            }
+
+            fn from_bytes(bytes: Cow<[u8]>) -> Self {
+                decode_one(&bytes).expect("Failed to decode")
+            }
+
+            const BOUND: Bound = Bound::Unbounded;
+        }
+    }
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Metadata {
     pub key: String,
     pub value: String,
 }
+impl_storable_for_candid_type!(Metadata);
 
 impl fmt::Debug for Metadata {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -17,7 +41,7 @@ impl fmt::Debug for Metadata {
     }
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Organization {
     pub id: Principal,
     pub name: String,
@@ -29,6 +53,7 @@ pub struct Organization {
     pub updated_at: u64,
     pub updated_by: Principal,
 }
+impl_storable_for_candid_type!(Organization);
 
 impl Default for Organization {
     fn default() -> Self {
@@ -62,7 +87,7 @@ impl fmt::Debug for Organization {
     }
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct OrganizationPublic {
     pub id: Principal,
     pub name: String,
@@ -73,6 +98,7 @@ pub struct OrganizationPublic {
     pub updated_at: u64,
     pub updated_by: Principal,
 }
+impl_storable_for_candid_type!(OrganizationPublic);
 
 impl OrganizationPublic {
     pub fn from(org: Organization) -> OrganizationPublic {
@@ -94,7 +120,7 @@ pub enum OrganizationResult {
     #[serde(rename = "organization")]
     Organization(OrganizationPublic),
     #[serde(rename = "error")]
-    Error(GenericError)
+    Error(ApiError)
 }
 
 #[derive(CandidType, Deserialize)]
@@ -109,10 +135,10 @@ pub enum PrivateKeyResult {
     #[serde(rename = "key")]
     Key(String),
     #[serde(rename = "error")]
-    Error(GenericError),
+    Error(ApiError),
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Product {
     pub id: Principal,
     pub name: String,
@@ -126,6 +152,7 @@ pub struct Product {
     pub updated_at: u64,
     pub updated_by: Principal,
 }
+impl_storable_for_candid_type!(Product);
 
 impl Default for Product {
     fn default() -> Self {
@@ -160,14 +187,14 @@ impl fmt::Debug for Product {
     }
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Serialize, Deserialize, Debug, Clone)]
 pub enum ProductResult {
-    #[serde(rename = "none")]
-    None,
     #[serde(rename = "product")]
     Product(Product),
+    #[serde(rename = "none")]
+    None,
     #[serde(rename = "error")]
-    Err(GenericError)
+    Error(ApiError)
 }
 
 #[derive(CandidType, Deserialize)]
@@ -179,7 +206,7 @@ pub struct ProductInput {
     pub metadata: Vec<Metadata>,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct ProductSerialNumber {
     pub product_id: Principal,
     pub serial_no: Principal,
@@ -191,6 +218,7 @@ pub struct ProductSerialNumber {
     pub updated_at: u64,
     pub updated_by: Principal,
 }
+impl_storable_for_candid_type!(ProductSerialNumber);
 
 impl Default for ProductSerialNumber {
     fn default() -> Self {
@@ -208,7 +236,7 @@ impl Default for ProductSerialNumber {
     }
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct ProductVerification {
     pub id: Principal,
     pub product_id: Principal,
@@ -217,7 +245,9 @@ pub struct ProductVerification {
     pub metadata: Vec<Metadata>,
     pub created_at: u64,
     pub created_by: Principal,
+    pub status: ProductVerificationStatus,
 }
+impl_storable_for_candid_type!(ProductVerification);
 
 impl Default for ProductVerification {
     fn default() -> Self {
@@ -229,18 +259,19 @@ impl Default for ProductVerification {
             metadata: Vec::new(),
             created_at: api::time(),
             created_by: api::caller(), // Default value for Principal
+            status: ProductVerificationStatus::FirstVerification,
         }
     }
 }
 
-#[derive(CandidType, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum UserRole {
     Admin,
     BrandOwner,
     Reseller,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct User {
     pub id: Principal,
     pub user_role: Option<UserRole>,
@@ -257,6 +288,7 @@ pub struct User {
     pub updated_at: u64,
     pub updated_by: Principal,
 }
+impl_storable_for_candid_type!(User);
 
 impl Default for User {
     fn default() -> Self {
@@ -311,14 +343,14 @@ pub struct UserDetailsInput {
     pub detail_meta: Vec<Metadata>,
 }
 
-#[derive(CandidType, Deserialize)]
+#[derive(CandidType, Serialize, Deserialize, Debug, Clone)]
 pub enum UserResult {
-    #[serde(rename = "none")]
-    None,
     #[serde(rename = "user")]
     User(User),
+    #[serde(rename = "none")]
+    None,
     #[serde(rename = "error")]
-    Err(GenericError)
+    Error(ApiError)
 }
 
 #[derive(CandidType, Deserialize)]
@@ -331,11 +363,10 @@ pub struct ProductReview {
     pub created_at: u64,
 }
 
-#[derive(CandidType, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Reseller {
     pub id: Principal,
     pub org_id: Principal,
-    pub reseller_id: String,
     pub name: String,
     pub date_joined: u64,
     pub metadata: Vec<Metadata>,
@@ -346,13 +377,13 @@ pub struct Reseller {
     pub updated_at: u64,
     pub updated_by: Principal,
 }
+impl_storable_for_candid_type!(Reseller);
 
 impl Default for Reseller {
     fn default() -> Self {
         Reseller {
             id: Principal::anonymous(),
             org_id: Principal::anonymous(),
-            reseller_id: String::new(),
             name: String::new(),
             date_joined: api::time(),
             metadata: Vec::new(),
@@ -365,7 +396,6 @@ impl Default for Reseller {
         }
     }
 }
-
 
 #[derive(CandidType, Deserialize)]
 pub struct ResellerInput {
@@ -380,10 +410,10 @@ pub enum UniqueCodeResult {
     #[serde(rename = "unique_code")]
     UniqueCode(String),
     #[serde(rename = "error")]
-    Error(GenericError)
+    Error(ApiError)
 }
 
-#[derive(CandidType, Deserialize, PartialEq, Eq)]
+#[derive(CandidType, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub enum ProductVerificationStatus {
     FirstVerification,
     MultipleVerification,
@@ -395,13 +425,12 @@ pub enum ProductVerificationResult {
     #[serde(rename = "status")]
     Status(ProductVerificationStatus),
     #[serde(rename = "error")]
-    Error(GenericError),
+    Error(ApiError),
 }
 
-#[derive(CandidType, Deserialize, PartialEq, Eq)]
+#[derive(CandidType, Serialize, Deserialize, PartialEq, Eq)]
 pub enum VerificationStatus {
     Success,
-    MultipleVerification,
     Invalid
 }
 
@@ -417,7 +446,7 @@ pub enum ResellerVerificationResult {
     #[serde(rename = "result")]
     Result(ResellerVerificationResultRecord),
     #[serde(rename = "error")]
-    Error(GenericError),
+    Error(ApiError),
 }
 
 #[derive(CandidType, Deserialize)]
@@ -425,7 +454,7 @@ pub enum ProductSerialNumberResult {
     #[serde(rename = "result")]
     Result(ProductSerialNumber),
     #[serde(rename = "error")]
-    Error(GenericError),
+    Error(ApiError),
 }
 
 #[derive(CandidType, Deserialize)]
@@ -442,6 +471,6 @@ pub enum ProductUniqueCodeResult {
     #[serde(rename = "result")]
     Result(ProductUniqueCodeResultRecord),
     #[serde(rename = "error")]
-    Error(GenericError),
+    Error(ApiError),
 }
 

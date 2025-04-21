@@ -34,7 +34,7 @@ type OrganizationInput = record {
 
 type OrganizationResult = variant {
     organization: Organization;
-    error: GenericError;
+    error: ApiError;
 };
 
 type Product = record {
@@ -62,7 +62,7 @@ type ProductInput = record {
 type ProductResult = variant {
     none: null;
     product: Product;
-    error: GenericError;
+    error: ApiError;
 };
 
 type ProductSerialNumber = record {
@@ -112,15 +112,25 @@ type UserDetailsInput = record {
     detail_meta: vec Metadata;
 };
 
-type GenericError = record {
+type ErrorDetails = record {
     message: text;
     details: vec Metadata;
+};
+
+type ApiError = variant {
+    NotFound: record { details: ErrorDetails };
+    Unauthorized: record { details: ErrorDetails };
+    InvalidInput: record { details: ErrorDetails };
+    InternalError: record { details: ErrorDetails };
+    AlreadyExists: record { details: ErrorDetails };
+    MalformedData: record { details: ErrorDetails };
+    ExternalApiError: record { details: ErrorDetails };
 };
 
 type UserResult = variant {
     none: null;
     user: User;
-    error: GenericError;
+    error: ApiError;
 };
 
 type UserRole = variant {
@@ -152,12 +162,12 @@ type ResellerInput = record {
 
 type ProductSerialNumberResult = variant {
     result: ProductSerialNumber;
-    error: GenericError;
+    error: ApiError;
 };
 
 type UniqueCodeResult = variant {
     unique_code: text;
-    error: GenericError;
+    error: ApiError;
 };
 
 type ProductVerificationStatus = variant {
@@ -168,12 +178,12 @@ type ProductVerificationStatus = variant {
 
 type ProductVerificationResult = variant {
     status: ProductVerificationStatus;
-    error: GenericError;
+    error: ApiError;
 };
 
 type PrivateKeyResult = variant {
     key: text;
-    error: GenericError;
+    error: ApiError;
 };
 
 type VerificationStatus = variant {
@@ -189,7 +199,7 @@ type ResellerVerificationResultRecord = record {
 
 type ResellerVerificationResult = variant {
     result: ResellerVerificationResultRecord;
-    error: GenericError;
+    error: ApiError;
 };
 
 type ProductUniqueCodeResultRecord = record {
@@ -202,7 +212,7 @@ type ProductUniqueCodeResultRecord = record {
 
 type ProductUniqueCodeResult = variant {
     result: ProductUniqueCodeResultRecord;
-    error: GenericError;
+    error: ApiError;
 };
 
 service : {
