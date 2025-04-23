@@ -36,7 +36,7 @@ use crate::api::{
     UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate,
     VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo,
     GenerateResellerUniqueCodeRequest, ResellerUniqueCodeResponse, VerifyResellerRequest,
-    ResellerVerificationResponse, ResellerVerificationStatus
+    ResellerVerificationResponse, ResellerVerificationStatus, UserResponse
 };
 use crate::rate_limiter;
 use crate::rewards;
@@ -523,99 +523,108 @@ pub fn register_as_organization(input: OrganizationInput) -> UserResult {
 }
 
 #[update]
-pub fn register_as_reseller(input: ResellerInput) -> UserResult {
+pub fn register_as_reseller_v2(input: ResellerInput) -> ApiResponse<UserResponse> {
     let caller = api::caller();
-    let mut is_user_found = false;
-    let mut user_already_has_role = false;
-    let mut user_clone = User::default();
 
-    // Check if a user exists and its role
-    USERS.with(|users| {
-        if let Some(user) = users.borrow().get(&caller) {
-            is_user_found = true;
-            user_already_has_role = user.user_role.is_some();
-            user_clone = user.clone();
-        }
-    });
+    // --- 1. Input Validation ---
+    if input.name.trim().is_empty() {
+        return ApiResponse::error(ApiError::invalid_input("Reseller name cannot be empty"));
+    }
+    // TODO: Add validation for metadata/ecommerce_urls length/content if needed
 
-    if !is_user_found {
-        return UserResult::Error(ApiError::not_found("User not found"));
+    // --- 2. User Checks ---
+    let user_opt = USERS.with(|users| users.borrow().get(&caller));
+
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::not_found(&format!(
+            "User with principal {} not found. Please register first.",
+            caller
+        )));
     }
 
-    if user_already_has_role {
-        return UserResult::Error(ApiError::unauthorized("User already has assigned role"));
+    let user = user_opt.unwrap(); // Safe to unwrap due to check above
+
+    if user.user_role.is_some() {
+        return ApiResponse::error(ApiError::unauthorized(
+            "User already has an assigned role (e.g., BrandOwner or Admin)",
+        ));
     }
 
-    // Get organization information
-    let mut org_found = false;
-    let mut org_private_key = String::new();
+    // --- 3. Organization Checks ---
+    let org_opt = ORGANIZATIONS.with(|orgs| orgs.borrow().get(&input.org_id));
 
-    ORGANIZATIONS.with(|orgs| {
-        if let Some(org) = orgs.borrow().get(&input.org_id) {
-            org_found = true;
-            org_private_key = org.private_key.clone();
-        }
-    });
-
-    if !org_found {
-        return UserResult::Error(ApiError::not_found(&format!(
+    if org_opt.is_none() {
+        return ApiResponse::error(ApiError::not_found(&format!(
             "Organization with ID {} not found",
             input.org_id
         )));
     }
 
-    // Process private key
-    let private_key_bytes = match hex::decode(&org_private_key) {
+    let organization = org_opt.unwrap(); // Safe to unwrap
+
+    // --- 4. Key Processing ---
+    let private_key_bytes = match hex::decode(&organization.private_key) {
         Ok(bytes) => bytes,
-        Err(_) => {
-            return UserResult::Error(ApiError::internal_error(
-                "Malformed secret key for organization",
-            ))
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to decode private key for org {}: {}", organization.id, e));
+            return ApiResponse::error(ApiError::internal_error(
+                "Failed to process organization secret key",
+            ));
         }
     };
 
-    let private_key = match SecretKey::from_slice(&private_key_bytes.as_slice()) {
+    let private_key = match SecretKey::from_slice(&private_key_bytes) { // Note: Using SecretKey, assuming this is correct for Reseller key generation
         Ok(key) => key,
-        Err(_) => {
-            return UserResult::Error(ApiError::internal_error(
+        Err(e) => {
+             ic_cdk::print(format!("❌ ERROR: Failed to create secret key from slice for org {}: {}", organization.id, e));
+            return ApiResponse::error(ApiError::internal_error(
                 "Malformed secret key for organization",
-            ))
+            ));
         }
     };
-
+    
+    // Derive public key - assuming reseller needs its own keypair based on org's key?
+    // Or should the reseller use the org's public key directly?
+    // Let's stick to the previous logic: generate public key from org private key for now.
     let public_key = private_key.public_key();
+    let public_key_hex = hex::encode(public_key.to_encoded_point(false).as_bytes());
+
+    // --- 5. Reseller Creation ---
     let reseller_id = generate_unique_principal(Principal::anonymous());
 
-    // Create reseller
     let reseller = Reseller {
         id: reseller_id,
         org_id: input.org_id,
         name: input.name,
         ecommerce_urls: input.ecommerce_urls,
         metadata: input.metadata,
-        public_key: hex::encode(public_key.to_encoded_point(false).as_bytes()),
-        ..Default::default()
+        public_key: public_key_hex, // Storing derived public key
+        created_at: api::time(),
+        created_by: caller,
+        updated_at: api::time(),
+        updated_by: caller,
+        ..Default::default() // Ensure other fields like date_joined are handled
     };
 
-    // Update resellers collection
     RESELLERS.with(|resellers| {
         resellers.borrow_mut().insert(reseller_id, reseller);
     });
 
-    // Update a user with a reseller role
+    // --- 6. Update User Role ---
     let updated_user = User {
         user_role: Some(UserRole::Reseller),
+        org_ids: vec![input.org_id], // Associate user with this org
         updated_at: api::time(),
         updated_by: caller,
-        ..user_clone
+        ..user.clone()
     };
 
-    // Save the updated user
     USERS.with(|users| {
         users.borrow_mut().insert(caller, updated_user.clone());
     });
-
-    UserResult::User(updated_user)
+    
+    // --- 7. Success --- 
+    ApiResponse::success(UserResponse { user: updated_user })
 }
 
 #[update]
