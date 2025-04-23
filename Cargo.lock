@@ -7,6 +7,7 @@ name = "TrustOrigin_backend"
 version = "0.1.0"
 dependencies = [
  "candid",
+ "futures",
  "getrandom",
  "hex",
  "ic-cdk",

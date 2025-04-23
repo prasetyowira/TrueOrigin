@@ -24,3 +24,4 @@ rand = "0.8.5"
 hex = "0.4.3"
 k256 = "0.13.3"
 getrandom = { version = "0.2", features = ["custom"] }
+futures = "0.3"

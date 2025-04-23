@@ -18,6 +18,7 @@ use crate::{
         decode_product_serial_numbers, decode_product_verifications, encode_product_serial_numbers,
         encode_product_verifications, ORGANIZATIONS, PRODUCTS, PRODUCT_SERIAL_NUMBERS,
         PRODUCT_VERIFICATIONS, RESELLERS, USERS,
+        CONFIG_OPENAI_API_KEY, CONFIG_SCRAPER_URL, StorableString,
     },
     models::{ResellerVerificationResultRecord, VerificationStatus},
 };
@@ -30,16 +31,20 @@ use ic_cdk::api::management_canister::http_request::{
 use serde_json::{self, Value};
 use rand::prelude::StdRng;
 use k256::elliptic_curve::rand_core::SeedableRng;
+use ic_cdk_timers::set_timer;
+use std::time::Duration;
+use std::convert::TryInto;
 
 use crate::api::{
     ApiResponse, CreateOrganizationRequest, FindOrganizationsRequest, OrganizationResponse,
     UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate,
     VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo,
     GenerateResellerUniqueCodeRequest, ResellerUniqueCodeResponse, VerifyResellerRequest,
-    ResellerVerificationResponse, ResellerVerificationStatus, UserResponse
+    ResellerVerificationResponse, ResellerVerificationStatus, UserResponse, ProductResponse
 };
 use crate::rate_limiter;
 use crate::rewards;
+use crate::utils;
 
 #[query]
 pub fn get_organization_by_id(id: Principal) -> OrganizationResult {
@@ -762,28 +767,62 @@ pub fn update_user_orgs(id: Principal, org_ids: Vec<Principal>) -> UserResult {
         }
     })
 }
+
 const REVIEW_REFRESH_INTERVAL: u64 = 86400; // 24 hours in seconds
-const OPENAI_API_KEY: &str = "OPEN_AI_API_KEY";
 const OPENAI_HOST: &str = "api.openai.com";
 const GPT_MODEL: &str = "gpt-4o";
-
 const REQUEST_CYCLES: u64 = 230_949_972_000;
-
 const UNIQUE_CODE_EXPIRATION_SECONDS: u64 = 300; // 5 minutes
+const MAX_HTTP_RETRIES: u32 = 3;
+const RETRY_DELAY_SECONDS: u64 = 2;
 
 #[update]
-async fn generate_product_review(product_id: Principal) -> Result<Product, ApiError> {
-    let product = get_product(&product_id)?;
+async fn generate_product_review_v2(product_id: Principal) -> ApiResponse<ProductResponse> {
+    let product = match get_product(&product_id) {
+        Ok(p) => p,
+        Err(e) => return ApiResponse::error(e),
+    };
 
     if !should_generate_new_review(&product) {
-        return Ok(product);
+        ic_cdk::print(format!("ℹ️ Product review for {} is up-to-date. Skipping generation.", product_id));
+        // Return current product data if review is fresh
+        return ApiResponse::success(ProductResponse { product }); 
     }
+    
+    ic_cdk::print(format!("ℹ️ Generating new product review for {}.", product_id));
 
-    let review_summary = scrape_product_review(&product).await;
-    let sentiment_analysis = analyze_sentiment_with_openai(&review_summary).await?;
-    let updated_product = update_product_with_review(product, sentiment_analysis)?;
+    // Scrape Review Summary - Handle the Result
+    let review_summary_result = scrape_product_review(&product).await;
+    let review_summary = match review_summary_result {
+        Ok(summary) => summary,
+        Err(e) => {
+            ic_cdk::print(format!("⚠️ Failed to scrape review for {}: {:?}", product_id, e));
+            // Return the scraping error
+            return ApiResponse::error(e);
+        }
+    };
 
-    Ok(updated_product)
+    // Analyze Sentiment (already returns Result, handled below)
+    let sentiment_analysis_result = analyze_sentiment_with_openai(&review_summary).await;
+    let sentiment_analysis = match sentiment_analysis_result {
+        Ok(sentiment) => sentiment,
+        Err(e) => {
+            ic_cdk::print(format!("⚠️ Failed to analyze sentiment for {}: {:?}", product_id, e));
+            return ApiResponse::error(e); 
+        }
+    };
+
+    // Update Product with Review
+    match update_product_with_review(product, sentiment_analysis) {
+        Ok(updated_product) => {
+            ic_cdk::print(format!("✅ Successfully generated review for product {}.", product_id));
+            ApiResponse::success(ProductResponse { product: updated_product })
+        }
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to update product {} with review: {:?}", product_id, e));
+            ApiResponse::error(e)
+        }
+    }
 }
 
 fn get_product(product_id: &Principal) -> Result<Product, ApiError> {
@@ -809,26 +848,81 @@ fn should_generate_new_review(product: &Product) -> bool {
 }
 
 async fn analyze_sentiment_with_openai(review_text: &str) -> Result<String, ApiError> {
-    let request = create_openai_request(review_text)?;
+    let request = match create_openai_request(review_text) {
+        Ok(req) => req,
+        Err(e) => return Err(e),
+    };
 
-    match http_request(request, REQUEST_CYCLES as u128).await {
-        Ok((response,)) => {
-            let response_body = String::from_utf8(response.body)
-                .map_err(|_| ApiError::external_api_error("Invalid UTF-8 in response"))?;
+    let mut attempts = 0;
+    loop {
+        attempts += 1;
+        ic_cdk::print(format!("ℹ️ Attempt {} analyzing sentiment with OpenAI.", attempts));
 
-            let parsed: Value = serde_json::from_str(&response_body)
-                .map_err(|_| ApiError::external_api_error("Invalid JSON response"))?;
+        // Cast REQUEST_CYCLES to u128
+        match http_request(request.clone(), REQUEST_CYCLES as u128).await {
+            Ok((response,)) => {
+                // Clone status for potential logging before moving its inner value
+                let original_status = response.status.clone();
+                // Convert Nat status to u64 for comparison
+                let status_code: u64 = match response.status.0.try_into() {
+                    Ok(code) => code,
+                    Err(_) => {
+                        // Use the cloned status for logging
+                        ic_cdk::print(format!("❌ ERROR: Invalid status code received from OpenAI: {}", original_status));
+                        return Err(ApiError::external_api_error("Invalid status code received"));
+                    }
+                };
 
-            Ok(parsed["choices"][0]["message"]["content"]
-                .as_str()
-                .unwrap_or_default()
-                .to_string())
-        }
-        Err((code, message)) => {
-            ic_cdk::print(format!("OpenAI API error: {code:?} - {message}"));
-            Err(ApiError::external_api_error(
-                "Failed to get sentiment analysis",
-            ))
+                if status_code >= 200 && status_code < 300 {
+                    let response_body = String::from_utf8(response.body).map_err(|e| {
+                        ic_cdk::print(format!("❌ ERROR: Invalid UTF-8 in OpenAI response: {:?}", e));
+                        ApiError::external_api_error("Invalid UTF-8 in OpenAI response")
+                    })?;
+
+                    let parsed: Value = serde_json::from_str(&response_body).map_err(|e| {
+                        ic_cdk::print(format!("❌ ERROR: Invalid JSON in OpenAI response: {:?}, Body: {}", e, response_body));
+                        ApiError::external_api_error("Invalid JSON response from OpenAI")
+                    })?;
+
+                    // Extract the content
+                    return Ok(parsed["choices"][0]["message"]["content"]
+                        .as_str()
+                        .unwrap_or_default()
+                        .to_string());
+                } else {
+                    let error_message = format!(
+                        "OpenAI API returned status {}: {}",
+                        status_code, // Use converted status code
+                        String::from_utf8_lossy(&response.body)
+                    );
+                    ic_cdk::print(format!("❌ ERROR: {}", error_message));
+
+                    // Treat server-side errors (5xx) as potentially retryable
+                    if status_code >= 500 && attempts < MAX_HTTP_RETRIES {
+                        ic_cdk::print(format!("⏱️ Retrying analyze_sentiment after delay..."));
+                        utils::async_delay(Duration::from_secs(RETRY_DELAY_SECONDS * attempts as u64)).await;
+                        continue; // Retry the loop
+                    }
+                    // For non-retryable errors or max retries reached
+                    return Err(ApiError::external_api_error(&error_message));
+                }
+            }
+            Err((rejection_code, message)) => {
+                 let error_message = format!(
+                    "HTTP request to OpenAI failed. RejectionCode: {:?}, Error: {}",
+                    rejection_code, message
+                );
+                ic_cdk::print(format!("❌ ERROR: {}", error_message));
+
+                 // Retry on most errors up to the limit
+                if attempts < MAX_HTTP_RETRIES {
+                    ic_cdk::print(format!("⏱️ Retrying analyze_sentiment after rejection delay..."));
+                    utils::async_delay(Duration::from_secs(RETRY_DELAY_SECONDS * attempts as u64)).await;
+                    continue; // Retry the loop
+                }
+                // Max retries reached
+                return Err(ApiError::external_api_error(&error_message));
+            }
         }
     }
 }
@@ -864,6 +958,33 @@ fn create_openai_request(review_text: &str) -> Result<CanisterHttpRequestArgumen
 }
 
 fn create_request_headers() -> Vec<HttpHeader> {
+    // Read StorableString from stable storage
+    let api_key_storable = CONFIG_OPENAI_API_KEY.with(|cell| cell.borrow().get().clone());
+    let api_key = &api_key_storable.0; // Get reference to inner String
+    
+    if api_key.is_empty() {
+        ic_cdk::print("⚠️ WARNING: OpenAI API Key is not configured.");
+        // Return headers without Authorization if key is missing
+        return vec![
+            HttpHeader {
+                name: "Host".to_string(),
+                value: format!("{OPENAI_HOST}:443"),
+            },
+            HttpHeader {
+                name: "User-Agent".to_string(),
+                value: "exchange_rate_canister".to_string(), // Consider making this configurable too
+            },
+            HttpHeader {
+                name: "Content-Type".to_string(),
+                value: "application/json".to_string(),
+            },
+            HttpHeader {
+                name: "Idempotency-Key".to_string(),
+                value: generate_unique_principal(Principal::anonymous()).to_string(),
+            },
+        ];
+    }
+
     vec![
         HttpHeader {
             name: "Host".to_string(),
@@ -879,7 +1000,7 @@ fn create_request_headers() -> Vec<HttpHeader> {
         },
         HttpHeader {
             name: "Authorization".to_string(),
-            value: format!("Bearer {OPENAI_API_KEY}"),
+            value: format!("Bearer {}", api_key), // Use the inner string
         },
         HttpHeader {
             name: "Idempotency-Key".to_string(),
@@ -911,27 +1032,28 @@ fn update_product_with_review(
     Ok(product)
 }
 
-async fn scrape_product_review(product: &Product) -> String {
-    // let product_url = product.metadata.iter().find(|v| v.key == "ecommerce_url").map(|v| v.value.clone()).unwrap_or_default();
+async fn scrape_product_review(product: &Product) -> Result<String, ApiError> {
+    // Read StorableString from stable storage
+    let base_scraper_url_storable = CONFIG_SCRAPER_URL.with(|cell| cell.borrow().get().clone());
+    let base_scraper_url = &base_scraper_url_storable.0; // Get reference to inner String
 
-    // let json_data = format!(r#"
-    // {{
-    //     "url": "{}",
-    //     "product_id: "{}"
-    // }}
-    // "#, product_url, product.id);
+    if base_scraper_url.is_empty() {
+        ic_cdk::print("⚠️ WARNING: Scraper URL is not configured.");
+        return Err(ApiError::internal_error("Scraper service URL not configured"));
+    }
 
-    // let json_utf8: Vec<u8> = json_data.as_bytes().to_vec(); // Convert JSON string to Vec<u8>
-    // let request_body: Option<Vec<u8>> = Some(json_utf8);
+    // Use the inner string to format the URL
+    let url = format!(
+        "{}/product-review?id={}",
+        base_scraper_url,
+        product.id.to_string()
+    );
 
     let request = CanisterHttpRequestArgument {
-        url: format!(
-            "https://3a31-114-122-138-100.ngrok-free.app/product-review?id={}",
-            product.id.to_string()
-        ),
+        url: url.clone(), // Clone url for potential retries
         method: HttpMethod::GET,
         body: None,
-        max_response_bytes: None,
+        max_response_bytes: None, // Consider setting a limit
         transform: Some(TransformContext {
             function: TransformFunc(candid::Func {
                 principal: api::id(),
@@ -942,21 +1064,66 @@ async fn scrape_product_review(product: &Product) -> String {
         headers: vec![],
     };
 
-    let cycles = 230_949_972_000;
+    let mut attempts = 0;
+    loop {
+        attempts += 1;
+        ic_cdk::print(format!("ℹ️ Attempt {} scraping review from: {}", attempts, request.url));
 
-    match http_request(request, cycles).await {
-        Ok((response,)) => {
-            let response_body = String::from_utf8(response.body).unwrap_or_default(); // Convert Vec<u8> to String
-            response_body
-        }
+        // Cast REQUEST_CYCLES to u128
+        match http_request(request.clone(), REQUEST_CYCLES as u128).await {
+            Ok((response,)) => {
+                // Clone status for potential logging before moving its inner value
+                let original_status = response.status.clone();
+                // Convert Nat status to u64 for comparison
+                let status_code: u64 = match response.status.0.try_into() {
+                    Ok(code) => code,
+                    Err(_) => {
+                        // Use the cloned status for logging
+                        ic_cdk::print(format!("❌ ERROR: Invalid status code received from scraper: {}", original_status));
+                        return Err(ApiError::external_api_error("Invalid status code received"));
+                    }
+                };
 
-        Err((r, m)) => {
-            let message =
-                format!("The http_request resulted into error. RejectionCode: {r:?}, Error: {m}");
+                if status_code >= 200 && status_code < 300 {
+                    return String::from_utf8(response.body).map_err(|e| {
+                        ic_cdk::print(format!("❌ ERROR: Failed to decode scraper response body: {:?}", e));
+                        ApiError::external_api_error("Failed to decode scraper response")
+                    });
+                } else {
+                    let error_message = format!(
+                        "Scraper service returned status {}: {}",
+                        status_code, // Use converted status code
+                        String::from_utf8_lossy(&response.body)
+                    );
+                    ic_cdk::print(format!("❌ ERROR: {}", error_message));
 
-            ic_cdk::print(message);
+                    // Treat server-side errors (5xx) as potentially retryable
+                    if status_code >= 500 && attempts < MAX_HTTP_RETRIES {
+                        ic_cdk::print(format!("⏱️ Retrying scrape_product_review after delay..."));
+                        utils::async_delay(Duration::from_secs(RETRY_DELAY_SECONDS * attempts as u64)).await;
+                        continue; // Retry the loop
+                    }
+                    // For non-retryable errors or max retries reached
+                    return Err(ApiError::external_api_error(&error_message));
+                }
+            }
+            Err((rejection_code, message)) => {
+                let error_message = format!(
+                    "HTTP request to scraper failed. RejectionCode: {:?}, Error: {}",
+                    rejection_code, message
+                );
+                ic_cdk::print(format!("❌ ERROR: {}", error_message));
 
-            "No product review!".to_string()
+                // Retry on specific rejection codes if desired (e.g., network errors)
+                // For now, let's retry on most errors up to the limit
+                if attempts < MAX_HTTP_RETRIES {
+                    ic_cdk::print(format!("⏱️ Retrying scrape_product_review after rejection delay..."));
+                    utils::async_delay(Duration::from_secs(RETRY_DELAY_SECONDS * attempts as u64)).await;
+                    continue; // Retry the loop
+                }
+                // Max retries reached
+                return Err(ApiError::external_api_error(&error_message));
+            }
         }
     }
 }
@@ -1917,4 +2084,73 @@ pub fn update_organization_v2(request: UpdateOrganizationRequest) -> ApiResponse
             ))),
         }
     })
+}
+
+// ===== Configuration Endpoints (Admin Only) =====
+
+#[update]
+pub fn set_openai_api_key(key: String) -> ApiResponse<()> {
+    // Ensure caller is admin
+    if let Err(e) = ensure_admin(api::caller()) {
+        return ApiResponse::error(e);
+    }
+    
+    if key.trim().is_empty() {
+        return ApiResponse::error(ApiError::invalid_input("OpenAI API key cannot be empty"));
+    }
+
+    // Wrap the String in StorableString before setting
+    match CONFIG_OPENAI_API_KEY.with(|cell| cell.borrow_mut().set(StorableString(key))) {
+        Ok(_) => ApiResponse::success(()),
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to set OpenAI API Key: {:?}", e));
+            ApiResponse::error(ApiError::internal_error("Failed to update configuration"))
+        }
+    }
+}
+
+#[query]
+pub fn get_openai_api_key() -> ApiResponse<String> {
+    // Ensure caller is admin
+    if let Err(e) = ensure_admin(api::caller()) {
+        return ApiResponse::error(e);
+    }
+
+    // Get the StorableString, access the inner String with .0, then clone it
+    let storable_string = CONFIG_OPENAI_API_KEY.with(|cell| cell.borrow().get().clone());
+    ApiResponse::success(storable_string.0) // Return the inner String
+}
+
+#[update]
+pub fn set_scraper_url(url: String) -> ApiResponse<()> {
+    // Ensure caller is admin
+    if let Err(e) = ensure_admin(api::caller()) {
+        return ApiResponse::error(e);
+    }
+    
+    if url.trim().is_empty() {
+        return ApiResponse::error(ApiError::invalid_input("Scraper URL cannot be empty"));
+    }
+    // Basic URL validation might be added here (e.g., check for http/https)
+
+    // Wrap the String in StorableString before setting
+    match CONFIG_SCRAPER_URL.with(|cell| cell.borrow_mut().set(StorableString(url))) {
+        Ok(_) => ApiResponse::success(()),
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to set Scraper URL: {:?}", e));
+            ApiResponse::error(ApiError::internal_error("Failed to update configuration"))
+        }
+    }
+}
+
+#[query]
+pub fn get_scraper_url() -> ApiResponse<String> {
+    // Ensure caller is admin
+    if let Err(e) = ensure_admin(api::caller()) {
+        return ApiResponse::error(e);
+    }
+
+    // Get the StorableString, access the inner String with .0, then clone it
+    let storable_string = CONFIG_SCRAPER_URL.with(|cell| cell.borrow().get().clone());
+    ApiResponse::success(storable_string.0) // Return the inner String
 }

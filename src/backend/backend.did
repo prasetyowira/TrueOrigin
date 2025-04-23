@@ -335,6 +335,10 @@ type ResellerVerificationResponse = record {
     reseller: opt Reseller;
 };
 
+type ProductResponse = record {
+    product: Product;
+};
+
 service : {
     "get_organization_by_id": (id: principal) -> (OrganizationPublic) query;
     "create_organization": (input: OrganizationInput) -> (OrganizationPublic);
@@ -384,4 +388,13 @@ service : {
 
     // New User Service v2 Endpoints
     "register_as_reseller_v2": (request: ResellerInput) -> (ApiResponse<UserResponse>);
+
+    // --- Configuration Endpoints (Admin Only) ---
+    "set_openai_api_key": (text) -> (ApiResponse<()>);
+    "get_openai_api_key": () -> (ApiResponse<String>) query;
+    "set_scraper_url": (text) -> (ApiResponse<()>);
+    "get_scraper_url": () -> (ApiResponse<String>) query;
+
+    // --- Product Service Endpoints ---
+    "generate_product_review_v2": (product_id: principal) -> (ApiResponse<ProductResponse>);
 };

@@ -1,7 +1,7 @@
 use candid::{encode_one, decode_one, Principal, CandidType, Deserialize};
 use ic_cdk::{init, post_upgrade};
 use ic_stable_structures::memory_manager::{MemoryId, MemoryManager, VirtualMemory};
-use ic_stable_structures::{storable::Bound, DefaultMemoryImpl, StableBTreeMap, Storable};
+use ic_stable_structures::{storable::Bound, DefaultMemoryImpl, StableBTreeMap, StableCell, Storable};
 use rand::rngs::StdRng;
 use rand::{RngCore, SeedableRng};
 use getrandom::register_custom_getrandom;
@@ -18,6 +18,9 @@ const USER_MEM_ID: MemoryId = MemoryId::new(2);
 const RESELLER_MEM_ID: MemoryId = MemoryId::new(3);
 const PRODUCT_SERIAL_NUMBER_MEM_ID: MemoryId = MemoryId::new(4);
 const PRODUCT_VERIFICATION_MEM_ID: MemoryId = MemoryId::new(5);
+// Reserve IDs 6, 7, 8, 9 for rate_limiter and rewards
+const CONFIG_OPENAI_KEY_MEM_ID: MemoryId = MemoryId::new(10);
+const CONFIG_SCRAPER_URL_MEM_ID: MemoryId = MemoryId::new(11);
 
 // Type aliases for memory and stable structures
 type Memory = VirtualMemory<DefaultMemoryImpl>;
@@ -36,6 +39,24 @@ impl Storable for StorableBytes {
     }
 
     const BOUND: Bound = Bound::Unbounded;
+}
+
+// Newtype wrapper for String to implement Storable
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, PartialOrd, Ord)]
+pub struct StorableString(pub String);
+
+impl Storable for StorableString {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        // Borrow the inner string's bytes
+        Cow::Borrowed(self.0.as_bytes())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        // Convert bytes back to String and wrap
+        StorableString(String::from_utf8(bytes.into_owned()).expect("Invalid UTF-8 for String"))
+    }
+
+    const BOUND: Bound = Bound::Unbounded; // Assuming unbounded for simplicity
 }
 
 thread_local! {
@@ -66,6 +87,16 @@ thread_local! {
 
     pub static PRODUCT_VERIFICATIONS: RefCell<StableBTreeMap<Principal, StorableBytes, Memory>> = RefCell::new(
         StableBTreeMap::init(MEMORY_MANAGER.with(|m| m.borrow().get(PRODUCT_VERIFICATION_MEM_ID)))
+    );
+
+    // Configuration StableCells - Use StorableString instead of String
+    pub static CONFIG_OPENAI_API_KEY: RefCell<StableCell<StorableString, Memory>> = RefCell::new(
+        StableCell::init(MEMORY_MANAGER.with(|m| m.borrow().get(CONFIG_OPENAI_KEY_MEM_ID)), StorableString::default()) // Use default StorableString
+            .expect("Failed to initialize OpenAI key config cell")
+    );
+    pub static CONFIG_SCRAPER_URL: RefCell<StableCell<StorableString, Memory>> = RefCell::new(
+        StableCell::init(MEMORY_MANAGER.with(|m| m.borrow().get(CONFIG_SCRAPER_URL_MEM_ID)), StorableString::default()) // Use default StorableString
+            .expect("Failed to initialize scraper URL config cell")
     );
 }
 
