@@ -215,6 +215,59 @@ type ProductUniqueCodeResult = variant {
     error: ApiError;
 };
 
+// New API structures
+type ResponseMetadata = record {
+    timestamp: nat64;
+    version: text;
+    request_id: opt text;
+};
+
+type PaginationRequest = record {
+    page: opt nat32;
+    limit: opt nat32;
+};
+
+type PaginationResponse = record {
+    page: nat32;
+    limit: nat32;
+    total: nat64;
+    has_more: bool;
+};
+
+type ApiResponse<T> = record {
+    data: opt T;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+// Organization API structures
+type CreateOrganizationRequest = record {
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+};
+
+type OrganizationResponse = record {
+    organization: OrganizationPublic;
+};
+
+type UpdateOrganizationRequest = record {
+    id: principal;
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+};
+
+type FindOrganizationsRequest = record {
+    name: text;
+    pagination: opt PaginationRequest;
+};
+
+type OrganizationsListResponse = record {
+    organizations: vec OrganizationPublic;
+    pagination: opt PaginationResponse;
+};
+
 service : {
     "get_organization_by_id": (id: principal) -> (OrganizationPublic) query;
     "create_organization": (input: OrganizationInput) -> (OrganizationPublic);
@@ -247,4 +300,10 @@ service : {
     "verify_product": (product_id: principal, serial_no: principal, print_version: nat8, unique_code: text, metadata: vec Metadata) -> (ProductVerificationResult);
     "list_product_verifications": (organization_id: opt principal, product_id: opt principal, serial_number: opt principal) -> (vec ProductVerification) query;
     "list_product_verifications_by_user": (user_id: principal, organization_id: opt principal) -> (vec ProductVerification) query;
+    
+    // New API v2 endpoints
+    "get_organization_by_id_v2": (id: principal) -> (ApiResponse<OrganizationResponse>) query;
+    "create_organization_v2": (request: CreateOrganizationRequest) -> (ApiResponse<OrganizationResponse>);
+    "update_organization_v2": (request: UpdateOrganizationRequest) -> (ApiResponse<OrganizationResponse>);
+    "list_organizations_v2": (request: FindOrganizationsRequest) -> (ApiResponse<OrganizationsListResponse>);
 };

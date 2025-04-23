@@ -31,6 +31,11 @@ use serde_json::{self, Value};
 use rand::prelude::StdRng;
 use k256::elliptic_curve::rand_core::SeedableRng;
 
+use crate::api::{
+    ApiResponse, CreateOrganizationRequest, FindOrganizationsRequest, OrganizationResponse,
+    UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate
+};
+
 #[query]
 pub fn get_organization_by_id(id: Principal) -> OrganizationResult {
     // Check for permission to read organization
@@ -55,6 +60,40 @@ pub fn get_organization_by_id(id: Principal) -> OrganizationResult {
     ORGANIZATIONS.with(|orgs| match orgs.borrow().get(&id) {
         Some(org) => OrganizationResult::Organization(OrganizationPublic::from(org.clone())),
         None => OrganizationResult::Error(ApiError::not_found(&format!(
+            "Organization with ID {} not found",
+            id
+        ))),
+    })
+}
+
+#[query]
+pub fn get_organization_by_id_v2(id: Principal) -> ApiResponse<OrganizationResponse> {
+    // Check for permission to read organization
+    let user_id = ic_cdk::caller();
+    let user_opt = USERS.with(|users| users.borrow().get(&user_id));
+
+    // If user exists and has a role, check permissions
+    if let Some(user) = user_opt {
+        if let Some(role) = &user.user_role {
+            // Check if user belongs to this organization or is an admin
+            if !user.org_ids.contains(&id) && !matches!(role, UserRole::Admin) {
+                return ApiResponse::error(ApiError::unauthorized(
+                    "User does not have access to this organization",
+                ));
+            }
+        } else {
+            // If user has no role, they can't access organizations
+            return ApiResponse::error(ApiError::unauthorized("User has no role assigned"));
+        }
+    } else {
+        return ApiResponse::error(ApiError::unauthorized("User not found"));
+    }
+
+    ORGANIZATIONS.with(|orgs| match orgs.borrow().get(&id) {
+        Some(org) => ApiResponse::success(OrganizationResponse {
+            organization: OrganizationPublic::from(org.clone()),
+        }),
+        None => ApiResponse::error(ApiError::not_found(&format!(
             "Organization with ID {} not found",
             id
         ))),
@@ -1771,4 +1810,171 @@ pub fn list_product_verifications_by_user(
     }
 
     filtered_verifications
+}
+
+#[update]
+pub fn list_organizations_v2(request: FindOrganizationsRequest) -> ApiResponse<OrganizationsListResponse> {
+    let filter = request.name.trim().to_lowercase();
+    let caller = api::caller();
+
+    // Get user to check role and permissions
+    let user_opt = USERS.with(|users| users.borrow().get(&caller));
+
+    // Check if user exists
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User not found"));
+    }
+
+    let user = user_opt.unwrap();
+
+    // Check if user has a role
+    if user.user_role.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User has no role assigned"));
+    }
+
+    let role = user.user_role.unwrap();
+
+    ORGANIZATIONS.with(|orgs| {
+        let orgs_borrow = orgs.borrow();
+        
+        // Filter organizations based on name and user's permissions
+        let filtered_orgs: Vec<OrganizationPublic> = if matches!(role, UserRole::Admin) {
+            // Admin can see all organizations matching the filter
+            orgs_borrow
+                .iter()
+                .filter(|(_, org)| org.name.to_lowercase().contains(&filter))
+                .map(|(_, org)| OrganizationPublic::from(org.clone()))
+                .collect()
+        } else {
+            // Non-admin users can only see organizations they belong to
+            orgs_borrow
+                .iter()
+                .filter(|(org_id, org)| {
+                    org.name.to_lowercase().contains(&filter) && user.org_ids.contains(org_id)
+                })
+                .map(|(_, org)| OrganizationPublic::from(org.clone()))
+                .collect()
+        };
+        
+        // Apply pagination if requested
+        let pagination_request = request.pagination.unwrap_or_default();
+        let (paginated_orgs, pagination) = paginate(filtered_orgs, &pagination_request);
+        
+        // Create the response
+        let response = OrganizationsListResponse {
+            organizations: paginated_orgs,
+            pagination: Some(pagination),
+        };
+        
+        ApiResponse::success(response)
+    })
+}
+
+#[update]
+pub fn create_organization_v2(request: CreateOrganizationRequest) -> ApiResponse<OrganizationResponse> {
+    // Input validation
+    if request.name.trim().is_empty() {
+        return ApiResponse::error(ApiError::invalid_input("Organization name cannot be empty"));
+    }
+
+    // For creation, we don't need to check existing permissions since this creates a brand new org
+    // However, we should check if the user has a registered account at minimum
+    let caller = api::caller();
+    let user_exists = USERS.with(|users| users.borrow().get(&caller).is_some());
+
+    if !user_exists {
+        // Register the user automatically
+        let register_result = register();
+        if register_result.id == Principal::anonymous() {
+            return ApiResponse::error(ApiError::internal_error("Failed to register user automatically"));
+        }
+    }
+
+    let id = generate_unique_principal(Principal::anonymous()); // Generate a unique ID for the organization
+    
+    // Generate ECDSA keys for demonstration
+    let mut rng = StdRng::from_entropy();
+    let signing_key = SigningKey::random(&mut rng);
+    
+    let organization = Organization {
+        id,
+        name: request.name,
+        private_key: hex::encode(&signing_key.to_bytes()),
+        description: request.description,
+        metadata: request.metadata,
+        created_at: api::time(),
+        created_by: caller,
+        updated_at: api::time(),
+        updated_by: caller,
+    };
+
+    ORGANIZATIONS.with(|orgs| {
+        orgs.borrow_mut().insert(id, organization.clone());
+    });
+
+    // Add the organization to the user's organizations
+    let add_org_to_user_result = USERS.with(|users| {
+        let mut users_mut = users.borrow_mut();
+        match users_mut.get(&caller) {
+            Some(user) => {
+                let mut updated_user = user.clone();
+                updated_user.org_ids.push(id);
+                updated_user.updated_at = api::time();
+                users_mut.insert(caller, updated_user);
+                true
+            }
+            None => false,
+        }
+    });
+
+    if !add_org_to_user_result {
+        // This is unlikely but handle it anyway
+        return ApiResponse::error(ApiError::internal_error("Failed to add organization to user"));
+    }
+
+    ApiResponse::success(OrganizationResponse {
+        organization: OrganizationPublic::from(organization),
+    })
+}
+
+#[update]
+pub fn update_organization_v2(request: UpdateOrganizationRequest) -> ApiResponse<OrganizationResponse> {
+    // Input validation
+    if request.name.trim().is_empty() {
+        return ApiResponse::error(ApiError::invalid_input("Organization name cannot be empty"));
+    }
+
+    // Check that user has write permission for this organization
+    let result = authorize_for_organization(ic_cdk::caller(), request.id, Permission::WriteOrganization);
+    if result.is_err() {
+        return ApiResponse::error(result.err().unwrap());
+    }
+
+    ORGANIZATIONS.with(|orgs| {
+        let mut orgs_mut = orgs.borrow_mut();
+        match orgs_mut.get(&request.id) {
+            Some(org) => {
+                // Create a new organization with updated fields
+                let updated_org = Organization {
+                    name: request.name,
+                    description: request.description,
+                    metadata: request.metadata,
+                    updated_at: api::time(),
+                    updated_by: api::caller(),
+                    ..org.clone()
+                };
+
+                // Insert the updated organization
+                orgs_mut.insert(request.id, updated_org.clone());
+
+                ApiResponse::success(OrganizationResponse {
+                    organization: OrganizationPublic::from(updated_org),
+                })
+            }
+            None => ApiResponse::error(ApiError::not_found(&format!(
+                "Organization with ID {} not found",
+                request.id
+            ))),
+        }
+    })
 }
