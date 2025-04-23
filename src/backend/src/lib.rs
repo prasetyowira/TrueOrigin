@@ -5,3 +5,5 @@ pub mod icp;
 pub mod error;
 pub mod auth;
 pub mod api;
+pub mod rate_limiter;
+pub mod rewards;

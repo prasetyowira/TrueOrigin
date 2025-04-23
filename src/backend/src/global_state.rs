@@ -41,7 +41,7 @@ impl Storable for StorableBytes {
 thread_local! {
     static RNG: RefCell<Option<StdRng>> = RefCell::new(None);
 
-    static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
+    pub static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
         RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
 
     pub static ORGANIZATIONS: RefCell<StableBTreeMap<Principal, Organization, Memory>> = RefCell::new(

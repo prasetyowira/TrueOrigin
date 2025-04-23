@@ -3,7 +3,7 @@ use ic_cdk::api;
 use serde::Serialize;
 
 use crate::error::{ApiError, ErrorDetails};
-use crate::models::{Metadata, Organization, OrganizationPublic, Product, ProductSerialNumber, ProductVerification, Reseller, User};
+use crate::models::{Metadata, Organization, OrganizationPublic, Product, ProductSerialNumber, ProductVerification, Reseller, User, ProductVerificationStatus};
 
 // ====== Common API Structures ======
 
@@ -200,6 +200,53 @@ pub struct ListProductVerificationsRequest {
 pub struct ProductVerificationsListResponse {
     pub verifications: Vec<ProductVerification>,
     pub pagination: Option<PaginationResponse>,
+}
+
+// ===== Product Verification Enhanced API Structures =====
+
+#[derive(CandidType, Deserialize)]
+pub struct VerifyProductEnhancedRequest {
+    pub product_id: Principal,
+    pub serial_no: Principal,
+    pub print_version: u8,
+    pub unique_code: String,
+    pub metadata: Vec<Metadata>,
+    pub timestamp: Option<u64>,  // Client timestamp for replay attack prevention
+    pub nonce: Option<String>,   // Optional nonce for additional security
+}
+
+#[derive(CandidType, Serialize, Deserialize)]
+pub struct ProductVerificationEnhancedResponse {
+    pub status: ProductVerificationStatus,
+    pub verification: Option<ProductVerification>,
+    pub rewards: Option<VerificationRewards>,
+    pub expiration: Option<u64>,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct VerificationRewards {
+    pub points: u32,
+    pub is_first_verification: bool,
+    pub special_reward: Option<String>,
+    pub reward_description: Option<String>,
+}
+
+// ===== Rate Limiting Structures =====
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct RateLimitInfo {
+    pub remaining_attempts: u32,
+    pub reset_time: u64,
+    pub current_window_start: u64,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct VerificationAttempt {
+    pub user_id: Principal,
+    pub product_id: Principal,
+    pub serial_no: Principal,
+    pub timestamp: u64,
+    pub success: bool,
 }
 
 // ===== User API Structures =====

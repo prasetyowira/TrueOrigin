@@ -33,8 +33,11 @@ use k256::elliptic_curve::rand_core::SeedableRng;
 
 use crate::api::{
     ApiResponse, CreateOrganizationRequest, FindOrganizationsRequest, OrganizationResponse,
-    UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate
+    UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate,
+    VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo
 };
+use crate::rate_limiter;
+use crate::rewards;
 
 #[query]
 pub fn get_organization_by_id(id: Principal) -> OrganizationResult {
@@ -1493,323 +1496,201 @@ pub fn print_product_serial_number(
 }
 
 #[update]
-pub fn verify_product(
-    product_id: Principal,
-    serial_no: Principal,
-    print_version: u8,
-    unique_code: String,
-    metadata: Vec<Metadata>,
-) -> ProductVerificationResult {
-    // Check if the product exists
-    let mut product_opt = None;
-
-    PRODUCTS.with(|products| {
-        let products_ref = products.borrow();
-        match products_ref.get(&product_id) {
-            Some(product) => product_opt = Some(product.clone()),
-            None => product_opt = None,
-        }
-    });
-
-    if product_opt.is_none() {
-        return ProductVerificationResult::Error(ApiError::not_found("Product is invalid"));
+pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<ProductVerificationEnhancedResponse> {
+    let caller = api::caller();
+    
+    // Check for rate limiting
+    let rate_limit_result = rate_limiter::record_verification_attempt(caller, request.product_id);
+    if let Err(error) = rate_limit_result {
+        return ApiResponse::error(error);
     }
-
+    
+    // Check if the product exists
+    let product_opt = PRODUCTS.with(|products| products.borrow().get(&request.product_id).map(|p| p.clone()));
+    
+    if product_opt.is_none() {
+        return ApiResponse::error(ApiError::not_found("Product is invalid"));
+    }
+    
     let product = product_opt.unwrap();
 
-    // Check if the product has serial numbers
+    // Check for serial number
     let mut has_serial_numbers = false;
     let mut product_sn_opt = None;
 
     PRODUCT_SERIAL_NUMBERS.with(|serial_numbers| {
-        if let Some(serialized_sn_vec) = serial_numbers.borrow().get(&product_id) {
+        if let Some(serialized_sn_vec) = serial_numbers.borrow().get(&request.product_id) {
             has_serial_numbers = true;
             let product_sn_vec = decode_product_serial_numbers(&serialized_sn_vec);
             product_sn_opt = product_sn_vec
                 .iter()
-                .find(|p_sn| p_sn.serial_no == serial_no)
+                .find(|p_sn| p_sn.serial_no == request.serial_no)
                 .cloned();
         }
     });
 
     if !has_serial_numbers {
-        return ProductVerificationResult::Error(ApiError::not_found(
-            "Product has no such serial number",
-        ));
+        return ApiResponse::error(ApiError::not_found("Product has no serial numbers registered"));
     }
 
     if product_sn_opt.is_none() {
-        return ProductVerificationResult::Error(ApiError::not_found("Serial number is not found"));
+        return ApiResponse::error(ApiError::not_found("Serial number not found for this product"));
     }
 
     let product_sn = product_sn_opt.unwrap();
 
-    if product_sn.print_version != print_version {
-        return ProductVerificationResult::Error(ApiError::invalid_input("Unique code expired"));
+    // Check if the print version is correct/current
+    if product_sn.print_version != request.print_version {
+        return ApiResponse::error(ApiError::invalid_input("Unique code expired"));
+    }
+    
+    // Replay attack prevention - check timestamp if provided
+    if let Some(client_timestamp) = request.timestamp {
+        let current_time = api::time();
+        let time_diff = if current_time > client_timestamp {
+            current_time - client_timestamp
+        } else {
+            client_timestamp - current_time
+        };
+        
+        // If timestamp is more than 5 minutes off, reject as potential replay attack
+        if time_diff > 300 {  // 5 minutes in seconds
+            return ApiResponse::error(ApiError::invalid_input("Request timestamp too old or future dated"));
+        }
     }
 
     // Deserialize public key
     let public_key_bytes = match hex::decode(&product.public_key) {
         Ok(bytes) => bytes,
         Err(_) => {
-            return ProductVerificationResult::Error(ApiError::internal_error(
-                "Malformed public key",
-            ))
+            return ApiResponse::error(ApiError::internal_error("Malformed public key"));
         }
     };
 
     let public_key_encoded_point = match EncodedPoint::from_bytes(public_key_bytes) {
         Ok(point) => point,
         Err(_) => {
-            return ProductVerificationResult::Error(ApiError::internal_error(
-                "Malformed public key",
-            ))
+            return ApiResponse::error(ApiError::internal_error("Malformed public key"));
         }
     };
 
     let public_key = match VerifyingKey::from_encoded_point(&public_key_encoded_point) {
         Ok(key) => key,
         Err(_) => {
-            return ProductVerificationResult::Error(ApiError::internal_error(
-                "Malformed public key",
-            ))
+            return ApiResponse::error(ApiError::internal_error("Malformed public key"));
         }
     };
 
-    // Check unique code
+    // Create message to verify, including nonce if provided
+    let nonce_suffix = request.nonce.as_deref().unwrap_or("");
     let msg = format!(
-        "{}_{}_{}",
-        product_id.to_string(),
-        serial_no.to_string(),
-        print_version
+        "{}_{}_{}_{}",
+        request.product_id.to_string(),
+        request.serial_no.to_string(),
+        request.print_version,
+        nonce_suffix
     );
+    
     let mut hasher = Sha256::new();
     hasher.update(msg);
     let hashed_message = hasher.finalize();
 
-    let decoded_code = match hex::decode(&unique_code) {
+    let decoded_code = match hex::decode(&request.unique_code) {
         Ok(bytes) => bytes,
         Err(_) => {
-            return ProductVerificationResult::Error(ApiError::invalid_input("Malformed code"))
+            return ApiResponse::error(ApiError::invalid_input("Malformed unique code"));
         }
     };
-
-    let signature = Signature::from_slice(decoded_code.as_slice()).unwrap();
-
+    
+    let signature = match Signature::from_slice(decoded_code.as_slice()) {
+        Ok(sig) => sig,
+        Err(_) => {
+            return ApiResponse::error(ApiError::invalid_input("Invalid signature format"));
+        }
+    };
+    
+    // Verify the signature
     let verify_result = public_key.verify(&hashed_message, &signature);
+    
     if verify_result.is_err() {
-        return ProductVerificationResult::Status(ProductVerificationStatus::Invalid);
+        let response = ProductVerificationEnhancedResponse {
+            status: ProductVerificationStatus::Invalid,
+            verification: None,
+            rewards: None,
+            expiration: None,
+        };
+        return ApiResponse::success(response);
     }
-
-    // Record the verification result in stable storage
+    
+    // Determine if this is first verification for the product
+    let verification_status = if rewards::is_first_verification_for_user(caller, request.product_id) {
+        ProductVerificationStatus::FirstVerification
+    } else {
+        ProductVerificationStatus::MultipleVerification
+    };
+    
+    // Calculate rewards
+    let rewards_result = rewards::calculate_verification_rewards(
+        caller, 
+        request.product_id, 
+        &verification_status
+    );
+    
+    // Record the verification in stable storage
+    let verification_id = generate_unique_principal(Principal::anonymous());
+    
+    let verification = ProductVerification {
+        id: verification_id,
+        product_id: request.product_id,
+        serial_no: request.serial_no,
+        print_version: request.print_version,
+        metadata: request.metadata.clone(),
+        created_at: api::time(),
+        created_by: caller,
+        status: verification_status.clone(),
+    };
+    
     PRODUCT_VERIFICATIONS.with(|verifications| {
         let mut verifications_mut = verifications.borrow_mut();
-
-        // Create a new verification record
-        let verification = ProductVerification {
-            product_id: product.id,
-            serial_no,
-            print_version,
-            status: ProductVerificationStatus::FirstVerification,
-            ..Default::default()
-        };
-
-        // Check if this product has any previous verifications
-        let mut result = ProductVerificationStatus::FirstVerification;
-        let mut verification_with_metadata = verification.clone();
-
-        if let Some(serialized_verification_vec) = verifications_mut.get(&product_id) {
-            let mut verification_vec = decode_product_verifications(&serialized_verification_vec);
-
-            // Check if this serial number has been verified before
-            if verification_vec.iter().any(|v| v.serial_no == serial_no) {
-                result = ProductVerificationStatus::MultipleVerification;
-            }
-
-            // Add result metadata
-            let mut result_meta = Metadata {
-                key: "result".to_string(),
-                value: "Unique".to_string(),
-            };
-
-            if result == ProductVerificationStatus::MultipleVerification {
-                result_meta.value = "MultipleVerification".to_string();
-            }
-
-            verification_with_metadata.metadata =
-                [metadata.clone(), Vec::from([result_meta])].concat();
-            verification_with_metadata.status = result.clone();
-
-            // Add new verification to a collection
-            verification_vec.push(verification_with_metadata);
-
-            // Save an updated collection
-            verifications_mut.insert(product_id, encode_product_verifications(&verification_vec));
+        
+        // Get or create collection for this product
+        let mut verification_vec = if let Some(serialized_verifications) = verifications_mut.get(&request.product_id) {
+            decode_product_verifications(&serialized_verifications)
         } else {
-            // First verification for this product
-            let result_meta = Metadata {
-                key: "result".to_string(),
-                value: "Unique".to_string(),
-            };
-
-            verification_with_metadata.metadata =
-                [metadata.clone(), Vec::from([result_meta])].concat();
-
-            // Create a new collection with this verification
-            let verification_vec = vec![verification_with_metadata];
-
-            // Save the new collection
-            verifications_mut.insert(product_id, encode_product_verifications(&verification_vec));
-        }
-
-        ProductVerificationResult::Status(result.clone())
-    })
+            Vec::new()
+        };
+        
+        // Add new verification
+        verification_vec.push(verification.clone());
+        
+        // Save updated collection
+        verifications_mut.insert(request.product_id, encode_product_verifications(&verification_vec));
+    });
+    
+    // Record successful verification in rate limiter
+    rate_limiter::record_successful_verification(caller, request.product_id);
+    
+    // Calculate expiration time (24 hours from now)
+    let expiration_time = api::time() + 86400;
+    
+    let response = ProductVerificationEnhancedResponse {
+        status: verification_status,
+        verification: Some(verification),
+        rewards: Some(rewards_result),
+        expiration: Some(expiration_time),
+    };
+    
+    ApiResponse::success(response)
 }
 
 #[query]
-pub fn list_product_verifications(
-    organization_id: Option<Principal>,
-    product_id: Option<Principal>,
-    serial_number: Option<Principal>,
-) -> Vec<ProductVerification> {
-    // If no organization_id is provided, return all verifications
-    if organization_id.is_none() {
-        let mut all_verifications: Vec<ProductVerification> = Vec::new();
-
-        PRODUCT_VERIFICATIONS.with(|verifications| {
-            verifications
-                .borrow()
-                .iter()
-                .for_each(|(_, serialized_verifications)| {
-                    let verification_vec = decode_product_verifications(&serialized_verifications);
-                    all_verifications.extend(verification_vec);
-                });
-        });
-
-        return all_verifications;
+pub fn get_verification_rate_limit(product_id: Principal) -> ApiResponse<RateLimitInfo> {
+    let caller = api::caller();
+    
+    match rate_limiter::check_rate_limit(caller, product_id) {
+        Ok(rate_limit_info) => ApiResponse::success(rate_limit_info),
+        Err(error) => ApiResponse::error(error),
     }
-
-    let org_id = organization_id.unwrap();
-
-    // If no specific product_id is provided, find all products for the organization
-    if product_id.is_none() {
-        let mut filtered_verifications: Vec<ProductVerification> = Vec::new();
-        let mut product_ids: Vec<Principal> = Vec::new();
-
-        // Get all products for this organization
-        PRODUCTS.with(|products| {
-            products
-                .borrow()
-                .iter()
-                .filter(|(_, p)| p.org_id == org_id)
-                .for_each(|(id, _)| product_ids.push(id));
-        });
-
-        // Get verifications for these products
-        PRODUCT_VERIFICATIONS.with(|verifications| {
-            let verifications_ref = verifications.borrow();
-
-            for p_id in product_ids {
-                if let Some(serialized_verifications) = verifications_ref.get(&p_id) {
-                    let verification_vec = decode_product_verifications(&serialized_verifications);
-                    filtered_verifications.extend(verification_vec);
-                }
-            }
-        });
-
-        return filtered_verifications;
-    }
-
-    // Verify if the product belongs to the organization
-    let p_id = product_id.unwrap();
-    let mut is_valid_product = false;
-
-    PRODUCTS.with(|products| {
-        if let Some(product) = products.borrow().get(&p_id) {
-            is_valid_product = product.org_id == org_id;
-        }
-    });
-
-    if !is_valid_product {
-        return Vec::new();
-    }
-
-    // Get verifications for this specific product
-    let mut product_verifications = Vec::new();
-
-    PRODUCT_VERIFICATIONS.with(|verifications| {
-        if let Some(serialized_verifications) = verifications.borrow().get(&p_id) {
-            product_verifications = decode_product_verifications(&serialized_verifications);
-        }
-    });
-
-    // Filter by serial number if provided
-    if let Some(sn) = serial_number {
-        product_verifications = product_verifications
-            .into_iter()
-            .filter(|pv| pv.serial_no == sn)
-            .collect();
-    }
-
-    product_verifications
-}
-
-#[query]
-pub fn list_product_verifications_by_user(
-    user_id: Principal,
-    organization_id: Option<Principal>,
-) -> Vec<ProductVerification> {
-    let mut filtered_verifications: Vec<ProductVerification> = Vec::new();
-
-    if let Some(org_id) = organization_id {
-        // Get all products for this organization
-        let mut product_ids: Vec<Principal> = Vec::new();
-
-        PRODUCTS.with(|products| {
-            products
-                .borrow()
-                .iter()
-                .filter(|(_, p)| p.org_id == org_id)
-                .for_each(|(id, _)| product_ids.push(id));
-        });
-
-        // Get verifications by this user for these products
-        PRODUCT_VERIFICATIONS.with(|verifications| {
-            let verifications_ref = verifications.borrow();
-
-            for p_id in product_ids {
-                if let Some(serialized_verifications) = verifications_ref.get(&p_id) {
-                    let verification_vec = decode_product_verifications(&serialized_verifications);
-
-                    // Filter by user_id
-                    for verification in &verification_vec {
-                        if verification.created_by == user_id {
-                            filtered_verifications.push(verification.clone());
-                        }
-                    }
-                }
-            }
-        });
-    } else {
-        // Get all verifications by this user across all products
-        PRODUCT_VERIFICATIONS.with(|verifications| {
-            verifications
-                .borrow()
-                .iter()
-                .for_each(|(_, serialized_verifications)| {
-                    let verification_vec = decode_product_verifications(&serialized_verifications);
-
-                    // Filter by user_id
-                    for verification in &verification_vec {
-                        if verification.created_by == user_id {
-                            filtered_verifications.push(verification.clone());
-                        }
-                    }
-                });
-        });
-    }
-
-    filtered_verifications
 }
 
 #[update]
