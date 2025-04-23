@@ -381,4 +381,7 @@ service : {
     // New Reseller API v2 Endpoints
     "generate_reseller_unique_code_v2": (request: GenerateResellerUniqueCodeRequest) -> (ApiResponse<ResellerUniqueCodeResponse>);
     "verify_reseller_v2": (request: VerifyResellerRequestV2) -> (ApiResponse<ResellerVerificationResponse>) query;
+
+    // New User Service v2 Endpoints
+    "register_as_reseller_v2": (request: ResellerInput) -> (ApiResponse<UserResponse>);
 };
