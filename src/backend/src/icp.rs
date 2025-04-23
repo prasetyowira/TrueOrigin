@@ -34,7 +34,9 @@ use k256::elliptic_curve::rand_core::SeedableRng;
 use crate::api::{
     ApiResponse, CreateOrganizationRequest, FindOrganizationsRequest, OrganizationResponse,
     UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate,
-    VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo
+    VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo,
+    GenerateResellerUniqueCodeRequest, ResellerUniqueCodeResponse, VerifyResellerRequest,
+    ResellerVerificationResponse, ResellerVerificationStatus
 };
 use crate::rate_limiter;
 use crate::rewards;
@@ -758,6 +760,8 @@ const GPT_MODEL: &str = "gpt-4o";
 
 const REQUEST_CYCLES: u64 = 230_949_972_000;
 
+const UNIQUE_CODE_EXPIRATION_SECONDS: u64 = 300; // 5 minutes
+
 #[update]
 async fn generate_product_review(product_id: Principal) -> Result<Product, ApiError> {
     let product = get_product(&product_id)?;
@@ -1011,105 +1015,139 @@ pub fn find_resellers_by_name_or_id(name: String) -> Vec<Reseller> {
 }
 
 #[query]
-pub fn verify_reseller(reseller_id: Principal, unique_code: String) -> ResellerVerificationResult {
-    // Check if a reseller exists
-    let mut reseller_found = false;
-    let mut reseller_clone = Reseller::default();
+pub fn verify_reseller_v2(request: VerifyResellerRequest) -> ApiResponse<ResellerVerificationResponse> {
+    let current_time = api::time();
+    let reseller_id = request.reseller_id;
+    let code_timestamp = request.timestamp;
+    let context_str = request.context.as_deref().unwrap_or("");
 
-    RESELLERS.with(|resellers| {
-        if let Some(reseller) = resellers.borrow().get(&reseller_id) {
-            reseller_found = true;
-            reseller_clone = reseller.clone();
-        }
-    });
-
-    if !reseller_found {
-        return ResellerVerificationResult::Error(ApiError::not_found(&format!(
-            "Reseller with ID {} not found",
-            reseller_id
-        )));
+    // 1. Check for expiration / replay attack
+    if current_time > code_timestamp + UNIQUE_CODE_EXPIRATION_SECONDS {
+        return ApiResponse::success(ResellerVerificationResponse {
+            status: ResellerVerificationStatus::ExpiredCode,
+            organization: None,
+            reseller: None,
+        });
+    }
+    // Basic check for future timestamps (allowing a small clock skew, e.g., 60 seconds)
+    if code_timestamp > current_time + 60 {
+         return ApiResponse::success(ResellerVerificationResponse {
+            status: ResellerVerificationStatus::InvalidCode, // Or a more specific error
+            organization: None,
+            reseller: None,
+        });
     }
 
-    // Check if an organization exists
-    let mut org_found = false;
-    let mut org_clone = Organization::default();
-
-    ORGANIZATIONS.with(|orgs| {
-        if let Some(org) = orgs.borrow().get(&reseller_clone.org_id) {
-            org_found = true;
-            org_clone = org.clone();
-        }
-    });
-
-    if !org_found {
-        return ResellerVerificationResult::Error(ApiError::not_found(&format!(
-            "Organization with ID {} not found",
-            reseller_clone.org_id
-        )));
+    // 2. Find Reseller
+    let reseller_opt = RESELLERS.with(|r| r.borrow().get(&reseller_id).clone());
+    if reseller_opt.is_none() {
+        return ApiResponse::success(ResellerVerificationResponse {
+            status: ResellerVerificationStatus::ResellerNotFound,
+            organization: None,
+            reseller: None,
+        });
     }
+    let reseller = reseller_opt.unwrap();
 
-    // Deserialize public key
-    let public_key_bytes = match hex::decode(&reseller_clone.public_key) {
+    // 3. Find Organization
+    let org_opt = ORGANIZATIONS.with(|o| o.borrow().get(&reseller.org_id).clone());
+    if org_opt.is_none() {
+         return ApiResponse::success(ResellerVerificationResponse {
+            status: ResellerVerificationStatus::OrganizationNotFound,
+            organization: None,
+            reseller: Some(reseller), // Can still return reseller info
+        });
+    }
+    let organization = org_opt.unwrap();
+
+    // 4. Get Reseller's Public Key
+    // Note: In the previous implementation, reseller had its own public key.
+    // Let's assume the verification should use the ORGANIZATION's public key, 
+    // derived from the private key used in generation.
+    // If reseller should have its own keypair, the model and generation logic need adjustment.
+    let public_key_bytes = match hex::decode(&organization.private_key) { // Using org's key for verification
         Ok(bytes) => bytes,
         Err(_) => {
-            return ResellerVerificationResult::Error(ApiError::internal_error(
-                "Malformed public key",
-            ))
+             return ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::InternalError,
+                organization: Some(OrganizationPublic::from(organization.clone())), 
+                reseller: Some(reseller),
+            });
         }
     };
-
     let public_key_encoded_point = match EncodedPoint::from_bytes(public_key_bytes) {
         Ok(point) => point,
         Err(_) => {
-            return ResellerVerificationResult::Error(ApiError::internal_error(
-                "Malformed public key",
-            ))
+             return ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::InternalError,
+                organization: Some(OrganizationPublic::from(organization.clone())), 
+                reseller: Some(reseller),
+            });
         }
     };
-
     let public_key = match VerifyingKey::from_encoded_point(&public_key_encoded_point) {
         Ok(key) => key,
         Err(_) => {
-            return ResellerVerificationResult::Error(ApiError::internal_error(
-                "Malformed public key",
-            ))
+             return ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::InternalError,
+                organization: Some(OrganizationPublic::from(organization.clone())), 
+                reseller: Some(reseller),
+            });
         }
     };
 
-    // Hash message is the reseller_id
+    // 5. Prepare message hash
+    let msg = format!("{}_{}_{}", reseller_id.to_string(), code_timestamp, context_str);
     let mut hasher = Sha256::new();
-    hasher.update(reseller_id.to_string());
+    hasher.update(msg);
     let hashed_message = hasher.finalize();
 
-    // Decode signature
-    let decoded_code = match hex::decode(&unique_code) {
+    // 6. Decode signature
+    let decoded_code = match hex::decode(&request.unique_code) {
         Ok(bytes) => bytes,
         Err(_) => {
-            return ResellerVerificationResult::Error(ApiError::invalid_input("Malformed code"))
+             return ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::InvalidCode,
+                organization: Some(OrganizationPublic::from(organization.clone())), 
+                reseller: Some(reseller),
+            });
         }
     };
+    let signature = match Signature::from_slice(decoded_code.as_slice()) {
+         Ok(sig) => sig,
+         Err(_) => {
+             return ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::InvalidCode,
+                organization: Some(OrganizationPublic::from(organization.clone())), 
+                reseller: Some(reseller),
+            });
+         }
+     };
 
-    let signature = Signature::from_slice(decoded_code.as_slice()).unwrap();
-
-    // Verify signature
-    let match_result = match public_key.verify(&hashed_message, &signature) {
-        Ok(_) => ResellerVerificationResultRecord {
-            status: VerificationStatus::Success,
-            organization: OrganizationPublic::from(org_clone),
-            registered_at: Some(reseller_clone.date_joined),
-        },
-        Err(_) => ResellerVerificationResultRecord {
-            status: VerificationStatus::Invalid,
-            organization: OrganizationPublic::from(org_clone),
-            registered_at: None,
-        },
-    };
-
-    ResellerVerificationResult::Result(match_result)
+    // 7. Verify signature
+    match public_key.verify(&hashed_message, &signature) {
+        Ok(_) => {
+            ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::Success,
+                organization: Some(OrganizationPublic::from(organization)),
+                reseller: Some(reseller),
+            })
+        }
+        Err(_) => {
+            ApiResponse::success(ResellerVerificationResponse {
+                status: ResellerVerificationStatus::InvalidCode,
+                organization: Some(OrganizationPublic::from(organization)), // Still return org/reseller info on failure
+                reseller: Some(reseller),
+            })
+        }
+    }
 }
 
-#[query]
-pub fn generate_reseller_unique_code(reseller_id: Principal) -> UniqueCodeResult {
+#[update]
+pub fn generate_reseller_unique_code_v2(request: GenerateResellerUniqueCodeRequest) -> ApiResponse<ResellerUniqueCodeResponse> {
+    let reseller_id = request.reseller_id;
+    let context_str = request.context.as_deref().unwrap_or(""); // Use empty string if None
+
     // Check if a reseller exists
     let mut reseller_found = false;
     let mut reseller_org_id = Principal::anonymous();
@@ -1122,7 +1160,7 @@ pub fn generate_reseller_unique_code(reseller_id: Principal) -> UniqueCodeResult
     });
 
     if !reseller_found {
-        return UniqueCodeResult::Error(ApiError::not_found(&format!(
+        return ApiResponse::error(ApiError::not_found(&format!(
             "Reseller with ID {} not found",
             reseller_id
         )));
@@ -1140,9 +1178,10 @@ pub fn generate_reseller_unique_code(reseller_id: Principal) -> UniqueCodeResult
     });
 
     if !org_found {
-        return UniqueCodeResult::Error(ApiError::not_found(&format!(
-            "Organization with ID {} not found",
-            reseller_org_id
+        return ApiResponse::error(ApiError::not_found(&format!(
+            "Organization with ID {} not found for reseller {}",
+            reseller_org_id,
+            reseller_id
         )));
     }
 
@@ -1150,7 +1189,7 @@ pub fn generate_reseller_unique_code(reseller_id: Principal) -> UniqueCodeResult
     let private_key_bytes = match hex::decode(&org_private_key) {
         Ok(bytes) => bytes,
         Err(_) => {
-            return UniqueCodeResult::Error(ApiError::internal_error(
+            return ApiResponse::error(ApiError::internal_error(
                 "Malformed secret key for organization",
             ))
         }
@@ -1159,19 +1198,30 @@ pub fn generate_reseller_unique_code(reseller_id: Principal) -> UniqueCodeResult
     let private_key = match SigningKey::from_slice(&private_key_bytes.as_slice()) {
         Ok(key) => key,
         Err(_) => {
-            return UniqueCodeResult::Error(ApiError::internal_error(
+            return ApiResponse::error(ApiError::internal_error(
                 "Malformed secret key for organization",
             ))
         }
     };
 
-    // Hash and sign. The signature will be used as the unique code for the reseller
+    // Create message including reseller ID, current timestamp, and context
+    let current_time = api::time();
+    let msg = format!("{}_{}_{}", reseller_id.to_string(), current_time, context_str);
+    
+    // Hash and sign
     let mut hasher = Sha256::new();
-    hasher.update(reseller_id.to_string());
+    hasher.update(msg);
     let hashed_message = hasher.finalize();
 
     let signature: Signature = private_key.sign(&hashed_message);
-    UniqueCodeResult::UniqueCode(signature.to_string())
+    let signature_hex = hex::encode(signature.to_bytes());
+
+    ApiResponse::success(ResellerUniqueCodeResponse {
+        unique_code: signature_hex,
+        reseller_id,
+        timestamp: current_time,
+        context: request.context, // Return the original context if provided
+    })
 }
 
 #[query]

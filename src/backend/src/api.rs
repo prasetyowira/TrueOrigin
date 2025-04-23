@@ -290,9 +290,44 @@ pub struct ResellerResponse {
 }
 
 #[derive(CandidType, Deserialize)]
+pub struct GenerateResellerUniqueCodeRequest {
+    pub reseller_id: Principal,
+    // Optional context or nonce to include in the code generation
+    pub context: Option<String>,
+}
+
+#[derive(CandidType, Serialize, Deserialize)]
+pub struct ResellerUniqueCodeResponse {
+    pub unique_code: String,
+    pub reseller_id: Principal,
+    pub timestamp: u64,
+    pub context: Option<String>,
+}
+
+#[derive(CandidType, Deserialize)]
 pub struct VerifyResellerRequest {
     pub reseller_id: Principal,
     pub unique_code: String,
+    pub timestamp: u64, // Timestamp from the generated code
+    pub context: Option<String>, // Context must match if provided during generation
+}
+
+#[derive(CandidType, Serialize, Deserialize, Debug, Clone)]
+pub enum ResellerVerificationStatus {
+    Success,
+    InvalidCode,
+    ExpiredCode,
+    ReplayAttackDetected,
+    ResellerNotFound,
+    OrganizationNotFound,
+    InternalError,
+}
+
+#[derive(CandidType, Serialize, Deserialize)]
+pub struct ResellerVerificationResponse {
+    pub status: ResellerVerificationStatus,
+    pub organization: Option<OrganizationPublic>,
+    pub reseller: Option<Reseller>,
 }
 
 // Function to apply pagination to any vector of items

@@ -299,6 +299,42 @@ type RateLimitInfo = record {
     current_window_start: nat64;
 };
 
+// Reseller API v2 Structures
+type GenerateResellerUniqueCodeRequest = record {
+    reseller_id: principal;
+    context: opt text;
+};
+
+type ResellerUniqueCodeResponse = record {
+    unique_code: text;
+    reseller_id: principal;
+    timestamp: nat64;
+    context: opt text;
+};
+
+type VerifyResellerRequestV2 = record {
+    reseller_id: principal;
+    unique_code: text;
+    timestamp: nat64;
+    context: opt text;
+};
+
+type ResellerVerificationStatus = variant {
+    Success;
+    InvalidCode;
+    ExpiredCode;
+    ReplayAttackDetected;
+    ResellerNotFound;
+    OrganizationNotFound;
+    InternalError;
+};
+
+type ResellerVerificationResponse = record {
+    status: ResellerVerificationStatus;
+    organization: opt OrganizationPublic;
+    reseller: opt Reseller;
+};
+
 service : {
     "get_organization_by_id": (id: principal) -> (OrganizationPublic) query;
     "create_organization": (input: OrganizationInput) -> (OrganizationPublic);
@@ -322,7 +358,7 @@ service : {
     "greet" : (text) -> (text) query;
     "generate_product_review": (product_id: principal) -> (opt Product);
     "find_resellers_by_name_or_id": (text) -> (vec Reseller) query;
-    "verify_reseller": (reseller_id: principal, public_key: text) -> (ResellerVerificationResult) query;
+    "verify_reseller": (reseller_id: principal, unique_code: text) -> (ResellerVerificationResult) query;
     "generate_reseller_unique_code": (reseller_id: principal) -> (UniqueCodeResult) query;
     "list_product_serial_number": (organization_id: opt principal, product_id: opt principal) -> (vec ProductSerialNumber) query;
     "create_product_serial_number": (product_id: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
@@ -341,4 +377,8 @@ service : {
     // New Product Verification Endpoints
     "verify_product_v2": (request: VerifyProductEnhancedRequest) -> (ApiResponse<ProductVerificationEnhancedResponse>);
     "get_verification_rate_limit": (product_id: principal) -> (ApiResponse<RateLimitInfo>) query;
+
+    // New Reseller API v2 Endpoints
+    "generate_reseller_unique_code_v2": (request: GenerateResellerUniqueCodeRequest) -> (ApiResponse<ResellerUniqueCodeResponse>);
+    "verify_reseller_v2": (request: VerifyResellerRequestV2) -> (ApiResponse<ResellerVerificationResponse>) query;
 };
