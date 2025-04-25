@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import techImage from '../assets/tech.png';
 import { useAuthContext } from '../contexts/useAuthContext';
 import { AddProductLogo, BrandOwnerLogo, HeatmapLogo, ResellerLogo, UserLogo } from '../components/SidebarLogo';
@@ -10,6 +11,7 @@ import { TrustOrigin_backend } from '../../../declarations/TrustOrigin_backend';
 
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [activeMenu, setActiveMenu] = useState('Brand Owners Dashboard');
     const { profile } = useAuthContext();
     const [productInput, setProductInput] = useState<Partial<ProductInput>>({
@@ -68,15 +70,20 @@ const Dashboard = () => {
     }, [profile]);
 
     const handleSidebarClick = (menu: typeof activeMenu) => {
+        if (menu === "Products Manager") {
+            navigate('/brand-owners/products');
+            return;
+        }
         setActiveMenu(menu);
     }
     
     const menuItems = [
-        { label: "Brand Owners Dashboard", icon: BrandOwnerLogo, active: true, onClickEvent: handleSidebarClick },
-        { label: "Add Product", icon: AddProductLogo, active: false, onClickEvent: handleSidebarClick },
-        { label: "Reseller Dashboard", icon: ResellerLogo, active: false, onClickEvent: handleSidebarClick },
-        { label: "User Dashboard", icon: UserLogo, active: false, onClickEvent: handleSidebarClick },
-        { label: "Analytics & Heatmap", icon: HeatmapLogo, active: false, onClickEvent: handleSidebarClick },
+        { label: "Brand Owners Dashboard", icon: BrandOwnerLogo, active: activeMenu === "Brand Owners Dashboard", onClickEvent: handleSidebarClick },
+        { label: "Products Manager", icon: AddProductLogo, active: false, onClickEvent: handleSidebarClick },
+        { label: "Add Product", icon: AddProductLogo, active: activeMenu === "Add Product", onClickEvent: handleSidebarClick },
+        { label: "Reseller Dashboard", icon: ResellerLogo, active: activeMenu === "Reseller Dashboard", onClickEvent: handleSidebarClick },
+        { label: "User Dashboard", icon: UserLogo, active: activeMenu === "User Dashboard", onClickEvent: handleSidebarClick },
+        { label: "Analytics & Heatmap", icon: HeatmapLogo, active: activeMenu === "Analytics & Heatmap", onClickEvent: handleSidebarClick },
     ];
 
     const filters = [
@@ -165,7 +172,7 @@ const Dashboard = () => {
             <Sidebar menuItems={menuItems} userAvatar={techImage} username={username} />
             <div className="flex-1 p-6">
                 <h2 className="text-lg w-fit font-bold mb-20 text-[#212EFF] border-b-4 border-b-[#212EFF] font-lexend">
-                    Brand Owners Dashboard
+                    {activeMenu}
                 </h2>
                 { showContent() }
             </div>

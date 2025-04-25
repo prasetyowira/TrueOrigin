@@ -52,6 +52,7 @@ function Homepage() {
                             <a href="#" className="text-gray-600">Homepage</a>
                             <a href="#" className="text-gray-600">Brand Owners Dashboard</a>
                             <a href="#" className="text-gray-600">Resellers Dashboard</a>
+                            <a onClick={() => navigate('/verify')} className="text-purple-600">Verify Product</a>
                             <a onClick={() => navigate('/auth/login')} className="text-purple-600">Login</a>
                         </div>
                         <button
@@ -89,7 +90,10 @@ function Homepage() {
                             <a href="#" className="py-2 text-gray-600" onClick={toggleMenu}>
                                 Resellers Dashboard
                             </a>
-                            <a href="#" className="py-2 text-purple-600" onClick={toggleMenu}>
+                            <a className="py-2 text-purple-600" onClick={() => {toggleMenu(); navigate('/verify');}}>
+                                Verify Product
+                            </a>
+                            <a className="py-2 text-purple-600" onClick={() => {toggleMenu(); navigate('/auth/login');}}>
                                 Login
                             </a>
                         </div>
@@ -108,10 +112,18 @@ function Homepage() {
                                     <img src={cfLogo} className="h-6 md:h-8" />
                                 </div>
                             </div>
-                            <a className="flex gap-2 mt-10 items-center justify-center rounded-full bg-[#0B0AFF] w-fit py-2 md:py-3 px-4 md:px-5 text-white hover:bg-blue-800 hover:cursor-pointer">
-                                <p>Book demo</p>
-                                <img src={rightArrow} className="h-4 md:h-5" />
-                            </a>
+                            <div className="flex gap-3 md:gap-5">
+                                <a 
+                                    onClick={() => navigate('/verify')}
+                                    className="flex gap-2 items-center justify-center rounded-full bg-[#0B0AFF] w-fit py-2 md:py-3 px-4 md:px-5 text-white hover:bg-blue-800 hover:cursor-pointer"
+                                >
+                                    <p>Verify Product</p>
+                                    <img src={rightArrow} className="h-4 md:h-5" />
+                                </a>
+                                <a className="flex gap-2 items-center justify-center rounded-full border border-[#0B0AFF] w-fit py-2 md:py-3 px-4 md:px-5 text-[#0B0AFF] hover:bg-blue-50 hover:cursor-pointer">
+                                    <p>Book demo</p>
+                                </a>
+                            </div>
                         </div>
                         <div className="mb-10 md:mb-0 flex justify-end">
                             <img className="w-4/5 h-auto md:h-full" src={herobg} />
@@ -188,7 +200,7 @@ function Homepage() {
                     <div className="flex flex-col gap-4 bg-[#1A1A1A] basis-1/2 rounded-[30px] justify-between items-end">
                         <div className="flex flex-col gap-4 lg:p-20 p-10">
                             <p className="text-4xl text-white font-lexend">Ethereum</p>
-                            <p className="text-white">Support Ethereum through HTTPS Outcalls to enable wallet transaction for user’s incentivization. Widely adopted coin makes ETH becomes everyone’s favorite.</p>
+                            <p className="text-white">Support Ethereum through HTTPS Outcalls to enable wallet transaction for user's incentivization. Widely adopted coin makes ETH becomes everyone's favorite.</p>
                             <div className="mt-4">
                                 <a className="bg-gradient-to-r from-[#FC8941] to-[#5D29E2] px-5 py-3 rounded-[10px] text-white font-lexend hover:cursor-pointer">ETHEREUM COINS</a>
                             </div>

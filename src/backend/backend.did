@@ -234,8 +234,66 @@ type PaginationResponse = record {
     has_more: bool;
 };
 
-type ApiResponse<T> = record {
-    data: opt T;
+type UserResponse = record {
+    user: User;
+};
+
+type ApiResponse_OrganizationResponse = record {
+    data: opt OrganizationResponse;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_OrganizationsListResponse = record {
+    data: opt OrganizationsListResponse;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_ProductVerificationEnhancedResponse = record {
+    data: opt ProductVerificationEnhancedResponse;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_RateLimitInfo = record {
+    data: opt RateLimitInfo;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_ResellerUniqueCodeResponse = record {
+    data: opt ResellerUniqueCodeResponse;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_ResellerVerificationResponse = record {
+    data: opt ResellerVerificationResponse;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_UserResponse = record {
+    data: opt UserResponse;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_Unit = record {
+    data: opt null;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_Text = record {
+    data: opt text;
+    error: opt ApiError;
+    metadata: ResponseMetadata;
+};
+
+type ApiResponse_ProductResponse = record {
+    data: opt ProductResponse;
     error: opt ApiError;
     metadata: ResponseMetadata;
 };
@@ -372,29 +430,25 @@ service : {
     "list_product_verifications": (organization_id: opt principal, product_id: opt principal, serial_number: opt principal) -> (vec ProductVerification) query;
     "list_product_verifications_by_user": (user_id: principal, organization_id: opt principal) -> (vec ProductVerification) query;
     
-    // New API v2 endpoints
-    "get_organization_by_id_v2": (id: principal) -> (ApiResponse<OrganizationResponse>) query;
-    "create_organization_v2": (request: CreateOrganizationRequest) -> (ApiResponse<OrganizationResponse>);
-    "update_organization_v2": (request: UpdateOrganizationRequest) -> (ApiResponse<OrganizationResponse>);
-    "list_organizations_v2": (request: FindOrganizationsRequest) -> (ApiResponse<OrganizationsListResponse>);
+    "get_organization_by_id_v2": (id: principal) -> (ApiResponse_OrganizationResponse) query;
+    "create_organization_v2": (request: CreateOrganizationRequest) -> (ApiResponse_OrganizationResponse);
+    "update_organization_v2": (request: UpdateOrganizationRequest) -> (ApiResponse_OrganizationResponse);
+    "list_organizations_v2": (request: FindOrganizationsRequest) -> (ApiResponse_OrganizationsListResponse);
     
-    // New Product Verification Endpoints
-    "verify_product_v2": (request: VerifyProductEnhancedRequest) -> (ApiResponse<ProductVerificationEnhancedResponse>);
-    "get_verification_rate_limit": (product_id: principal) -> (ApiResponse<RateLimitInfo>) query;
+    "verify_product_v2": (request: VerifyProductEnhancedRequest) -> (ApiResponse_ProductVerificationEnhancedResponse);
+    "get_verification_rate_limit": (product_id: principal) -> (ApiResponse_RateLimitInfo) query;
 
-    // New Reseller API v2 Endpoints
-    "generate_reseller_unique_code_v2": (request: GenerateResellerUniqueCodeRequest) -> (ApiResponse<ResellerUniqueCodeResponse>);
-    "verify_reseller_v2": (request: VerifyResellerRequestV2) -> (ApiResponse<ResellerVerificationResponse>) query;
+    "generate_reseller_unique_code_v2": (request: GenerateResellerUniqueCodeRequest) -> (ApiResponse_ResellerUniqueCodeResponse);
+    "verify_reseller_v2": (request: VerifyResellerRequestV2) -> (ApiResponse_ResellerVerificationResponse) query;
 
-    // New User Service v2 Endpoints
-    "register_as_reseller_v2": (request: ResellerInput) -> (ApiResponse<UserResponse>);
+    "register_as_reseller_v2": (request: ResellerInput) -> (ApiResponse_UserResponse);
 
-    // --- Configuration Endpoints (Admin Only) ---
-    "set_openai_api_key": (text) -> (ApiResponse<()>);
-    "get_openai_api_key": () -> (ApiResponse<String>) query;
-    "set_scraper_url": (text) -> (ApiResponse<()>);
-    "get_scraper_url": () -> (ApiResponse<String>) query;
+    // --- Configuration Endpoints (Admin Only)types
+    "set_openai_api_key": (text) -> (ApiResponse_Unit);
+    "get_openai_api_key": () -> (ApiResponse_Text) query;
+    "set_scraper_url": (text) -> (ApiResponse_Unit);
+    "get_scraper_url": () -> (ApiResponse_Text) query;
 
-    // --- Product Service Endpoints ---
-    "generate_product_review_v2": (product_id: principal) -> (ApiResponse<ProductResponse>);
+    // --- Product Service Endpoints --- Updated with specific ApiResponse types
+    "generate_product_review_v2": (product_id: principal) -> (ApiResponse_ProductResponse);
 };

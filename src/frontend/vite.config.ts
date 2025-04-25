@@ -12,4 +12,12 @@ export default defineConfig({
     environment('all', { prefix: 'CANISTER_' }),
     environment('all', { prefix: 'DFX_' }),
   ],
+  server: {
+    host: true, // Listen on all addresses
+    port: 3000,
+    https: {
+      // Self-signed certificate (required for HTTPS, which is needed for camera access)
+      // Browsers will show a warning, but you can proceed anyway
+    },
+  }
 })
