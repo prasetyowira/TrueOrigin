@@ -27,6 +27,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Camera, AlertCircle } from 'lucide-react';
 
 interface QRCodeScannerProps {
   onScan: (result: string) => void;
@@ -165,47 +168,46 @@ const QRCodeScanner = ({
   }, [fps, qrbox, disableFlip, onScan, onError]);
 
   return (
-    <div className="qr-scanner-container">
+    <div className="qr-scanner-container w-full max-w-md mx-auto">
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p>Error: {error}</p>
-          <p className="text-sm">
-            Please ensure camera permissions are enabled for this site.
-          </p>
-          <button
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error Accessing Camera</AlertTitle>
+          <AlertDescription>
+            {error}. Please ensure camera permissions are enabled for this site.
+          </AlertDescription>
+          <Button
             onClick={requestCameraPermission}
-            className="mt-3 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+            variant="destructive"
+            className="mt-3 w-full"
             disabled={isRequesting}
           >
-            {isRequesting ? 'Requesting Access...' : 'Request Camera Permission'}
-          </button>
-        </div>
+            {isRequesting ? 'Requesting Access...' : 'Retry Camera Permission'}
+          </Button>
+        </Alert>
       )}
       
       <div 
         ref={containerRef}
-        className="qr-scanner" 
+        className="qr-scanner relative overflow-hidden rounded-lg bg-black"
         style={{ 
           width, 
           height,
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: '8px',
-          background: '#000'
         }}
       >
         {!permissionGranted && !error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white p-4 text-center">
+            <Camera className="h-12 w-12 mb-4 text-gray-400" />
             <p className="mb-4">
               {isRequesting ? 'Requesting camera permission...' : 'Camera access is required for scanning'}
             </p>
             {!isRequesting && !permissionGranted && (
-              <button
+              <Button
                 onClick={requestCameraPermission}
-                className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded"
+                className="w-full"
               >
                 Allow Camera Access
-              </button>
+              </Button>
             )}
           </div>
         )}
@@ -218,7 +220,7 @@ const QRCodeScanner = ({
         )}
       </div>
       
-      <p className="text-center text-sm mt-2 text-gray-600">
+      <p className="text-center text-sm mt-2 text-muted-foreground">
         Position the QR code within the frame to scan
       </p>
     </div>

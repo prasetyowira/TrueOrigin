@@ -28,6 +28,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { ProtectedRoute, ROLES } from './components/ProtectedRoute';
 import { AuthContextProvider } from './contexts/useAuthContext';
+import { Toaster } from "@/components/ui/toaster";
 
 // Lazy load components to improve initial load performance
 const Homepage = lazy(() => import('./pages/home'));
@@ -107,6 +108,7 @@ function App() {
             <Route path="/test" element={<TestPage />} />
           </Routes>
         </Suspense>
+        <Toaster />
       </Router>
     </AuthContextProvider>
   );
