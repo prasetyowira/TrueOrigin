@@ -1,0 +1,19 @@
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+
+src/backend
+*.toml
+*lock*
+*.yaml
+*.md
+.dfx/
+.idea/
+node_modules/
+target/
+*output*
+*.svg
+*.png
+tasks/
+

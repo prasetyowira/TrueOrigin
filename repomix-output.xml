@@ -1,0 +1,4480 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+4. Repository files, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+<additional_info>
+
+</additional_info>
+
+</file_summary>
+
+<directory_structure>
+src/
+  declarations/
+    TrustOrigin_backend/
+      index.d.ts
+      index.js
+      TrustOrigin_backend.did
+      TrustOrigin_backend.did.d.ts
+      TrustOrigin_backend.did.js
+  frontend/
+    src/
+      api/
+        productApi.ts
+      components/
+        Filters.tsx
+        interfaces.d.ts
+        LandingCard.tsx
+        ProtectedRoute.tsx
+        QRCodeScanner.tsx
+        Sidebar.tsx
+        SidebarLogo.tsx
+        Table.tsx
+      contexts/
+        useAuthContext/
+          index.tsx
+          interface.d.ts
+      hooks/
+        useAuth.ts
+      pages/
+        auth/
+          choose-role.tsx
+          login.tsx
+        brand-owners/
+          products.tsx
+        dashboard.tsx
+        home.tsx
+        test-page.tsx
+        unauthorized.tsx
+        verify.tsx
+      App.tsx
+      index.css
+      main.tsx
+      utils.ts
+      vite-env.d.ts
+    .gitignore
+    eslint.config.js
+    index.html
+    package.json
+    postcss.config.cjs
+    tailwind.config.js
+    tsconfig.app.json
+    tsconfig.json
+    tsconfig.node.json
+    vite.config.ts
+.gitignore
+.nvmrc
+.repomixignore
+dfx.json
+package.json
+repomix.config.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path=".repomixignore">
+# Add patterns to ignore here, one per line
+# Example:
+# *.log
+# tmp/
+
+src/backend
+*.toml
+*lock*
+*.yaml
+*.md
+.dfx/
+.idea/
+node_modules/
+target/
+*output*
+*.svg
+*.png
+tasks/
+</file>
+
+<file path="repomix.config.json">
+{
+  "input": {
+    "maxFileSize": 52428800
+  },
+  "output": {
+    "filePath": "repomix-output.xml",
+    "style": "xml",
+    "parsableStyle": false,
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": false,
+    "compress": false,
+    "topFilesLength": 5,
+    "showLineNumbers": false,
+    "copyToClipboard": false,
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100
+    }
+  },
+  "include": [],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": []
+  },
+  "security": {
+    "enableSecurityCheck": true
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}
+</file>
+
+<file path="src/declarations/TrustOrigin_backend/index.d.ts">
+import type {
+  ActorSubclass,
+  HttpAgentOptions,
+  ActorConfig,
+  Agent,
+} from "@dfinity/agent";
+import type { Principal } from "@dfinity/principal";
+import type { IDL } from "@dfinity/candid";
+
+import { _SERVICE } from './TrustOrigin_backend.did';
+
+export declare const idlFactory: IDL.InterfaceFactory;
+export declare const canisterId: string;
+
+export declare interface CreateActorOptions {
+  /**
+   * @see {@link Agent}
+   */
+  agent?: Agent;
+  /**
+   * @see {@link HttpAgentOptions}
+   */
+  agentOptions?: HttpAgentOptions;
+  /**
+   * @see {@link ActorConfig}
+   */
+  actorOptions?: ActorConfig;
+}
+
+/**
+ * Intializes an {@link ActorSubclass}, configured with the provided SERVICE interface of a canister.
+ * @constructs {@link ActorSubClass}
+ * @param {string | Principal} canisterId - ID of the canister the {@link Actor} will talk to
+ * @param {CreateActorOptions} options - see {@link CreateActorOptions}
+ * @param {CreateActorOptions["agent"]} options.agent - a pre-configured agent you'd like to use. Supercedes agentOptions
+ * @param {CreateActorOptions["agentOptions"]} options.agentOptions - options to set up a new agent
+ * @see {@link HttpAgentOptions}
+ * @param {CreateActorOptions["actorOptions"]} options.actorOptions - options for the Actor
+ * @see {@link ActorConfig}
+ */
+export declare const createActor: (
+  canisterId: string | Principal,
+  options?: CreateActorOptions
+) => ActorSubclass<_SERVICE>;
+
+/**
+ * Intialized Actor using default settings, ready to talk to a canister using its candid interface
+ * @constructs {@link ActorSubClass}
+ */
+export declare const TrustOrigin_backend: ActorSubclass<_SERVICE>;
+</file>
+
+<file path="src/declarations/TrustOrigin_backend/index.js">
+import { Actor, HttpAgent } from "@dfinity/agent";
+
+// Imports and re-exports candid interface
+import { idlFactory } from "./TrustOrigin_backend.did.js";
+export { idlFactory } from "./TrustOrigin_backend.did.js";
+
+/* CANISTER_ID is replaced by webpack based on node environment
+ * Note: canister environment variable will be standardized as
+ * process.env.CANISTER_ID_<CANISTER_NAME_UPPERCASE>
+ * beginning in dfx 0.15.0
+ */
+export const canisterId =
+  process.env.CANISTER_ID_TRUSTORIGIN_BACKEND;
+
+export const createActor = (canisterId, options = {}) => {
+  const agent = options.agent || new HttpAgent({ ...options.agentOptions });
+
+  if (options.agent && options.agentOptions) {
+    console.warn(
+      "Detected both agent and agentOptions passed to createActor. Ignoring agentOptions and proceeding with the provided agent."
+    );
+  }
+
+  // Fetch root key for certificate validation during development
+  if (process.env.DFX_NETWORK !== "ic") {
+    agent.fetchRootKey().catch((err) => {
+      console.warn(
+        "Unable to fetch root key. Check to ensure that your local replica is running"
+      );
+      console.error(err);
+    });
+  }
+
+  // Creates an actor with using the candid interface and the HttpAgent
+  return Actor.createActor(idlFactory, {
+    agent,
+    canisterId,
+    ...options.actorOptions,
+  });
+};
+
+export const TrustOrigin_backend = canisterId ? createActor(canisterId) : undefined;
+</file>
+
+<file path="src/declarations/TrustOrigin_backend/TrustOrigin_backend.did">
+type Metadata = record {
+    key: text;
+    value: text;
+};
+
+type Organization = record {
+    id: principal;
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+    private_key: text;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type OrganizationPublic = record {
+    id: principal;
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type OrganizationInput = record {
+    name: text;
+    description: text;
+    metadata: vec Metadata;
+};
+
+type OrganizationResult = variant {
+    organization: Organization;
+    error: GenericError;
+};
+
+type Product = record {
+    id: principal;
+    name: text;
+    org_id: principal;
+    category: text;
+    description: text;
+    metadata: vec Metadata;
+    public_key: text;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type ProductInput = record {
+    name: text;
+    org_id: principal;
+    category: text;
+    description: text;
+    metadata: vec Metadata;
+};
+
+type ProductResult = variant {
+    none: null;
+    product: Product;
+    error: GenericError;
+};
+
+type ProductSerialNumber = record {
+    product_id: principal;
+    serial_no: principal;
+    user_serial_no: text;
+    print_version: nat8;
+    metadata: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type ProductVerification = record {
+    id: principal;
+    product_id: principal;
+    serial_no: principal;
+    print_version: nat8;
+    metadata: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+};
+
+type User = record {
+    id: principal;
+    is_principal: bool;
+    is_enabled: bool;
+    user_role: opt UserRole;
+    org_ids: vec principal;
+    first_name: opt text;
+    last_name: opt text;
+    phone_no: opt text;
+    email: opt text;
+    detail_meta: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type UserDetailsInput = record {
+    first_name: text;
+    last_name: text;
+    phone_no: text;
+    email: text;
+    detail_meta: vec Metadata;
+};
+
+type GenericError = record {
+    message: text;
+    details: vec Metadata;
+};
+
+type UserResult = variant {
+    none: null;
+    user: User;
+    error: GenericError;
+};
+
+type UserRole = variant {
+    Admin;
+    Reseller;
+    BrandOwner;
+};
+
+type Reseller = record {
+    id: principal;
+    org_id: principal;
+    reseller_id: text;
+    name: text;
+    date_joined: nat64;
+    metadata: vec Metadata;
+    ecommerce_urls: vec Metadata;
+    created_at: nat64;
+    created_by: principal;
+    updated_at: nat64;
+    updated_by: principal;
+};
+
+type ResellerInput = record {
+    org_id: principal;
+    name: text;
+    metadata: vec Metadata;
+    ecommerce_urls: vec Metadata;
+};
+
+type ProductSerialNumberResult = variant {
+    result: ProductSerialNumber;
+    error: GenericError;
+};
+
+type UniqueCodeResult = variant {
+    unique_code: text;
+    error: GenericError;
+};
+
+type ProductVerificationStatus = variant {
+    FirstVerification;
+    MultipleVerification;
+    Invalid;
+};
+
+type ProductVerificationResult = variant {
+    status: ProductVerificationStatus;
+    error: GenericError;
+};
+
+type PrivateKeyResult = variant {
+    key: text;
+    error: GenericError;
+};
+
+type VerificationStatus = variant {
+    Success;
+    Invalid;
+};
+
+type ResellerVerificationResultRecord = record {
+    status: VerificationStatus;
+    organization: OrganizationPublic;
+    registered_at: opt nat64;
+};
+
+type ResellerVerificationResult = variant {
+    result: ResellerVerificationResultRecord;
+    error: GenericError;
+};
+
+type ProductUniqueCodeResultRecord = record {
+    unique_code: text;
+    print_version: nat8;
+    product_id: principal;
+    serial_no: principal;
+    created_at: nat64;
+};
+
+type ProductUniqueCodeResult = variant {
+    result: ProductUniqueCodeResultRecord;
+    error: GenericError;
+};
+
+service : {
+    "get_organization_by_id": (id: principal) -> (OrganizationPublic) query;
+    "create_organization": (input: OrganizationInput) -> (OrganizationPublic);
+    "update_organization": (id: principal, input: OrganizationInput) -> (OrganizationPublic);
+    "get_organization_private_key": (id: principal) -> (PrivateKeyResult) query;
+    "find_organizations_by_name": (text) -> (vec OrganizationPublic) query;
+    "create_product": (input: ProductInput) -> (ProductResult);
+    "list_products": (organization_id: principal) -> (vec Product) query;
+    "get_product_by_id": (id: principal) -> (ProductResult) query;
+    "update_product": (id: principal, input: ProductInput) -> (Product);
+    "register": () -> (User);
+    "set_self_role": (role_id: UserRole) -> (UserResult);
+    "register_as_reseller": (ResellerInput) -> (UserResult);
+    "register_as_organization": (OrganizationInput) -> (UserResult);
+    "get_user_by_id": (id: principal) -> (opt User) query;
+    "whoami": () -> (opt User) query;
+    "update_self_details": (input: UserDetailsInput) -> (UserResult);
+    "create_user": (id: principal, input: UserDetailsInput) -> (UserResult);
+    "update_user": (id: principal, input: UserDetailsInput) -> (UserResult);
+    "update_user_orgs": (id: principal, org_ids: vec principal) -> (UserResult);
+    "greet" : (text) -> (text) query;
+    "generate_product_review": (product_id: principal) -> (opt Product);
+    "find_resellers_by_name_or_id": (text) -> (vec Reseller) query;
+    "verify_reseller": (reseller_id: principal, public_key: text) -> (ResellerVerificationResult) query;
+    "generate_reseller_unique_code": (reseller_id: principal) -> (UniqueCodeResult) query;
+    "list_product_serial_number": (organization_id: opt principal, product_id: opt principal) -> (vec ProductSerialNumber) query;
+    "create_product_serial_number": (product_id: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
+    "update_product_serial_number": (product_id: principal, serial_no: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
+    "print_product_serial_number": (product_id: principal, serial_no: principal) -> (ProductUniqueCodeResult);
+    "verify_product": (product_id: principal, serial_no: principal, print_version: nat8, unique_code: text, metadata: vec Metadata) -> (ProductVerificationResult);
+    "list_product_verifications": (organization_id: opt principal, product_id: opt principal, serial_number: opt principal) -> (vec ProductVerification) query;
+    "list_product_verifications_by_user": (user_id: principal, organization_id: opt principal) -> (vec ProductVerification) query;
+};
+</file>
+
+<file path="src/declarations/TrustOrigin_backend/TrustOrigin_backend.did.d.ts">
+import type { Principal } from '@dfinity/principal';
+import type { ActorMethod } from '@dfinity/agent';
+import type { IDL } from '@dfinity/candid';
+
+export interface GenericError {
+  'message' : string,
+  'details' : Array<Metadata>,
+}
+export interface Metadata { 'key' : string, 'value' : string }
+export interface Organization {
+  'id' : Principal,
+  'updated_at' : bigint,
+  'updated_by' : Principal,
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'description' : string,
+  'created_at' : bigint,
+  'created_by' : Principal,
+  'private_key' : string,
+}
+export interface OrganizationInput {
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'description' : string,
+}
+export interface OrganizationPublic {
+  'id' : Principal,
+  'updated_at' : bigint,
+  'updated_by' : Principal,
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'description' : string,
+  'created_at' : bigint,
+  'created_by' : Principal,
+}
+export type OrganizationResult = { 'error' : GenericError } |
+  { 'organization' : Organization };
+export type PrivateKeyResult = { 'key' : string } |
+  { 'error' : GenericError };
+export interface Product {
+  'id' : Principal,
+  'updated_at' : bigint,
+  'updated_by' : Principal,
+  'public_key' : string,
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'org_id' : Principal,
+  'description' : string,
+  'created_at' : bigint,
+  'created_by' : Principal,
+  'category' : string,
+}
+export interface ProductInput {
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'org_id' : Principal,
+  'description' : string,
+  'category' : string,
+}
+export type ProductResult = { 'none' : null } |
+  { 'error' : GenericError } |
+  { 'product' : Product };
+export interface ProductSerialNumber {
+  'updated_at' : bigint,
+  'updated_by' : Principal,
+  'product_id' : Principal,
+  'metadata' : Array<Metadata>,
+  'created_at' : bigint,
+  'created_by' : Principal,
+  'print_version' : number,
+  'user_serial_no' : string,
+  'serial_no' : Principal,
+}
+export type ProductSerialNumberResult = { 'result' : ProductSerialNumber } |
+  { 'error' : GenericError };
+export type ProductUniqueCodeResult = {
+    'result' : ProductUniqueCodeResultRecord
+  } |
+  { 'error' : GenericError };
+export interface ProductUniqueCodeResultRecord {
+  'product_id' : Principal,
+  'created_at' : bigint,
+  'print_version' : number,
+  'unique_code' : string,
+  'serial_no' : Principal,
+}
+export interface ProductVerification {
+  'id' : Principal,
+  'product_id' : Principal,
+  'metadata' : Array<Metadata>,
+  'created_at' : bigint,
+  'created_by' : Principal,
+  'print_version' : number,
+  'serial_no' : Principal,
+}
+export type ProductVerificationResult = {
+    'status' : ProductVerificationStatus
+  } |
+  { 'error' : GenericError };
+export type ProductVerificationStatus = { 'Invalid' : null } |
+  { 'MultipleVerification' : null } |
+  { 'FirstVerification' : null };
+export interface Reseller {
+  'id' : Principal,
+  'updated_at' : bigint,
+  'updated_by' : Principal,
+  'ecommerce_urls' : Array<Metadata>,
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'org_id' : Principal,
+  'date_joined' : bigint,
+  'created_at' : bigint,
+  'created_by' : Principal,
+  'reseller_id' : string,
+}
+export interface ResellerInput {
+  'ecommerce_urls' : Array<Metadata>,
+  'metadata' : Array<Metadata>,
+  'name' : string,
+  'org_id' : Principal,
+}
+export type ResellerVerificationResult = {
+    'result' : ResellerVerificationResultRecord
+  } |
+  { 'error' : GenericError };
+export interface ResellerVerificationResultRecord {
+  'status' : VerificationStatus,
+  'organization' : OrganizationPublic,
+  'registered_at' : [] | [bigint],
+}
+export type UniqueCodeResult = { 'error' : GenericError } |
+  { 'unique_code' : string };
+export interface User {
+  'id' : Principal,
+  'updated_at' : bigint,
+  'updated_by' : Principal,
+  'user_role' : [] | [UserRole],
+  'org_ids' : Array<Principal>,
+  'is_principal' : boolean,
+  'is_enabled' : boolean,
+  'created_at' : bigint,
+  'created_by' : Principal,
+  'email' : [] | [string],
+  'first_name' : [] | [string],
+  'detail_meta' : Array<Metadata>,
+  'last_name' : [] | [string],
+  'phone_no' : [] | [string],
+}
+export interface UserDetailsInput {
+  'email' : string,
+  'first_name' : string,
+  'detail_meta' : Array<Metadata>,
+  'last_name' : string,
+  'phone_no' : string,
+}
+export type UserResult = { 'none' : null } |
+  { 'user' : User } |
+  { 'error' : GenericError };
+export type UserRole = { 'Reseller' : null } |
+  { 'Admin' : null } |
+  { 'BrandOwner' : null };
+export type VerificationStatus = { 'Invalid' : null } |
+  { 'Success' : null };
+export interface _SERVICE {
+  'create_organization' : ActorMethod<[OrganizationInput], OrganizationPublic>,
+  'create_product' : ActorMethod<[ProductInput], ProductResult>,
+  'create_product_serial_number' : ActorMethod<
+    [Principal, [] | [string]],
+    ProductSerialNumberResult
+  >,
+  'create_user' : ActorMethod<[Principal, UserDetailsInput], UserResult>,
+  'find_organizations_by_name' : ActorMethod<
+    [string],
+    Array<OrganizationPublic>
+  >,
+  'find_resellers_by_name_or_id' : ActorMethod<[string], Array<Reseller>>,
+  'generate_product_review' : ActorMethod<[Principal], [] | [Product]>,
+  'generate_reseller_unique_code' : ActorMethod<[Principal], UniqueCodeResult>,
+  'get_organization_by_id' : ActorMethod<[Principal], OrganizationPublic>,
+  'get_organization_private_key' : ActorMethod<[Principal], PrivateKeyResult>,
+  'get_product_by_id' : ActorMethod<[Principal], ProductResult>,
+  'get_user_by_id' : ActorMethod<[Principal], [] | [User]>,
+  'greet' : ActorMethod<[string], string>,
+  'list_product_serial_number' : ActorMethod<
+    [[] | [Principal], [] | [Principal]],
+    Array<ProductSerialNumber>
+  >,
+  'list_product_verifications' : ActorMethod<
+    [[] | [Principal], [] | [Principal], [] | [Principal]],
+    Array<ProductVerification>
+  >,
+  'list_product_verifications_by_user' : ActorMethod<
+    [Principal, [] | [Principal]],
+    Array<ProductVerification>
+  >,
+  'list_products' : ActorMethod<[Principal], Array<Product>>,
+  'print_product_serial_number' : ActorMethod<
+    [Principal, Principal],
+    ProductUniqueCodeResult
+  >,
+  'register' : ActorMethod<[], User>,
+  'register_as_organization' : ActorMethod<[OrganizationInput], UserResult>,
+  'register_as_reseller' : ActorMethod<[ResellerInput], UserResult>,
+  'set_self_role' : ActorMethod<[UserRole], UserResult>,
+  'update_organization' : ActorMethod<
+    [Principal, OrganizationInput],
+    OrganizationPublic
+  >,
+  'update_product' : ActorMethod<[Principal, ProductInput], Product>,
+  'update_product_serial_number' : ActorMethod<
+    [Principal, Principal, [] | [string]],
+    ProductSerialNumberResult
+  >,
+  'update_self_details' : ActorMethod<[UserDetailsInput], UserResult>,
+  'update_user' : ActorMethod<[Principal, UserDetailsInput], UserResult>,
+  'update_user_orgs' : ActorMethod<[Principal, Array<Principal>], UserResult>,
+  'verify_product' : ActorMethod<
+    [Principal, Principal, number, string, Array<Metadata>],
+    ProductVerificationResult
+  >,
+  'verify_reseller' : ActorMethod<
+    [Principal, string],
+    ResellerVerificationResult
+  >,
+  'whoami' : ActorMethod<[], [] | [User]>,
+}
+export declare const idlFactory: IDL.InterfaceFactory;
+export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];
+</file>
+
+<file path="src/declarations/TrustOrigin_backend/TrustOrigin_backend.did.js">
+export const idlFactory = ({ IDL }) => {
+  const Metadata = IDL.Record({ 'key' : IDL.Text, 'value' : IDL.Text });
+  const OrganizationInput = IDL.Record({
+    'metadata' : IDL.Vec(Metadata),
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+  });
+  const OrganizationPublic = IDL.Record({
+    'id' : IDL.Principal,
+    'updated_at' : IDL.Nat64,
+    'updated_by' : IDL.Principal,
+    'metadata' : IDL.Vec(Metadata),
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+  });
+  const ProductInput = IDL.Record({
+    'metadata' : IDL.Vec(Metadata),
+    'name' : IDL.Text,
+    'org_id' : IDL.Principal,
+    'description' : IDL.Text,
+    'category' : IDL.Text,
+  });
+  const GenericError = IDL.Record({
+    'message' : IDL.Text,
+    'details' : IDL.Vec(Metadata),
+  });
+  const Product = IDL.Record({
+    'id' : IDL.Principal,
+    'updated_at' : IDL.Nat64,
+    'updated_by' : IDL.Principal,
+    'public_key' : IDL.Text,
+    'metadata' : IDL.Vec(Metadata),
+    'name' : IDL.Text,
+    'org_id' : IDL.Principal,
+    'description' : IDL.Text,
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+    'category' : IDL.Text,
+  });
+  const ProductResult = IDL.Variant({
+    'none' : IDL.Null,
+    'error' : GenericError,
+    'product' : Product,
+  });
+  const ProductSerialNumber = IDL.Record({
+    'updated_at' : IDL.Nat64,
+    'updated_by' : IDL.Principal,
+    'product_id' : IDL.Principal,
+    'metadata' : IDL.Vec(Metadata),
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+    'print_version' : IDL.Nat8,
+    'user_serial_no' : IDL.Text,
+    'serial_no' : IDL.Principal,
+  });
+  const ProductSerialNumberResult = IDL.Variant({
+    'result' : ProductSerialNumber,
+    'error' : GenericError,
+  });
+  const UserDetailsInput = IDL.Record({
+    'email' : IDL.Text,
+    'first_name' : IDL.Text,
+    'detail_meta' : IDL.Vec(Metadata),
+    'last_name' : IDL.Text,
+    'phone_no' : IDL.Text,
+  });
+  const UserRole = IDL.Variant({
+    'Reseller' : IDL.Null,
+    'Admin' : IDL.Null,
+    'BrandOwner' : IDL.Null,
+  });
+  const User = IDL.Record({
+    'id' : IDL.Principal,
+    'updated_at' : IDL.Nat64,
+    'updated_by' : IDL.Principal,
+    'user_role' : IDL.Opt(UserRole),
+    'org_ids' : IDL.Vec(IDL.Principal),
+    'is_principal' : IDL.Bool,
+    'is_enabled' : IDL.Bool,
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+    'email' : IDL.Opt(IDL.Text),
+    'first_name' : IDL.Opt(IDL.Text),
+    'detail_meta' : IDL.Vec(Metadata),
+    'last_name' : IDL.Opt(IDL.Text),
+    'phone_no' : IDL.Opt(IDL.Text),
+  });
+  const UserResult = IDL.Variant({
+    'none' : IDL.Null,
+    'user' : User,
+    'error' : GenericError,
+  });
+  const Reseller = IDL.Record({
+    'id' : IDL.Principal,
+    'updated_at' : IDL.Nat64,
+    'updated_by' : IDL.Principal,
+    'ecommerce_urls' : IDL.Vec(Metadata),
+    'metadata' : IDL.Vec(Metadata),
+    'name' : IDL.Text,
+    'org_id' : IDL.Principal,
+    'date_joined' : IDL.Nat64,
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+    'reseller_id' : IDL.Text,
+  });
+  const UniqueCodeResult = IDL.Variant({
+    'error' : GenericError,
+    'unique_code' : IDL.Text,
+  });
+  const PrivateKeyResult = IDL.Variant({
+    'key' : IDL.Text,
+    'error' : GenericError,
+  });
+  const ProductVerification = IDL.Record({
+    'id' : IDL.Principal,
+    'product_id' : IDL.Principal,
+    'metadata' : IDL.Vec(Metadata),
+    'created_at' : IDL.Nat64,
+    'created_by' : IDL.Principal,
+    'print_version' : IDL.Nat8,
+    'serial_no' : IDL.Principal,
+  });
+  const ProductUniqueCodeResultRecord = IDL.Record({
+    'product_id' : IDL.Principal,
+    'created_at' : IDL.Nat64,
+    'print_version' : IDL.Nat8,
+    'unique_code' : IDL.Text,
+    'serial_no' : IDL.Principal,
+  });
+  const ProductUniqueCodeResult = IDL.Variant({
+    'result' : ProductUniqueCodeResultRecord,
+    'error' : GenericError,
+  });
+  const ResellerInput = IDL.Record({
+    'ecommerce_urls' : IDL.Vec(Metadata),
+    'metadata' : IDL.Vec(Metadata),
+    'name' : IDL.Text,
+    'org_id' : IDL.Principal,
+  });
+  const ProductVerificationStatus = IDL.Variant({
+    'Invalid' : IDL.Null,
+    'MultipleVerification' : IDL.Null,
+    'FirstVerification' : IDL.Null,
+  });
+  const ProductVerificationResult = IDL.Variant({
+    'status' : ProductVerificationStatus,
+    'error' : GenericError,
+  });
+  const VerificationStatus = IDL.Variant({
+    'Invalid' : IDL.Null,
+    'Success' : IDL.Null,
+  });
+  const ResellerVerificationResultRecord = IDL.Record({
+    'status' : VerificationStatus,
+    'organization' : OrganizationPublic,
+    'registered_at' : IDL.Opt(IDL.Nat64),
+  });
+  const ResellerVerificationResult = IDL.Variant({
+    'result' : ResellerVerificationResultRecord,
+    'error' : GenericError,
+  });
+  return IDL.Service({
+    'create_organization' : IDL.Func(
+        [OrganizationInput],
+        [OrganizationPublic],
+        [],
+      ),
+    'create_product' : IDL.Func([ProductInput], [ProductResult], []),
+    'create_product_serial_number' : IDL.Func(
+        [IDL.Principal, IDL.Opt(IDL.Text)],
+        [ProductSerialNumberResult],
+        [],
+      ),
+    'create_user' : IDL.Func(
+        [IDL.Principal, UserDetailsInput],
+        [UserResult],
+        [],
+      ),
+    'find_organizations_by_name' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(OrganizationPublic)],
+        ['query'],
+      ),
+    'find_resellers_by_name_or_id' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(Reseller)],
+        ['query'],
+      ),
+    'generate_product_review' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Opt(Product)],
+        [],
+      ),
+    'generate_reseller_unique_code' : IDL.Func(
+        [IDL.Principal],
+        [UniqueCodeResult],
+        ['query'],
+      ),
+    'get_organization_by_id' : IDL.Func(
+        [IDL.Principal],
+        [OrganizationPublic],
+        ['query'],
+      ),
+    'get_organization_private_key' : IDL.Func(
+        [IDL.Principal],
+        [PrivateKeyResult],
+        ['query'],
+      ),
+    'get_product_by_id' : IDL.Func([IDL.Principal], [ProductResult], ['query']),
+    'get_user_by_id' : IDL.Func([IDL.Principal], [IDL.Opt(User)], ['query']),
+    'greet' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
+    'list_product_serial_number' : IDL.Func(
+        [IDL.Opt(IDL.Principal), IDL.Opt(IDL.Principal)],
+        [IDL.Vec(ProductSerialNumber)],
+        ['query'],
+      ),
+    'list_product_verifications' : IDL.Func(
+        [
+          IDL.Opt(IDL.Principal),
+          IDL.Opt(IDL.Principal),
+          IDL.Opt(IDL.Principal),
+        ],
+        [IDL.Vec(ProductVerification)],
+        ['query'],
+      ),
+    'list_product_verifications_by_user' : IDL.Func(
+        [IDL.Principal, IDL.Opt(IDL.Principal)],
+        [IDL.Vec(ProductVerification)],
+        ['query'],
+      ),
+    'list_products' : IDL.Func([IDL.Principal], [IDL.Vec(Product)], ['query']),
+    'print_product_serial_number' : IDL.Func(
+        [IDL.Principal, IDL.Principal],
+        [ProductUniqueCodeResult],
+        [],
+      ),
+    'register' : IDL.Func([], [User], []),
+    'register_as_organization' : IDL.Func(
+        [OrganizationInput],
+        [UserResult],
+        [],
+      ),
+    'register_as_reseller' : IDL.Func([ResellerInput], [UserResult], []),
+    'set_self_role' : IDL.Func([UserRole], [UserResult], []),
+    'update_organization' : IDL.Func(
+        [IDL.Principal, OrganizationInput],
+        [OrganizationPublic],
+        [],
+      ),
+    'update_product' : IDL.Func([IDL.Principal, ProductInput], [Product], []),
+    'update_product_serial_number' : IDL.Func(
+        [IDL.Principal, IDL.Principal, IDL.Opt(IDL.Text)],
+        [ProductSerialNumberResult],
+        [],
+      ),
+    'update_self_details' : IDL.Func([UserDetailsInput], [UserResult], []),
+    'update_user' : IDL.Func(
+        [IDL.Principal, UserDetailsInput],
+        [UserResult],
+        [],
+      ),
+    'update_user_orgs' : IDL.Func(
+        [IDL.Principal, IDL.Vec(IDL.Principal)],
+        [UserResult],
+        [],
+      ),
+    'verify_product' : IDL.Func(
+        [IDL.Principal, IDL.Principal, IDL.Nat8, IDL.Text, IDL.Vec(Metadata)],
+        [ProductVerificationResult],
+        [],
+      ),
+    'verify_reseller' : IDL.Func(
+        [IDL.Principal, IDL.Text],
+        [ResellerVerificationResult],
+        ['query'],
+      ),
+    'whoami' : IDL.Func([], [IDL.Opt(User)], ['query']),
+  });
+};
+export const init = ({ IDL }) => { return []; };
+</file>
+
+<file path="src/frontend/src/api/productApi.ts">
+/**
+ * @file Product API client
+ * @fileoverview API client for product-related operations including verification
+ * 
+ * Functions:
+ * - verifyProduct: Verifies a product using its unique code
+ * - getProductDetails: Gets details of a product
+ * - parseVerificationCode: Parses a verification code into its components
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Parse verification code
+ * 2. Call appropriate backend API methods
+ * 3. Handle response formatting
+ * 
+ * Error Handling:
+ * - API call failures
+ * - Invalid code format
+ * - Backend errors
+ * 
+ * @module api/productApi
+ * @requires declarations/TrustOrigin_backend - Backend API declarations
+ * @exports productApi - Product API client methods
+ */
+
+import { TrustOrigin_backend } from "../../../declarations/TrustOrigin_backend";
+import { Principal } from "@dfinity/principal";
+import type { Metadata, ProductVerificationStatus } from "../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did";
+
+interface VerificationResult {
+  status: ProductVerificationStatus;
+  productInfo?: {
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    organization: string;
+    metadata: Record<string, string>;
+  };
+  error?: string;
+}
+
+interface VerificationCodeComponents {
+  productId: Principal;
+  serialNo: Principal;
+  printVersion: number;
+  uniqueCode: string;
+  valid: boolean;
+}
+
+/**
+ * Parse a verification code into its components
+ * 
+ * @param {string} code - The verification code to parse
+ * @returns {VerificationCodeComponents} Parsed components of the verification code
+ */
+const parseVerificationCode = (code: string): VerificationCodeComponents => {
+  try {
+    // Format should be: productId:serialNo:printVersion:uniqueCode
+    const parts = code.split(':');
+    
+    if (parts.length !== 4) {
+      return {
+        productId: Principal.anonymous(),
+        serialNo: Principal.anonymous(),
+        printVersion: 0,
+        uniqueCode: '',
+        valid: false
+      };
+    }
+    
+    return {
+      productId: Principal.fromText(parts[0]),
+      serialNo: Principal.fromText(parts[1]),
+      printVersion: parseInt(parts[2], 10),
+      uniqueCode: parts[3],
+      valid: true
+    };
+  } catch (error) {
+    console.error("Failed to parse verification code:", error);
+    return {
+      productId: Principal.anonymous(),
+      serialNo: Principal.anonymous(),
+      printVersion: 0,
+      uniqueCode: '',
+      valid: false
+    };
+  }
+};
+
+/**
+ * Convert metadata array to a key-value object
+ * 
+ * @param {Metadata[]} metadata - Array of metadata objects
+ * @returns {Record<string, string>} Metadata as key-value object
+ */
+const metadataToObject = (metadata: Metadata[]): Record<string, string> => {
+  return metadata.reduce((obj, item) => {
+    obj[item.key] = item.value;
+    return obj;
+  }, {} as Record<string, string>);
+};
+
+/**
+ * Verify a product using its verification code
+ * 
+ * @param {string} verificationCode - The code from the QR scan
+ * @returns {Promise<VerificationResult>} Result of verification
+ * @example
+ * const result = await verifyProduct("abc123:def456:1:xyz789");
+ */
+const verifyProduct = async (verificationCode: string): Promise<VerificationResult> => {
+  try {
+    const { productId, serialNo, printVersion, uniqueCode, valid } = parseVerificationCode(verificationCode);
+    
+    if (!valid) {
+      return {
+        status: { Invalid: null },
+        error: "Invalid verification code format"
+      };
+    }
+    
+    // Additional metadata for verification
+    const metadata: Metadata[] = [
+      { key: "source", value: "frontend-verification" },
+      { key: "timestamp", value: Date.now().toString() }
+    ];
+    
+    // Call backend verification API
+    const result = await TrustOrigin_backend.verify_product(
+      productId,
+      serialNo,
+      printVersion,
+      uniqueCode,
+      metadata
+    );
+    
+    if ('error' in result) {
+      return {
+        status: { Invalid: null },
+        error: result.error.message
+      };
+    }
+    
+    // Get product details if verification was successful
+    if ('status' in result) {
+      const productResult = await TrustOrigin_backend.get_product_by_id(productId);
+      
+      if ('product' in productResult) {
+        const product = productResult.product;
+        const organization = await TrustOrigin_backend.get_organization_by_id(product.org_id);
+        
+        return {
+          status: result.status,
+          productInfo: {
+            id: product.id.toString(),
+            name: product.name,
+            description: product.description,
+            category: product.category,
+            organization: organization.name,
+            metadata: metadataToObject(product.metadata)
+          }
+        };
+      }
+      
+      return {
+        status: result.status
+      };
+    }
+    
+    return {
+      status: { Invalid: null },
+      error: "Unknown error during verification"
+    };
+  } catch (error) {
+    console.error("Product verification failed:", error);
+    return {
+      status: { Invalid: null },
+      error: error instanceof Error ? error.message : "Unknown error"
+    };
+  }
+};
+
+/**
+ * Get product details by ID
+ * 
+ * @param {string} productId - The ID of the product
+ * @returns {Promise<any>} Product details
+ */
+const getProductDetails = async (productId: string) => {
+  try {
+    const principal = Principal.fromText(productId);
+    const result = await TrustOrigin_backend.get_product_by_id(principal);
+    
+    if ('product' in result) {
+      const product = result.product;
+      const organization = await TrustOrigin_backend.get_organization_by_id(product.org_id);
+      
+      return {
+        id: product.id.toString(),
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        organization: organization.name,
+        metadata: metadataToObject(product.metadata)
+      };
+    }
+    
+    throw new Error('Product not found');
+  } catch (error) {
+    console.error("Failed to get product details:", error);
+    throw error;
+  }
+};
+
+export const productApi = {
+  verifyProduct,
+  getProductDetails,
+  parseVerificationCode
+};
+</file>
+
+<file path="src/frontend/src/components/Filters.tsx">
+import React from 'react';
+
+interface FilterOption {
+    label: string;
+    value: string;
+}
+
+interface Filter {
+    label: string;
+    options: FilterOption[];
+}
+
+interface FiltersProps {
+    filters: Filter[];
+    onApply: (selectedValues: string[]) => void;
+}
+
+const Filters: React.FC<FiltersProps> = ({ filters, onApply }) => {
+    const [selectedValues, setSelectedValues] = React.useState<string[]>(
+        filters.map(() => "")
+    );
+
+    const handleSelectChange = (index: number, value: string) => {
+        const newValues = [...selectedValues];
+        newValues[index] = value;
+        setSelectedValues(newValues);
+    };
+
+    return (
+        <div className="flex space-x-4 mb-6">
+            <p className="text-xl w-1/6 font-lexend">Filter Transactions</p>
+            {filters.map((filter, index) => (
+                <select
+                    key={index}
+                    className="form-select block w-1/6 mt-1 border-gray-300 rounded-md shadow-sm focus:border-purple-500"
+                    value={selectedValues[index]}
+                    onChange={(e) => handleSelectChange(index, e.target.value)}
+                    aria-label={`Filter by ${filter.label}`}
+                >
+                    <option value="" disabled>
+                        {filter.label}
+                    </option>
+                    {filter.options.map((option, idx) => (
+                        <option key={idx} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            ))}
+            <button
+                onClick={() => onApply(selectedValues)}
+                className="bg-[#212EFF] text-white w-1/6 px-4 py-2 rounded-md shadow-sm hover:bg-blue-800"
+            >
+                Apply
+            </button>
+        </div>
+    );
+};
+
+export default Filters;
+</file>
+
+<file path="src/frontend/src/components/interfaces.d.ts">
+import { ReactNode } from "react";
+
+export type Menu = {
+    path: string;
+    logo?: ReactNode | string;
+    name: string;
+};
+</file>
+
+<file path="src/frontend/src/components/LandingCard.tsx">
+type LandingCardProps = {
+    title: string;
+    description: string;
+    image: string;
+};
+
+const LandingCard: React.FC<LandingCardProps> = ({ title, description, image }) => {
+    return (
+        <div className="bg-[#1A1A1A] rounded-[30px] flex flex-col justify-between">
+            <div className="flex flex-col gap-2 pt-10 px-10">
+                <p className="text-3xl font-lexend">{title}</p>
+                <p>{description}</p>
+            </div>
+            <div>
+                <img src={image} />
+            </div>
+        </div>
+    )
+}
+
+export default LandingCard
+</file>
+
+<file path="src/frontend/src/components/ProtectedRoute.tsx">
+/**
+ * @file Protected route component for authentication-based access control
+ * @fileoverview This component handles protecting routes based on authentication
+ * status and user roles, redirecting unauthorized users to the login page.
+ * 
+ * Functions:
+ * - ProtectedRoute: Main component to protect routes based on authentication
+ * 
+ * Constants:
+ * - ROLES: UserRole - Available user roles in the system
+ * 
+ * Flow:
+ * 1. Check if user is authenticated
+ * 2. If not authenticated, redirect to login
+ * 3. If authenticated but roles are required, check user role
+ * 4. If role check passes, render the protected children
+ * 5. If role check fails, redirect to unauthorized page
+ * 
+ * Error Handling:
+ * - Unauthenticated: Redirect to login page
+ * - Unauthorized roles: Redirect to unauthorized page
+ * 
+ * @module components/ProtectedRoute
+ * @requires react-router-dom - For navigation and routing
+ * @requires contexts/useAuthContext - For authentication state
+ * @exports {FC} ProtectedRoute - Protected route component
+ */
+
+import { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuthContext } from '../contexts/useAuthContext';
+import type { UserRole } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requiredRoles?: UserRole[];
+}
+
+// Available roles in the system
+const ROLES = {
+  ADMIN: { Admin: null } as UserRole,
+  BRAND_OWNER: { BrandOwner: null } as UserRole,
+  RESELLER: { Reseller: null } as UserRole,
+};
+
+/**
+ * Loading indicator component
+ */
+const LoadingIndicator = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+  </div>
+);
+
+/**
+ * Protected route component that enforces authentication
+ * 
+ * Checks if user is authenticated and has required roles before
+ * rendering the protected content, otherwise redirects to login.
+ * 
+ * @param {ReactNode} children - The components to render if authorized
+ * @param {UserRole[]} requiredRoles - Optional array of roles required to access the route
+ * @returns {JSX.Element} The protected component or redirect
+ * @example
+ * // Basic usage - require authentication only
+ * <ProtectedRoute>
+ *   <Dashboard />
+ * </ProtectedRoute>
+ * 
+ * // With role requirements
+ * <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
+ *   <AdminPanel />
+ * </ProtectedRoute>
+ */
+const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
+  const { isAuthenticated, isLoading, hasRole, profile } = useAuthContext();
+  const location = useLocation();
+
+  // If still loading, show a loading indicator
+  if (isLoading) {
+    return <LoadingIndicator />;
+  }
+
+  // If authentication is explicitly false (not undefined), redirect to login
+  if (isAuthenticated === false) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
+
+  // If no profile is set up yet but authenticated, redirect to role selection
+  if (isAuthenticated && profile && !profile.user_role?.length) {
+    return <Navigate to="/auth/choose-role" replace />;
+  }
+
+  // If roles are required, check if user has at least one of them
+  if (requiredRoles && requiredRoles.length > 0 && profile) {
+    const hasRequiredRole = requiredRoles.some(role => hasRole(role));
+    
+    if (!hasRequiredRole) {
+      // User is authenticated but doesn't have the required role
+      return <Navigate to="/unauthorized" replace />;
+    }
+  }
+
+  // User is authenticated and has required roles (if any)
+  return <>{children}</>;
+};
+
+export { ProtectedRoute, ROLES };
+</file>
+
+<file path="src/frontend/src/components/QRCodeScanner.tsx">
+/**
+ * @file QR Code Scanner component
+ * @fileoverview Component that provides QR code scanning functionality using the device camera
+ * 
+ * Functions:
+ * - QRCodeScanner: Main scanner component
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Request camera access
+ * 2. Initialize QR code scanner
+ * 3. Detect and process QR codes
+ * 4. Call onScan callback with result
+ * 
+ * Error Handling:
+ * - Camera access denied
+ * - Scanner initialization errors
+ * - Invalid QR code formats
+ * 
+ * @module components/QRCodeScanner
+ * @requires react - Core React library
+ * @requires html5-qrcode - QR code scanning library
+ * @exports {FC} QRCodeScanner - QR code scanner component
+ */
+
+import { useEffect, useRef, useState } from 'react';
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+
+interface QRCodeScannerProps {
+  onScan: (result: string) => void;
+  onError?: (error: string) => void;
+  width?: string;
+  height?: string;
+  fps?: number;
+  qrbox?: number;
+  disableFlip?: boolean;
+}
+
+/**
+ * QR Code Scanner component using device camera
+ * 
+ * Provides a camera view that scans for QR codes and returns results
+ * via the onScan callback.
+ * 
+ * @param {Function} onScan - Callback function for successful scan
+ * @param {Function} onError - Optional callback function for errors
+ * @param {string} width - Optional width of scanner element
+ * @param {string} height - Optional height of scanner element
+ * @param {number} fps - Optional frames per second for scanning
+ * @param {number} qrbox - Optional QR box size in pixels
+ * @param {boolean} disableFlip - Optional flag to disable image flipping
+ * @returns {JSX.Element} QR code scanner component
+ * @example
+ * <QRCodeScanner
+ *   onScan={(result) => console.log(result)}
+ *   onError={(error) => console.error(error)}
+ *   width="100%"
+ *   height="300px"
+ * />
+ */
+const QRCodeScanner = ({
+  onScan,
+  onError,
+  width = '100%',
+  height = '300px',
+  fps = 10,
+  qrbox = 250,
+  disableFlip = false
+}: QRCodeScannerProps) => {
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isRequesting, setIsRequesting] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scannerId = useRef(`qr-scanner-${Math.random().toString(36).substring(2, 9)}`);
+
+  // Function to request camera permission explicitly
+  const requestCameraPermission = async () => {
+    try {
+      setIsRequesting(true);
+      // Explicitly request camera permission
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      // Stop the stream immediately as we just need the permission
+      stream.getTracks().forEach(track => track.stop());
+      setError(null);
+      initializeScanner();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Camera permission denied';
+      setError(errorMessage);
+      if (onError) onError(errorMessage);
+    } finally {
+      setIsRequesting(false);
+    }
+  };
+
+  // Initialize the scanner after permissions are granted
+  const initializeScanner = () => {
+    // Create scanner container if it doesn't exist
+    if (!document.getElementById(scannerId.current) && containerRef.current) {
+      const scannerElement = document.createElement('div');
+      scannerElement.id = scannerId.current;
+      containerRef.current.appendChild(scannerElement);
+    }
+
+    // Initialize scanner
+    if (!scannerRef.current) {
+      scannerRef.current = new Html5Qrcode(scannerId.current);
+    }
+
+    // Start scanner
+    startScanner();
+  };
+
+  // Start the scanner
+  const startScanner = async () => {
+    try {
+      setIsScanning(true);
+      await scannerRef.current?.start(
+        { facingMode: 'environment' },
+        {
+          fps,
+          qrbox,
+          disableFlip,
+          aspectRatio: 1
+        },
+        (decodedText) => {
+          // Successfully scanned QR code
+          onScan(decodedText);
+        },
+        () => {
+          // QR code not found - continue scanning
+        }
+      );
+      setPermissionGranted(true);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errorMessage);
+      if (onError) onError(errorMessage);
+    }
+  };
+
+  useEffect(() => {
+    // Initialize scanner on mount
+    requestCameraPermission();
+
+    // Clean up scanner on unmount
+    return () => {
+      if (
+        scannerRef.current &&
+        scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED
+      ) {
+        scannerRef.current
+          .stop()
+          .then(() => {
+            scannerRef.current = null;
+          })
+          .catch((err) => {
+            console.error('Error stopping scanner:', err);
+          });
+      }
+    };
+  }, [fps, qrbox, disableFlip, onScan, onError]);
+
+  return (
+    <div className="qr-scanner-container">
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <p>Error: {error}</p>
+          <p className="text-sm">
+            Please ensure camera permissions are enabled for this site.
+          </p>
+          <button
+            onClick={requestCameraPermission}
+            className="mt-3 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded"
+            disabled={isRequesting}
+          >
+            {isRequesting ? 'Requesting Access...' : 'Request Camera Permission'}
+          </button>
+        </div>
+      )}
+      
+      <div 
+        ref={containerRef}
+        className="qr-scanner" 
+        style={{ 
+          width, 
+          height,
+          position: 'relative',
+          overflow: 'hidden',
+          borderRadius: '8px',
+          background: '#000'
+        }}
+      >
+        {!permissionGranted && !error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white">
+            <p className="mb-4">
+              {isRequesting ? 'Requesting camera permission...' : 'Camera access is required for scanning'}
+            </p>
+            {!isRequesting && !permissionGranted && (
+              <button
+                onClick={requestCameraPermission}
+                className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded"
+              >
+                Allow Camera Access
+              </button>
+            )}
+          </div>
+        )}
+        
+        {/* Scanner target indicator */}
+        {isScanning && !error && permissionGranted && (
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+            <div className="w-64 h-64 border-2 border-white rounded-lg opacity-70"></div>
+          </div>
+        )}
+      </div>
+      
+      <p className="text-center text-sm mt-2 text-gray-600">
+        Position the QR code within the frame to scan
+      </p>
+    </div>
+  );
+};
+
+export default QRCodeScanner;
+</file>
+
+<file path="src/frontend/src/components/Sidebar.tsx">
+import logo from "../assets/true-origin.png"
+type MenuItem = {
+    label: string;
+    icon: React.ComponentType<{ fillColor: string }>;
+    active: boolean;
+    onClickEvent: Function;
+}
+
+type SidebarProps = {
+    menuItems: MenuItem[];
+    userAvatar: string;
+    username: string;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ menuItems, userAvatar, username }) => {
+    return (
+        <aside className="w-64 bg-white h-screen shadow-md flex flex-col justify-between">
+            <div>
+                <div className="p-4 flex items-center justify-center">
+                    <img src={logo} className="max-w-[180px]" />
+                </div>
+                <nav className="mt-8">
+                    <ul className="p-5">
+                        {menuItems.map((item, index) => (
+                            <li
+                                key={index}
+                                className={`flex items-center p-2 ${item.active ? "text-[#2C42C0] bg-gray-100" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                                    } rounded-lg gap-2 mt-2 cursor-pointer`}
+                                onClick={() => item.onClickEvent(item.label)}
+                            >
+                                <item.icon fillColor="currentColor" />
+                                <span>{item.label}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            </div>
+            <div className="p-4 flex items-center">
+                <img className="w-10 h-10 rounded-full" src={userAvatar} alt="User Avatar" />
+                <div className="ml-2">
+                    <p className="text-gray-800">{username}</p>
+                    <a href="#" className="text-sm text-gray-500 hover:text-gray-800">
+                        View profile
+                    </a>
+                </div>
+                <button className="ml-auto text-gray-600 hover:text-gray-900">
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            fillRule="evenodd"
+                            d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H7a1 1 0 110-2h3V6a1 1 0 011-1z"
+                            clipRule="evenodd"
+                        ></path>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+    );
+};
+
+export default Sidebar
+</file>
+
+<file path="src/frontend/src/components/SidebarLogo.tsx">
+type LogoProps = {
+    fillColor: string;
+};
+
+const BrandOwnerLogo: React.FC<LogoProps> = ({ fillColor }) => {
+    return (
+        <svg className="w-6 h-6 mr-2" fill={fillColor} viewBox="0 0 20 20">
+            <path opacity="0.4" d="M22 9.75C21.59 9.75 21.25 9.41 21.25 9V7C21.25 4.42 19.58 2.75 17 2.75H7C4.42 2.75 2.75 4.42 2.75 7V9C2.75 9.41 2.41 9.75 2 9.75C1.59 9.75 1.25 9.41 1.25 9V7C1.25 3.56 3.56 1.25 7 1.25H17C20.44 1.25 22.75 3.56 22.75 7V9C22.75 9.41 22.41 9.75 22 9.75Z" fill={fillColor} />
+            <path opacity="0.4" d="M17 22.75H7C3.56 22.75 1.25 20.44 1.25 17V15C1.25 14.59 1.59 14.25 2 14.25C2.41 14.25 2.75 14.59 2.75 15V17C2.75 19.58 4.42 21.25 7 21.25H17C19.58 21.25 21.25 19.58 21.25 17V15C21.25 14.59 21.59 14.25 22 14.25C22.41 14.25 22.75 14.59 22.75 15V17C22.75 20.44 20.44 22.75 17 22.75Z" fill={fillColor} />
+            <path d="M16.3999 8.20999L12.6399 6.17996C12.2399 5.96996 11.7699 5.96996 11.3699 6.17996L7.60992 8.20999C7.33992 8.35999 7.16992 8.64995 7.16992 8.97995C7.16992 9.30995 7.33992 9.59997 7.60992 9.74997L11.3699 11.78C11.5699 11.89 11.7899 11.94 12.0099 11.94C12.2299 11.94 12.4499 11.89 12.6499 11.78L16.4099 9.74997C16.6799 9.59997 16.8499 9.30995 16.8499 8.97995C16.8399 8.64995 16.6699 8.35999 16.3999 8.20999Z" fill={fillColor} />
+            <path d="M10.7402 12.4699L7.24023 10.7199C6.97023 10.5899 6.66022 10.6 6.40022 10.76C6.14022 10.92 5.99023 11.1899 5.99023 11.4899V14.7999C5.99023 15.3699 6.31024 15.89 6.82024 16.14L10.3202 17.89C10.4402 17.95 10.5702 17.9799 10.7102 17.9799C10.8702 17.9799 11.0202 17.9399 11.1602 17.8499C11.4202 17.6899 11.5702 17.4199 11.5702 17.1199V13.8099C11.5702 13.2399 11.2602 12.7299 10.7402 12.4699Z" fill={fillColor} />
+            <path d="M17.5899 10.76C17.3299 10.6 17.0199 10.5899 16.7499 10.7199L13.2499 12.4699C12.7399 12.7299 12.4199 13.2399 12.4199 13.8099V17.1199C12.4199 17.4199 12.5699 17.6899 12.8299 17.8499C12.9699 17.9399 13.1199 17.9799 13.2799 17.9799C13.4099 17.9799 13.5399 17.95 13.6699 17.89L17.1699 16.14C17.6799 15.88 17.9999 15.3699 17.9999 14.7999V11.4899C17.9999 11.1899 17.8499 10.92 17.5899 10.76Z" fill={fillColor} />
+        </svg>
+    )
+}
+
+const AddProductLogo: React.FC<LogoProps> = ({ fillColor }) => {
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill={fillColor} xmlns="http://www.w3.org/2000/svg">
+            <path d="M22 15.7C22 15.69 21.99 15.68 21.98 15.67C21.94 15.61 21.89 15.55 21.84 15.5C21.83 15.49 21.82 15.47 21.81 15.46C21 14.56 19.81 14 18.5 14C17.24 14 16.09 14.52 15.27 15.36C14.48 16.17 14 17.28 14 18.5C14 19.34 14.24 20.14 14.65 20.82C14.87 21.19 15.15 21.53 15.47 21.81C15.49 21.82 15.5 21.83 15.51 21.84C15.56 21.89 15.61 21.93 15.67 21.98C15.67 21.98 15.67 21.98 15.68 21.98C15.69 21.99 15.7 22 15.71 22C16.46 22.63 17.43 23 18.5 23C20.14 23 21.57 22.12 22.35 20.82C22.58 20.43 22.76 20 22.87 19.55C22.96 19.21 23 18.86 23 18.5C23 17.44 22.63 16.46 22 15.7ZM20.18 19.23H19.25V20.2C19.25 20.61 18.91 20.95 18.5 20.95C18.09 20.95 17.75 20.61 17.75 20.2V19.23H16.82C16.41 19.23 16.07 18.89 16.07 18.48C16.07 18.07 16.41 17.73 16.82 17.73H17.75V16.84C17.75 16.43 18.09 16.09 18.5 16.09C18.91 16.09 19.25 16.43 19.25 16.84V17.73H20.18C20.59 17.73 20.93 18.07 20.93 18.48C20.93 18.89 20.6 19.23 20.18 19.23Z" fill={fillColor} />
+            <path opacity="0.4" d="M19.3499 5.65995L13.0599 2.27C12.3999 1.91 11.5999 1.91 10.9299 2.27L4.63991 5.65995C4.17991 5.90995 3.8999 6.39998 3.8999 6.93998C3.8999 7.47998 4.17991 7.96995 4.63991 8.21995L10.9299 11.61C11.2599 11.79 11.6299 11.88 11.9899 11.88C12.3499 11.88 12.7199 11.79 13.0499 11.61L19.3399 8.21995C19.7999 7.96995 20.0799 7.47998 20.0799 6.93998C20.0999 6.39998 19.8099 5.90995 19.3499 5.65995Z" fill={fillColor} />
+            <path opacity="0.4" d="M9.90021 12.79L4.05022 9.86001C3.60022 9.63001 3.08021 9.66001 2.65021 9.92001C2.22021 10.18 1.97021 10.64 1.97021 11.14V16.67C1.97021 17.63 2.50021 18.49 3.36021 18.92L9.21022 21.8401C9.41022 21.9401 9.63022 21.99 9.85022 21.99C10.1102 21.99 10.3702 21.92 10.6002 21.77C11.0302 21.51 11.2802 21.05 11.2802 20.55V15.02C11.2902 14.08 10.7602 13.22 9.90021 12.79Z" fill={fillColor} />
+            <path opacity="0.4" d="M22.03 11.15V15.74C22.02 15.73 22.01 15.71 22 15.7C22 15.69 21.99 15.68 21.9799 15.67C21.9399 15.61 21.89 15.55 21.84 15.5C21.83 15.49 21.82 15.47 21.81 15.46C21 14.56 19.81 14 18.5 14C17.24 14 16.09 14.52 15.27 15.36C14.48 16.17 14 17.28 14 18.5C14 19.34 14.2399 20.14 14.6499 20.82C14.8199 21.11 15.0299 21.37 15.2599 21.61L14.7899 21.85C14.5899 21.95 14.3699 22 14.1499 22C13.8899 22 13.63 21.93 13.39 21.78C12.97 21.52 12.71 21.06 12.71 20.56V15.04C12.71 14.08 13.24 13.22 14.1 12.79L19.95 9.87C20.4 9.64 20.92 9.66 21.35 9.93C21.77 10.19 22.03 10.65 22.03 11.15Z" fill={fillColor} />
+        </svg>
+    )
+}
+
+const ResellerLogo: React.FC<LogoProps> = ({ fillColor }) => {
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill={fillColor} xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.4" d="M15.0002 22.75C14.7302 22.75 14.4802 22.6 14.3502 22.37C14.2202 22.14 14.2202 21.85 14.3602 21.62L15.4102 19.87C15.6202 19.51 16.0802 19.4 16.4402 19.61C16.8002 19.82 16.9102 20.28 16.7002 20.64L16.4302 21.09C19.1902 20.44 21.2602 17.96 21.2602 15C21.2602 14.59 21.6002 14.25 22.0102 14.25C22.4202 14.25 22.7602 14.59 22.7602 15C22.7502 19.27 19.2702 22.75 15.0002 22.75Z" fill={fillColor} />
+            <path opacity="0.4" d="M2 9.75C1.59 9.75 1.25 9.41 1.25 9C1.25 4.73 4.73 1.25 9 1.25C9.27 1.25 9.51999 1.4 9.64999 1.63C9.77999 1.86 9.78 2.15 9.64 2.38L8.59 4.13C8.38 4.49001 7.92 4.60001 7.56 4.39001C7.2 4.18001 7.09 3.71999 7.3 3.35999L7.57001 2.90997C4.81001 3.55997 2.74001 6.04 2.74001 9C2.75001 9.41 2.41 9.75 2 9.75Z" fill={fillColor} />
+            <path d="M10.6704 13.8499L7.53044 12.1599C7.20044 11.9799 6.80044 11.9799 6.47044 12.1599L3.33044 13.8499C3.10044 13.9699 2.96045 14.2199 2.96045 14.4899C2.96045 14.7599 3.10044 15.0099 3.33044 15.1299L6.47044 16.8199C6.64044 16.9099 6.82044 16.9499 7.00044 16.9499C7.18044 16.9499 7.36044 16.9099 7.53044 16.8199L10.6704 15.1299C10.9004 15.0099 11.0404 14.7599 11.0404 14.4899C11.0404 14.2199 10.8904 13.9799 10.6704 13.8499Z" fill={fillColor} />
+            <path d="M5.95023 17.4099L3.03023 15.9499C2.81023 15.8399 2.55023 15.8499 2.33023 15.9799C2.12023 16.1099 1.99023 16.3399 1.99023 16.5899V19.3499C1.99023 19.8299 2.25022 20.2599 2.68022 20.4699L5.60023 21.9299C5.70023 21.9799 5.81023 22.0099 5.92023 22.0099C6.05023 22.0099 6.18023 21.9699 6.30023 21.8999C6.51023 21.7699 6.64023 21.5399 6.64023 21.2899V18.5299C6.65023 18.0499 6.38023 17.6199 5.95023 17.4099Z" fill={fillColor} />
+            <path d="M11.6601 15.9799C11.4501 15.8499 11.1901 15.8399 10.9601 15.9499L8.04008 17.4099C7.61008 17.6199 7.3501 18.0499 7.3501 18.5299V21.2899C7.3501 21.5399 7.48009 21.7699 7.69009 21.8999C7.81009 21.9699 7.9401 22.0099 8.0701 22.0099C8.1801 22.0099 8.29009 21.9799 8.39009 21.9299L11.3101 20.4699C11.7401 20.2599 12.0001 19.8299 12.0001 19.3499V16.5899C12.0001 16.3399 11.8701 16.1099 11.6601 15.9799Z" fill={fillColor} />
+            <path d="M20.6704 3.83001L17.5304 2.14C17.2004 1.96 16.8004 1.96 16.4704 2.14L13.3304 3.83001C13.1004 3.95001 12.9604 4.19996 12.9604 4.46996C12.9604 4.73996 13.1004 4.98998 13.3304 5.10998L16.4704 6.79998C16.6404 6.88998 16.8204 6.92998 17.0004 6.92998C17.1804 6.92998 17.3604 6.88998 17.5304 6.79998L20.6704 5.10998C20.9004 4.98998 21.0404 4.73996 21.0404 4.46996C21.0404 4.18996 20.8904 3.95001 20.6704 3.83001Z" fill={fillColor} />
+            <path d="M15.9502 7.37999L13.0302 5.91997C12.8102 5.80997 12.5502 5.82 12.3302 5.95C12.1202 6.08 11.9902 6.30999 11.9902 6.55999V9.32C11.9902 9.8 12.2502 10.23 12.6802 10.44L15.6002 11.9C15.7002 11.95 15.8102 11.98 15.9202 11.98C16.0502 11.98 16.1802 11.94 16.3002 11.87C16.5102 11.74 16.6402 11.51 16.6402 11.26V8.49999C16.6502 8.01999 16.3802 7.58999 15.9502 7.37999Z" fill={fillColor} />
+            <path d="M21.6601 5.95C21.4501 5.82 21.1901 5.80997 20.9601 5.91997L18.0401 7.37999C17.6101 7.58999 17.3501 8.01999 17.3501 8.49999V11.26C17.3501 11.51 17.4801 11.74 17.6901 11.87C17.8101 11.94 17.9401 11.98 18.0701 11.98C18.1801 11.98 18.2901 11.95 18.3901 11.9L21.3101 10.44C21.7401 10.23 22.0001 9.8 22.0001 9.32V6.55999C22.0001 6.30999 21.8701 6.08 21.6601 5.95Z" fill={fillColor} />
+        </svg>
+    )
+}
+
+const UserLogo: React.FC<LogoProps> = ({ fillColor }) => {
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill={fillColor} xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.4" d="M9 2C6.38 2 4.25 4.13 4.25 6.75C4.25 9.32 6.26 11.4 8.88 11.49C8.96 11.48 9.04 11.48 9.1 11.49C9.12 11.49 9.13 11.49 9.15 11.49C9.16 11.49 9.16 11.49 9.17 11.49C11.73 11.4 13.74 9.32 13.75 6.75C13.75 4.13 11.62 2 9 2Z" fill={fillColor} />
+            <path d="M14.08 14.15C11.29 12.29 6.73996 12.29 3.92996 14.15C2.65996 15 1.95996 16.15 1.95996 17.38C1.95996 18.61 2.65996 19.75 3.91996 20.59C5.31996 21.53 7.15996 22 8.99996 22C10.84 22 12.68 21.53 14.08 20.59C15.34 19.74 16.04 18.6 16.04 17.36C16.03 16.13 15.34 14.99 14.08 14.15Z" fill={fillColor} />
+            <path opacity="0.4" d="M19.9899 7.33998C20.1499 9.27998 18.7699 10.98 16.8599 11.21C16.8499 11.21 16.8499 11.21 16.8399 11.21H16.8099C16.7499 11.21 16.6899 11.21 16.6399 11.23C15.6699 11.28 14.7799 10.97 14.1099 10.4C15.1399 9.47998 15.7299 8.09998 15.6099 6.59998C15.5399 5.78998 15.2599 5.04998 14.8399 4.41998C15.2199 4.22998 15.6599 4.10998 16.1099 4.06998C18.0699 3.89998 19.8199 5.35998 19.9899 7.33998Z" fill={fillColor} />
+            <path d="M21.9902 16.59C21.9102 17.56 21.2902 18.4 20.2502 18.97C19.2502 19.52 17.9902 19.78 16.7402 19.75C17.4602 19.1 17.8802 18.29 17.9602 17.43C18.0602 16.19 17.4702 15 16.2902 14.05C15.6202 13.52 14.8402 13.1 13.9902 12.79C16.2002 12.15 18.9802 12.58 20.6902 13.96C21.6102 14.7 22.0802 15.63 21.9902 16.59Z" fill={fillColor} />
+        </svg>
+    )
+}
+
+const HeatmapLogo: React.FC<LogoProps> = ({ fillColor }) => {
+    return (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill={fillColor} xmlns="http://www.w3.org/2000/svg">
+            <path opacity="0.4" d="M21 2V14.1C21 16 20 17 18.1 17H5.89999C3.99999 17 3 16 3 14.1V2H21Z" fill={fillColor} />
+            <path d="M22 2.75H2C1.59 2.75 1.25 2.41 1.25 2C1.25 1.59 1.59 1.25 2 1.25H22C22.41 1.25 22.75 1.59 22.75 2C22.75 2.41 22.41 2.75 22 2.75Z" fill={fillColor} />
+            <path d="M16.6698 22.34C16.5398 22.6 16.2698 22.75 15.9998 22.75C15.8898 22.75 15.7698 22.72 15.6698 22.67L11.9998 20.84L8.32976 22.67C8.22976 22.72 8.10978 22.75 7.99978 22.75C7.72978 22.75 7.45976 22.6 7.32976 22.34C7.13976 21.96 7.28979 21.51 7.66979 21.33L11.2498 19.54V17H12.7498V19.54L16.3298 21.33C16.7098 21.51 16.8598 21.96 16.6698 22.34Z" fill={fillColor} />
+            <path d="M7.49993 11.7499C7.28993 11.7499 7.06994 11.6599 6.91994 11.4799C6.64994 11.1599 6.69992 10.6899 7.01992 10.4199L10.1699 7.78993C10.4599 7.54993 10.8299 7.44994 11.1799 7.50994C11.5399 7.56994 11.8499 7.78991 12.0399 8.10991L13.0899 9.85991L16.0199 7.41994C16.3399 7.14994 16.8099 7.19992 17.0799 7.51992C17.3499 7.83992 17.2999 8.30991 16.9799 8.57991L13.8299 11.2099C13.5399 11.4499 13.1699 11.5499 12.8199 11.4899C12.4599 11.4299 12.1499 11.2099 11.9599 10.8899L10.9099 9.13994L7.97994 11.5799C7.83994 11.6899 7.66993 11.7499 7.49993 11.7499Z" fill={fillColor} />
+        </svg>
+    )
+}
+
+export { HeatmapLogo, BrandOwnerLogo, UserLogo, ResellerLogo, AddProductLogo }
+</file>
+
+<file path="src/frontend/src/hooks/useAuth.ts">
+/**
+ * @file Authentication hook
+ * @fileoverview Custom hook for managing user authentication state
+ * 
+ * Functions:
+ * - useAuth: Main hook for authentication
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Initialize auth context
+ * 2. Provide user login/logout functionality
+ * 3. Cache authentication state
+ * 4. Load user profile and organization data
+ * 
+ * Error Handling:
+ * - Login errors
+ * - Session expiration
+ * - Network issues
+ * 
+ * @module hooks/useAuth
+ * @requires react - React library
+ * @requires TrustOrigin_backend - Backend canister
+ * @exports {Hook} useAuth - Authentication hook
+ */
+
+import { useState } from 'react';
+import { useAuthContext } from '../contexts/useAuthContext';
+
+// Define frontend-specific user types
+export interface Organization {
+  id: string;
+  name: string;
+  role: 'Owner' | 'Member';
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  // Add index signature for organization property
+  organization?: Organization;
+  [key: string]: any;
+}
+
+/**
+ * Authentication hook that provides authentication state and methods
+ * This hook acts as a wrapper around the AuthContext for components
+ * that need authentication functionality
+ * 
+ * @returns Authentication state and methods
+ */
+const useAuth = () => {
+  const { 
+    isAuthenticated, 
+    isLoading: isAuthenticating,
+    profile,
+    login,
+    logout
+  } = useAuthContext();
+  
+  const [error, setError] = useState<string | null>(null);
+
+  // Transform backend profile to frontend user format
+  let user: User | null = null;
+  
+  if (profile) {
+    // Create a user object with required properties
+    const userObj = {
+      id: profile.id.toString(),
+      name: profile.first_name && profile.last_name && profile.first_name[0] && profile.last_name[0] ? 
+        `${profile.first_name[0]} ${profile.last_name[0]}` : 
+        'Unknown User',
+      email: profile.email && profile.email[0] ? profile.email[0] : '',
+      isAdmin: !!(profile.user_role && 
+               profile.user_role.length > 0 && 
+               profile.user_role[0] && 
+               'Admin' in profile.user_role[0])
+    } as User;
+    
+    // Only add organization if it exists in the profile
+    if (profile.organization) {
+      (userObj as any).organization = {
+        id: profile.organization.id.toString(),
+        name: profile.organization.name || '',
+        role: profile.user_role && 
+              profile.user_role.length > 0 && 
+              profile.user_role[0] && 
+              'BrandOwner' in profile.user_role[0] ? 'Owner' : 'Member'
+      };
+    }
+    
+    user = userObj;
+  }
+
+  // Wrapper for login to handle errors
+  const handleLogin = async () => {
+    try {
+      setError(null);
+      login();
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Failed to login. Please try again.');
+    }
+  };
+
+  // Wrapper for logout to handle errors
+  const handleLogout = async () => {
+    try {
+      setError(null);
+      await logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError('Failed to logout. Please try again.');
+    }
+  };
+
+  return {
+    isAuthenticated: !!isAuthenticated,
+    isAuthenticating,
+    user,
+    login: handleLogin,
+    logout: handleLogout,
+    error
+  };
+};
+
+export default useAuth;
+</file>
+
+<file path="src/frontend/src/pages/auth/choose-role.tsx">
+import { Principal } from "@dfinity/principal";
+import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "../../contexts/useAuthContext";
+import { useEffect } from "react";
+
+const RoleCard: React.FC<{ title: string; description: string; onClick: () => void; }> = ({ title, description, onClick }) => {
+    return (
+        <div className="bg-[#FFFFFF] rounded-[30px] flex flex-col justify-between">
+            <div className="flex flex-col gap-2 pt-10 px-10">
+                <p className="text-3xl font-lexend">{title}</p>
+                <p>{description}</p>
+            </div>
+            <div>
+                <button 
+                    type="button" 
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                    onClick={() => onClick()}
+                >Sign In</button>
+            </div>
+        </div>
+    )
+}
+
+const ChooseRolePage = () => {
+    const navigate = useNavigate();
+    const { signinAsBrandOwner, signinAsReseller, profile } = useAuthContext();
+    const onBrandOwnerClicked = () => {
+        return signinAsBrandOwner({
+            name: 'Test Brand',
+            description: 'Test Brand',
+            metadata: [], 
+        });
+    };
+    const onResellerClicked = () => {
+        return signinAsReseller({
+            name: 'Test Brand',
+            org_id: Principal.anonymous(),
+            ecommerce_urls: [],
+            metadata: [], 
+        });
+    };
+    useEffect(() => {
+        if (!profile) {
+            return;
+        }
+        if (profile.user_role.length === 0) {
+            return;
+        }
+        const role = profile.user_role[0];
+        if ('BrandOwner' in role) {
+            navigate('/dashboard')
+        } else if ('Reseller' in role) {
+            navigate('/resellers-dashboard')
+        }
+    }, [profile, navigate]);
+
+    return (
+        <>
+            <h1>Choose Role</h1>
+            <RoleCard 
+                title="Brand Owner"
+                description="Choose this to manage products"
+                onClick={onBrandOwnerClicked}
+            />
+            <RoleCard 
+                title="Reseller"
+                description="Choose this if you are reseller of products"
+                onClick={onResellerClicked}
+            />
+        </>
+    )
+}
+
+export default ChooseRolePage;
+</file>
+
+<file path="src/frontend/src/pages/test-page.tsx">
+import { useEffect, useState } from 'react';
+import reactLogo from '../assets/react.svg';
+import '../App.css';
+import { TrustOrigin_backend } from '../../../declarations/TrustOrigin_backend';
+
+function TestPage() {
+  const [count, setCount] = useState(0)
+  const [greeting, setGreeting] = useState('');
+
+  useEffect(() => {
+    const doGreeting = async () => {
+      const greet = await TrustOrigin_backend.greet('World')
+      console.log(greet);
+      setGreeting(greet);
+    };
+
+    doGreeting();
+  }, [])
+
+  return (
+    <>
+      <div>
+        <a href="https://react.dev" target="_blank">
+          <img src={reactLogo} className="logo react" alt="React logo" />
+        </a>
+      </div>
+      <h1>Vite + React</h1>
+      <div className="card">
+        <button onClick={() => setCount((count) => count + 1)}>
+          count is {count}
+        </button>
+        <p>
+          Edit <code>src/App.tsx</code> and save to test HMR
+        </p>
+      </div>
+      <p className="read-the-docs">
+        Click on the Vite and React logos to learn more
+      </p>
+      <p>Greetings: "{greeting}"</p>
+    </>
+  )
+}
+
+export default TestPage;
+</file>
+
+<file path="src/frontend/src/pages/unauthorized.tsx">
+/**
+ * @file Unauthorized access page
+ * @fileoverview This page displays when a user attempts to access a route
+ * for which they do not have the required permissions
+ * 
+ * Functions:
+ * - UnauthorizedPage: Displays unauthorized message with options to go back
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Display unauthorized message
+ * 2. Provide options to go back or to dashboard
+ * 
+ * Error Handling:
+ * - None
+ * 
+ * @module pages/unauthorized
+ * @requires react-router-dom - For navigation
+ * @exports {FC} UnauthorizedPage - Unauthorized page component
+ */
+
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../contexts/useAuthContext';
+
+/**
+ * Unauthorized page displayed when a user lacks permission
+ * 
+ * @returns {JSX.Element} Unauthorized page
+ * @example
+ * <UnauthorizedPage />
+ */
+const UnauthorizedPage = () => {
+  const navigate = useNavigate();
+  const { profile } = useAuthContext();
+
+  const goBack = () => {
+    navigate(-1);
+  };
+
+  const goToDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
+        <div className="text-red-500 text-5xl mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        
+        <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
+        
+        <p className="text-gray-600 mb-6">
+          {profile ? 
+            `Sorry, ${profile.first_name?.[0] || ''}, you don't have permission to access this page.` : 
+            'Sorry, you don\'t have permission to access this page.'}
+        </p>
+        
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <button
+            onClick={goBack}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded"
+          >
+            Go Back
+          </button>
+          
+          <button
+            onClick={goToDashboard}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UnauthorizedPage;
+</file>
+
+<file path="src/frontend/src/pages/verify.tsx">
+/**
+ * @file Product verification page
+ * @fileoverview Public page for verifying product authenticity using QR codes
+ * 
+ * Functions:
+ * - VerifyPage: Main verification page component
+ * - StatusBadge: Displays verification status
+ * - ProductInfo: Displays product information
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. User scans product QR code using camera
+ * 2. Code is verified with backend API
+ * 3. Verification result is displayed to the user
+ * 4. Additional product details are shown if authentic
+ * 
+ * Error Handling:
+ * - Camera permission errors
+ * - QR code scanning errors
+ * - API verification errors
+ * - Invalid code format errors
+ * 
+ * @module pages/verify
+ * @requires components/QRCodeScanner - QR code scanner component
+ * @requires api/productApi - Product verification API
+ * @exports {FC} VerifyPage - Product verification page component
+ */
+
+import { useState } from 'react';
+import QRCodeScanner from '../components/QRCodeScanner';
+import { productApi } from '../api/productApi';
+import type { ProductVerificationStatus } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { Link } from 'react-router-dom';
+
+interface VerificationState {
+  status: ProductVerificationStatus | null;
+  isLoading: boolean;
+  error: string | null;
+  productInfo: any | null;
+}
+
+/**
+ * Status badge component for verification results
+ * 
+ * @param {object} props - Component props
+ * @param {ProductVerificationStatus | null} props.status - Verification status
+ * @returns {JSX.Element} Status badge component
+ */
+const StatusBadge = ({ status }: { status: ProductVerificationStatus | null }) => {
+  if (!status) return null;
+
+  if ('FirstVerification' in status) {
+    return (
+      <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative flex items-center">
+        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+        </svg>
+        <strong>Authentic Product</strong> - First verification
+      </div>
+    );
+  }
+
+  if ('MultipleVerification' in status) {
+    return (
+      <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative flex items-center">
+        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+        <strong>Authentic Product</strong> - Previously verified
+      </div>
+    );
+  }
+
+  if ('Invalid' in status) {
+    return (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-center">
+        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+        </svg>
+        <strong>Invalid Product</strong> - Verification failed
+      </div>
+    );
+  }
+
+  return null;
+};
+
+/**
+ * Product information component
+ * 
+ * @param {object} props - Component props
+ * @param {any} props.product - Product information
+ * @returns {JSX.Element} Product information component
+ */
+const ProductInfo = ({ product }: { product: any }) => {
+  if (!product) return null;
+
+  return (
+    <div className="bg-white shadow-md rounded-lg p-6 mt-4">
+      <h2 className="text-xl font-semibold mb-4">{product.name}</h2>
+      
+      <div className="mb-4">
+        <h3 className="text-sm font-medium text-gray-500">Description</h3>
+        <p className="mt-1">{product.description}</p>
+      </div>
+      
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <h3 className="text-sm font-medium text-gray-500">Category</h3>
+          <p className="mt-1">{product.category}</p>
+        </div>
+        <div>
+          <h3 className="text-sm font-medium text-gray-500">Manufacturer</h3>
+          <p className="mt-1">{product.organization}</p>
+        </div>
+      </div>
+      
+      {product.metadata && Object.keys(product.metadata).length > 0 && (
+        <div>
+          <h3 className="text-sm font-medium text-gray-500 mb-2">Additional Details</h3>
+          <div className="bg-gray-50 rounded p-3">
+            {Object.entries(product.metadata).map(([key, value]) => (
+              <div key={key} className="grid grid-cols-2 gap-2 mb-1">
+                <span className="text-sm font-medium">{key}:</span>
+                <span className="text-sm">{value as string}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Product verification page with QR scanner
+ * 
+ * @returns {JSX.Element} Verification page component
+ */
+const VerifyPage = () => {
+  const [verification, setVerification] = useState<VerificationState>({
+    status: null,
+    isLoading: false,
+    error: null,
+    productInfo: null
+  });
+  const [showScanner, setShowScanner] = useState(true);
+
+  const handleScan = async (result: string) => {
+    try {
+      setVerification({
+        ...verification,
+        isLoading: true,
+        error: null
+      });
+      
+      // Temporarily hide the scanner to prevent multiple scans
+      setShowScanner(false);
+      
+      // Verify the product
+      const verificationResult = await productApi.verifyProduct(result);
+      
+      setVerification({
+        status: verificationResult.status,
+        isLoading: false,
+        error: verificationResult.error || null,
+        productInfo: verificationResult.productInfo || null
+      });
+    } catch (error) {
+      setVerification({
+        ...verification,
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  };
+
+  const handleScanError = (error: string) => {
+    setVerification({
+      ...verification,
+      isLoading: false,
+      error
+    });
+  };
+
+  const resetScanner = () => {
+    setVerification({
+      status: null,
+      isLoading: false,
+      error: null,
+      productInfo: null
+    });
+    setShowScanner(true);
+  };
+
+  return (
+    <div className="max-w-lg mx-auto p-4">
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Product Verification</h1>
+        <p className="text-gray-600">Scan a product QR code to verify its authenticity</p>
+      </div>
+
+      {verification.isLoading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+          <span className="ml-3 text-gray-700">Verifying product...</span>
+        </div>
+      )}
+
+      {verification.error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <p className="font-bold">Error</p>
+          <p>{verification.error}</p>
+          <button 
+            onClick={resetScanner}
+            className="mt-2 bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {verification.status && (
+        <div className="mb-4">
+          <StatusBadge status={verification.status} />
+          
+          {verification.productInfo && (
+            <ProductInfo product={verification.productInfo} />
+          )}
+          
+          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+            <button 
+              onClick={resetScanner}
+              className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded"
+            >
+              Scan Another Product
+            </button>
+            
+            <Link 
+              to="/"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded text-center"
+            >
+              Return to Home
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {showScanner && !verification.isLoading && (
+        <div className="mt-4">
+          <QRCodeScanner 
+            onScan={handleScan} 
+            onError={handleScanError}
+            height="350px"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default VerifyPage;
+</file>
+
+<file path="src/frontend/src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</file>
+
+<file path="src/frontend/src/utils.ts">
+import type { UserResult, User } from "../../declarations/TrustOrigin_backend/TrustOrigin_backend.did";
+
+export function handleUserResult(result: UserResult): User | null {
+    if ('none' in result) {
+        return null;
+    }
+    if ('user' in result) {
+        return result.user;
+    }
+    if ('error' in result) {
+        throw new Error(result.error.message)
+    }
+    throw new Error('Malformed result!')
+}
+</file>
+
+<file path="src/frontend/src/vite-env.d.ts">
+/// <reference types="vite/client" />
+</file>
+
+<file path="src/frontend/.gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+</file>
+
+<file path="src/frontend/eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import tseslint from 'typescript-eslint'
+
+export default tseslint.config({
+  extends: [js.configs.recommended, ...tseslint.configs.recommended],
+  files: ['**/*.{ts,tsx}'],
+  ignores: ['dist'],
+  languageOptions: {
+    ecmaVersion: 2020,
+    globals: globals.browser,
+  },
+  plugins: {
+    'react-hooks': reactHooks,
+    'react-refresh': reactRefresh,
+  },
+  rules: {
+    ...reactHooks.configs.recommended.rules,
+    'react-refresh/only-export-components': [
+      'warn',
+      { allowConstantExport: true },
+    ],
+  },
+})
+</file>
+
+<file path="src/frontend/index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/true-origin.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>True Origin</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="src/frontend/postcss.config.cjs">
+module.exports = {
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {},
+    }
+}
+</file>
+
+<file path="src/frontend/tailwind.config.js">
+import { transform } from 'typescript'
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ["./src/**/*.{html,js,ts,tsx}"],
+  theme: {
+    extend: {
+      fontFamily: {
+        lexend: ["Lexend", "sans-serif"],
+      },
+    },
+  },
+  plugins: [],
+}
+</file>
+
+<file path="src/frontend/tsconfig.app.json">
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="src/frontend/tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}
+</file>
+
+<file path="src/frontend/tsconfig.node.json">
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["vite.config.ts"]
+}
+</file>
+
+<file path=".nvmrc">
+16.20.0
+</file>
+
+<file path="dfx.json">
+{
+  "canisters": {
+    "TrustOrigin_backend": {
+      "candid": "src/backend/backend.did",
+      "package": "TrustOrigin_backend",
+      "type": "rust"
+    },
+    "TrustOrigin_frontend": {
+      "dependencies": [
+          "TrustOrigin_backend",
+          "internet_identity"
+      ],
+      "source": [
+          "src/frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "trustorigin"
+    },
+    "internet_identity": {
+      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
+      "frontend": {},
+      "remote": {
+          "id": {
+              "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+          }
+      },
+      "type": "custom",
+      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
+</file>
+
+<file path="package.json">
+{
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=7.0.0",
+        "pnpm": ">=7.0.0",
+        "husky": "9.1.4"
+    },
+    "name": "trustorigin",
+    "scripts": {
+        "setup-declarations": "dfx generate TrustOrigin_backend",
+        "build": "npm run build --workspaces --if-present",
+        "prebuild": "npm run prebuild --workspaces --if-present",
+        "pretest": "npm run prebuild --workspaces --if-present",
+        "start": "npm start --workspaces --if-present",
+        "test": "npm test --workspaces --if-present",
+        "prepare": "husky"
+    },
+    "type": "module",
+    "workspaces": [
+        "src/frontend"
+    ],
+    "dependencies": {
+        "@dfinity/agent": "^2.0.0"
+    },
+    "devDependencies": {
+        "husky": "^9.1.4"
+    },
+    "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
+}
+</file>
+
+<file path="src/frontend/src/pages/auth/login.tsx">
+import { useNavigate, Link } from 'react-router-dom';
+import { useEffect } from 'react';
+
+import { useAuthContext } from '../../contexts/useAuthContext';
+
+// assets
+import WelcomePageImage from '../../assets/Asset-WelcomePage.webp'
+import RoboLoginPageImage from '../../assets/Robo-LoginPage.webp'
+import TrueOriginLogo from '../../assets/true-origin.png'
+import InternetIdentityLogo from '../../assets/InternetIdentityLogo.png'
+
+const LoginPage = () => {
+    const navigate = useNavigate()
+    const { login, isAuthenticated, profile } = useAuthContext()
+
+    const handleSubmitLogin = () => {
+        login();
+    }
+
+    useEffect(() => {
+        if (isAuthenticated && profile) {
+            navigate('/dashboard')
+        }
+        if (isAuthenticated && !profile) {
+            navigate('/auth/choose-role')
+        }
+    }, [isAuthenticated, profile, navigate])
+
+    return (
+        <div className="flex flex-row bg-white">
+            <div className="flex justify-around gap-5 max-md:flex-col max-md:gap-0">
+                <div className="flex flex-col w-[50%] max-md:ml-0 max-md:w-full">
+                    <div className="flex flex-col grow items-center px-5 mt-20 max-md:mt-10 max-md:max-w-full">
+                        <div className="flex gap-0 max-md:pr-5">
+                            <img
+                                loading="lazy"
+                                src={TrueOriginLogo}
+                                className="shrink-0 max-w-full aspect-[1.09] w-[100px]"
+                            />
+                        </div>
+                        <div className="mt-7 text-5xl text-[2vw] font-semibold text-center text-cyan-600 max-md:max-w-full">
+                            Create an Account
+                        </div>
+                        <img
+                            loading="lazy"
+                            src={WelcomePageImage}
+                            className="self-stretch mt-10 w-full aspect-[1.43] max-md:mt-10 max-md:max-w-full"
+                        />
+                    </div>
+                </div>
+                <div className="flex">
+                    <div className="flex flex-col self-stretch my-auto text-base font-light text-center text-cyan-600 max-md:mt-10 max-md:max-w-full">
+                        <img
+                            loading="lazy"
+                            src={RoboLoginPageImage}
+                            className="w-full md:w-10/12 lg:max-w-full max-w-full md:max-w-sm xl:max-w-lg object-cover"
+                        />
+                        <div className="w-[110%] lg:top-[70%] md:top-[90%] right-0 -translate-y-[300%]">
+                            <button onClick={handleSubmitLogin} className="text-white border-[none] flex gap-3.5 py-4 pr-3.5 pl-7 font-bold text-center text-white bg-cyan-500 rounded-xl border border-solid border-zinc-800 border-opacity-0 transition-opacity duration-500 hover:opacity-80 md-4">
+                                <div className="flex-auto border border-solid border-zinc-800 border-opacity-0">
+                                    Sign In Here with Internet Identity
+                                </div>
+                                <img
+                                    loading="lazy"
+                                    src={InternetIdentityLogo}
+                                    className="shrink-0 max-w-full aspect-[3.7] w-[113px] justify-around self-center border border-solid border-zinc-800 border-opacity-0"
+                                />
+                            </button>
+                            <div className="flex gap-3.5 py-4 pr-3.5 pl-72">
+                                <Link to="/privacy">
+                                    <div className="grow my-auto">Privacy and T&C</div>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default LoginPage;
+</file>
+
+<file path="src/frontend/src/pages/brand-owners/products.tsx">
+/**
+ * @file Brand Owner Products Page
+ * @fileoverview Allows brand owners to view, create, and manage their products
+ * 
+ * Functions:
+ * - ProductsPage: Main page component
+ * - ProductList: Displays list of products
+ * - ProductCard: Displays individual product in a card
+ * - CreateProductModal: Modal for creating a new product
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Fetch products for the brand owner's organization
+ * 2. Display products in a responsive grid
+ * 3. Allow creation of new products
+ * 4. Enable management of existing products
+ * 
+ * Error Handling:
+ * - Loading state for API calls
+ * - Error display for failed API requests
+ * - Validation for product creation/editing
+ * 
+ * @module pages/brand-owners/products
+ * @requires TrustOrigin_backend - Backend canister
+ * @exports {FC} ProductsPage - Products page component
+ */
+
+import { useEffect, useState } from 'react';
+import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
+import { Principal } from '@dfinity/principal';
+import useAuth from '../../hooks/useAuth';
+
+// Types
+interface Product {
+  id: Principal;
+  name: string;
+  description: string;
+  org_id: Principal;
+  category: string;
+  create_time: bigint;
+  update_time: bigint;
+  active: boolean;
+  metadata: Array<{ key: string; value: string }>;
+}
+
+interface CreateProductFormData {
+  name: string;
+  description: string;
+  category: string;
+  metadata: Array<{ key: string; value: string }>;
+}
+
+// Helper function to convert metadata array to a more usable object
+const metadataToObject = (metadata: Array<{ key: string; value: string }>) => {
+  return metadata.reduce((acc, { key, value }) => {
+    acc[key] = value;
+    return acc;
+  }, {} as Record<string, string>);
+};
+
+/**
+ * Product Card Component
+ * 
+ * Displays an individual product in a card layout
+ * 
+ * @param {Object} product - Product data to display
+ * @param {Function} onEdit - Callback when edit is clicked
+ * @param {Function} onGenerateQR - Callback to generate QR codes
+ * @returns {JSX.Element} Product card component
+ */
+const ProductCard = ({ 
+  product, 
+  onEdit, 
+  onGenerateQR 
+}: { 
+  product: Product; 
+  onEdit: (product: Product) => void;
+  onGenerateQR: (product: Product) => void;
+}) => {
+  const metadata = metadataToObject(product.metadata);
+  
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+      <div className="p-5">
+        <h3 className="font-bold text-lg text-gray-800 mb-2 truncate">{product.name}</h3>
+        
+        <div className="text-sm text-gray-500 mb-4">
+          <p className="mb-1">Category: {product.category}</p>
+          <p className="mb-1">ID: {product.id.toString().substring(0, 10)}...</p>
+          <p className="mb-3">Created: {new Date(Number(product.create_time) / 1000000).toLocaleDateString()}</p>
+        </div>
+        
+        <p className="text-gray-700 mb-4 line-clamp-3">{product.description}</p>
+        
+        {metadata.imageUrl && (
+          <div className="relative h-40 mb-4 bg-gray-100 rounded overflow-hidden">
+            <img 
+              src={metadata.imageUrl} 
+              alt={product.name} 
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.currentTarget.src = 'https://via.placeholder.com/300x200?text=No+Image';
+              }}
+            />
+          </div>
+        )}
+        
+        <div className="flex justify-between mt-3">
+          <button 
+            onClick={() => onEdit(product)}
+            className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded text-sm"
+          >
+            Edit
+          </button>
+          <button 
+            onClick={() => onGenerateQR(product)}
+            className="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded text-sm"
+          >
+            Generate QR
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Create Product Modal
+ * 
+ * Modal component for creating a new product
+ * 
+ * @param {boolean} isOpen - Whether the modal is open
+ * @param {Function} onClose - Function to close the modal
+ * @param {Function} onSubmit - Function to handle form submission
+ * @returns {JSX.Element} Modal component
+ */
+const CreateProductModal = ({ 
+  isOpen, 
+  onClose, 
+  onSubmit 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onSubmit: (data: CreateProductFormData) => void;
+}) => {
+  const [formData, setFormData] = useState<CreateProductFormData>({
+    name: '',
+    description: '',
+    category: '',
+    metadata: []
+  });
+  
+  const [metadataKey, setMetadataKey] = useState('');
+  const [metadataValue, setMetadataValue] = useState('');
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const addMetadata = () => {
+    if (metadataKey && metadataValue) {
+      setFormData(prev => ({
+        ...prev,
+        metadata: [...prev.metadata, { key: metadataKey, value: metadataValue }]
+      }));
+      setMetadataKey('');
+      setMetadataValue('');
+    }
+  };
+  
+  const removeMetadata = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      metadata: prev.metadata.filter((_, i) => i !== index)
+    }));
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+  
+  if (!isOpen) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-4">Create New Product</h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 font-bold mb-2" htmlFor="name">
+              Product Name
+            </label>
+            <input
+              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="name"
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-gray-700 font-bold mb-2" htmlFor="category">
+              Category
+            </label>
+            <input
+              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="category"
+              type="text"
+              name="category"
+              value={formData.category}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-gray-700 font-bold mb-2" htmlFor="description">
+              Description
+            </label>
+            <textarea
+              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="description"
+              name="description"
+              rows={4}
+              value={formData.description}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="mb-4">
+            <label className="block text-gray-700 font-bold mb-2">
+              Metadata
+            </label>
+            
+            <div className="flex mb-2">
+              <input
+                className="appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
+                placeholder="Key"
+                value={metadataKey}
+                onChange={(e) => setMetadataKey(e.target.value)}
+              />
+              <input
+                className="appearance-none border rounded w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
+                placeholder="Value"
+                value={metadataValue}
+                onChange={(e) => setMetadataValue(e.target.value)}
+              />
+              <button
+                type="button"
+                className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded"
+                onClick={addMetadata}
+              >
+                Add
+              </button>
+            </div>
+            
+            {formData.metadata.length > 0 && (
+              <div className="mt-2 border p-2 rounded">
+                <h4 className="font-semibold mb-2">Current Metadata:</h4>
+                <ul>
+                  {formData.metadata.map((item, index) => (
+                    <li key={index} className="flex justify-between items-center mb-1 pb-1 border-b">
+                      <span>
+                        <strong>{item.key}:</strong> {item.value}
+                      </span>
+                      <button
+                        type="button"
+                        className="text-red-500 text-sm"
+                        onClick={() => removeMetadata(index)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end mt-6">
+            <button
+              type="button"
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded"
+            >
+              Create Product
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Generate QR Code Modal
+ * 
+ * Modal component for generating QR codes for a product
+ * 
+ * @param {boolean} isOpen - Whether the modal is open
+ * @param {Function} onClose - Function to close the modal
+ * @param {Product} product - Product to generate QR codes for
+ * @returns {JSX.Element} Modal component
+ */
+const GenerateQRModal = ({ 
+  isOpen, 
+  onClose, 
+  product 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  product: Product | null;
+}) => {
+  const [quantity, setQuantity] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [serialNumbers, setSerialNumbers] = useState<string[]>([]);
+  
+  const generateSerialNumbers = async () => {
+    if (!product) return;
+    
+    try {
+      setIsLoading(true);
+      // TODO: Implement actual serial number generation API call
+      // const result = await TrustOrigin_backend.generate_serial_numbers(product.id, BigInt(quantity));
+      
+      // For now, simulating the response
+      setTimeout(() => {
+        const mockSerialNumbers = Array(quantity).fill(0).map((_, index) => 
+          `SN${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`
+        );
+        setSerialNumbers(mockSerialNumbers);
+        setIsLoading(false);
+      }, 1000);
+    } catch (error) {
+      console.error('Error generating serial numbers:', error);
+      setIsLoading(false);
+    }
+  };
+  
+  if (!isOpen || !product) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-2xl font-bold mb-4">Generate QR Codes for {product.name}</h2>
+        
+        <div className="mb-4">
+          <label className="block text-gray-700 font-bold mb-2" htmlFor="quantity">
+            Quantity to Generate
+          </label>
+          <input
+            className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="quantity"
+            type="number"
+            min="1"
+            max="100"
+            value={quantity}
+            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+          />
+        </div>
+        
+        <div className="flex justify-between mt-6">
+          <button
+            type="button"
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
+            onClick={onClose}
+          >
+            Close
+          </button>
+          <button
+            type="button"
+            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
+            onClick={generateSerialNumbers}
+            disabled={isLoading}
+          >
+            {isLoading ? 'Generating...' : 'Generate Serial Numbers'}
+          </button>
+        </div>
+        
+        {serialNumbers.length > 0 && (
+          <div className="mt-6">
+            <h3 className="font-bold text-lg mb-2">Generated Serial Numbers</h3>
+            <div className="border rounded p-3 max-h-40 overflow-y-auto">
+              <ul>
+                {serialNumbers.map((sn, index) => (
+                  <li key={index} className="mb-1 pb-1 border-b last:border-b-0">
+                    {sn}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                onClick={() => {
+                  // TODO: Implement download functionality
+                  alert('Download functionality will be implemented in a future update');
+                }}
+              >
+                Download QR Codes
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Mock API implementation
+const mockProductAPI = {
+  list_products_by_organization: async (_: Principal) => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Return mock products
+    return {
+      products: [
+        {
+          id: Principal.fromText('aaaaa-aa'),
+          name: 'Premium Coffee Beans',
+          description: 'Ethically sourced premium coffee beans from Colombia. Perfect for a morning brew.',
+          org_id: Principal.fromText('aaaaa-aa'),
+          category: 'Food & Beverage',
+          create_time: BigInt(Date.now() * 1000),
+          update_time: BigInt(Date.now() * 1000),
+          active: true,
+          metadata: [
+            { key: 'origin', value: 'Colombia' },
+            { key: 'weight', value: '500g' },
+            { key: 'imageUrl', value: 'https://images.unsplash.com/photo-1599639351204-52a974584ed8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=764&q=80' }
+          ]
+        },
+        {
+          id: Principal.fromText('bbbbb-bb'),
+          name: 'Organic Honey',
+          description: 'Pure raw organic honey harvested from our sustainable apiaries.',
+          org_id: Principal.fromText('aaaaa-aa'),
+          category: 'Food & Beverage',
+          create_time: BigInt(Date.now() * 1000),
+          update_time: BigInt(Date.now() * 1000),
+          active: true,
+          metadata: [
+            { key: 'origin', value: 'Local Farm' },
+            { key: 'weight', value: '250g' },
+            { key: 'imageUrl', value: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=686&q=80' }
+          ]
+        }
+      ]
+    };
+  },
+  
+  create_product: async (productData: any) => {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Return mock created product
+    return {
+      product: {
+        id: Principal.fromText('ccccc-cc'),
+        name: productData.name,
+        description: productData.description,
+        org_id: productData.org_id,
+        category: productData.category,
+        create_time: BigInt(Date.now() * 1000),
+        update_time: BigInt(Date.now() * 1000),
+        active: true,
+        metadata: productData.metadata
+      }
+    };
+  }
+};
+
+// Extend the backend with our mock methods for development
+const extendedBackend = {
+  ...TrustOrigin_backend,
+  list_products_by_organization: mockProductAPI.list_products_by_organization,
+  create_product: mockProductAPI.create_product
+};
+
+/**
+ * Products Page for Brand Owners
+ * 
+ * Main page component for managing products
+ * 
+ * @returns {JSX.Element} Products page component
+ */
+const ProductsPage = () => {
+  const { user } = useAuth();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        if (!user) {
+          setError('No user profile found');
+          setLoading(false);
+          return;
+        }
+        
+        // Get organization ID from user context, safely handling potential type issues
+        const orgId = user && (user as any).organization ? (user as any).organization.id : null;
+        
+        if (!orgId) {
+          setError('No organization associated with your account');
+          setLoading(false);
+          return;
+        }
+        
+        // Fetch products for the organization
+        const response = await extendedBackend.list_products_by_organization(
+          Principal.fromText(orgId)
+        );
+        
+        if ('products' in response) {
+          setProducts(response.products);
+        } else {
+          setError('Failed to fetch products');
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError('Error fetching products. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, [user]);
+  
+  const handleCreateProduct = async (formData: CreateProductFormData) => {
+    try {
+      if (!user) {
+        setError('No user profile found');
+        return;
+      }
+      
+      const orgId = user && (user as any).organization ? (user as any).organization.id : null;
+      
+      if (!orgId) {
+        setError('No organization associated with your account');
+        return;
+      }
+      
+      // Create product in backend
+      const response = await extendedBackend.create_product({
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        org_id: Principal.fromText(orgId),
+        metadata: formData.metadata
+      });
+      
+      if ('product' in response) {
+        // Add the new product to the state
+        setProducts(prevProducts => [...prevProducts, response.product]);
+        setIsCreateModalOpen(false);
+      } else {
+        setError('Failed to create product');
+      }
+    } catch (err) {
+      console.error('Error creating product:', err);
+      setError('Error creating product. Please try again.');
+    }
+  };
+  
+  const handleEditProduct = (product: Product) => {
+    // TODO: Implement edit functionality
+    alert(`Edit functionality for ${product.name} will be implemented in a future update`);
+  };
+  
+  const handleGenerateQR = (product: Product) => {
+    setSelectedProduct(product);
+    setIsQRModalOpen(true);
+  };
+  
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Products</h1>
+        <button
+          className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          Create Product
+        </button>
+      </div>
+      
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          <p>{error}</p>
+        </div>
+      ) : products.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-600 mb-4">No products found. Create your first product to get started!</p>
+          <button
+            className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Create Product
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map(product => (
+            <ProductCard
+              key={product.id.toString()}
+              product={product}
+              onEdit={handleEditProduct}
+              onGenerateQR={handleGenerateQR}
+            />
+          ))}
+        </div>
+      )}
+      
+      <CreateProductModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateProduct}
+      />
+      
+      <GenerateQRModal
+        isOpen={isQRModalOpen}
+        onClose={() => setIsQRModalOpen(false)}
+        product={selectedProduct}
+      />
+    </div>
+  );
+};
+
+export default ProductsPage;
+</file>
+
+<file path="src/frontend/src/pages/home.tsx">
+import { useState } from "react"
+import { useNavigate } from "react-router-dom";
+import logo from "../assets/true-origin.png"
+import herobg from "../assets/true-origin-hero.png"
+import icLogo from "../assets/internet-computer-logo.png"
+import cfLogo from "../assets/chain-fusion-logo.png"
+import rightArrow from "../assets/right-arrow.svg"
+import featureBg from "../assets/feature.png"
+import customerBg from "../assets/customer-bg.png"
+import party1 from "../assets/party-1.png"
+import party2 from "../assets/party-2.png"
+import party3 from "../assets/party-3.png"
+import icInfra from "../assets/ic-infra.png"
+import eCoin from "../assets/e-coin.png"
+import cFusion from "../assets/chain-fusion@2x.png"
+import LandingCard from "../components/LandingCard"
+
+
+const landingCardData = [
+    {
+        title: "Brand Owners",
+        description: "Use our Encrypted Cloud Backup for increased wallet security.",
+        image: party1
+    },
+    {
+        title: "Resellers",
+        description: "We don't track any personal information, including your IP address or balances.",
+        image: party2
+    },
+    {
+        title: "Customers",
+        description: "Stay safe with alerts for risky address and dApp connections.",
+        image: party3
+    }
+]
+
+function Homepage() {
+    const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const toggleMenu = () => {
+        setIsOpen(!isOpen);
+    };
+
+    return (
+        <>
+            <div className="flex flex-col min-h-screen font-sans">
+                <header className="w-full bg-white shadow sticky top-0">
+                    <nav className="container mx-auto px-6 py-6 md:py-12 flex justify-between items-center">
+                        <img src={logo} width={150} />
+                        <div className="hidden md:flex gap-4 md:gap-8">
+                            <a href="#" className="text-gray-600">Homepage</a>
+                            <a href="#" className="text-gray-600">Brand Owners Dashboard</a>
+                            <a href="#" className="text-gray-600">Resellers Dashboard</a>
+                            <a onClick={() => navigate('/verify')} className="text-purple-600">Verify Product</a>
+                            <a onClick={() => navigate('/auth/login')} className="text-purple-600">Login</a>
+                        </div>
+                        <button
+                            className="md:hidden flex items-center text-gray-600"
+                            onClick={toggleMenu}
+                        >
+                            <svg
+                                className="w-6 h-6"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d={
+                                        isOpen
+                                            ? "M6 18L18 6M6 6l12 12"
+                                            : "M4 6h16M4 12h16m-7 6h7"
+                                    }
+                                />
+                            </svg>
+                        </button>
+                    </nav>
+                    {isOpen && (
+                        <div className="md:hidden flex flex-col items-center bg-white shadow-lg">
+                            <a href="#" className="py-2 text-gray-600" onClick={toggleMenu}>
+                                Homepage
+                            </a>
+                            <a href="#" className="py-2 text-gray-600" onClick={toggleMenu}>
+                                Brand Owners Dashboard
+                            </a>
+                            <a href="#" className="py-2 text-gray-600" onClick={toggleMenu}>
+                                Resellers Dashboard
+                            </a>
+                            <a className="py-2 text-purple-600" onClick={() => {toggleMenu(); navigate('/verify');}}>
+                                Verify Product
+                            </a>
+                            <a className="py-2 text-purple-600" onClick={() => {toggleMenu(); navigate('/auth/login');}}>
+                                Login
+                            </a>
+                        </div>
+                    )}
+                </header>
+
+                <section className="bg-white font-lexend">
+                    <div className="flex flex-col-reverse lg:flex-row pl-6 lg:pl-44 md:pl-20 py-10 lg:py-20 md:justify-between">
+                        <div className="flex flex-col justify-center gap-4 md:gap-8">
+                            <h1 className="text-4xl md:text-6xl">Incentivizing <br /> Genuine Product Transactions</h1>
+                            <p className="text-base md:text-lg text-gray-600">Safely sell your products and increase customer's trust</p>
+                            <div className="flex flex-col gap-2">
+                                <p className="text-gray-600">Powered by</p>
+                                <div className="flex gap-3 md:gap-5">
+                                    <img src={icLogo} className="h-6 md:h-8" />
+                                    <img src={cfLogo} className="h-6 md:h-8" />
+                                </div>
+                            </div>
+                            <div className="flex gap-3 md:gap-5">
+                                <a 
+                                    onClick={() => navigate('/verify')}
+                                    className="flex gap-2 items-center justify-center rounded-full bg-[#0B0AFF] w-fit py-2 md:py-3 px-4 md:px-5 text-white hover:bg-blue-800 hover:cursor-pointer"
+                                >
+                                    <p>Verify Product</p>
+                                    <img src={rightArrow} className="h-4 md:h-5" />
+                                </a>
+                                <a className="flex gap-2 items-center justify-center rounded-full border border-[#0B0AFF] w-fit py-2 md:py-3 px-4 md:px-5 text-[#0B0AFF] hover:bg-blue-50 hover:cursor-pointer">
+                                    <p>Book demo</p>
+                                </a>
+                            </div>
+                        </div>
+                        <div className="mb-10 md:mb-0 flex justify-end">
+                            <img className="w-4/5 h-auto md:h-full" src={herobg} />
+                        </div>
+                    </div>
+                </section>
+
+                <section className="bg-gradient-to-b from-[#0B0AFF] to-[#6299FF]">
+                    <div className="flex flex-col text-center p-10 md:p-20 gap-3 md:gap-5">
+                        <p className="text-white text-4xl md:text-6xl">Simple. Seamless.</p>
+                        <p className="text-white text-base md:text-lg">Enjoy a smooth mobile app and desktop experience with easy-to-use, powerful tools to support your entire Web3 journey.</p>
+                    </div>
+                    <div className="px-6 lg:px-44 md:px-20 mb-10 md:mb-20">
+                        <div className="bg-white rounded-[30px] flex flex-col md:flex-row justify-between">
+                            <div className="flex flex-col gap-4 md:gap-8 px-6 md:px-20 py-6 md:py-10">
+                                <p className="text-2xl md:text-4xl font-lexend">Validate QR to <br /> get ICP / ETH now!</p>
+                                <ol className="list-decimal pl-4 text-sm md:text-base">
+                                    <li>Scan QR Code to validate</li>
+                                    <li>Open Telegram wallet and get coin address</li>
+                                    <li>Paste the address on the QR Code landing page</li>
+                                    <li>Get bitcoin instantly to your telegram wallet</li>
+                                </ol>
+                                <a className="rounded-full w-fit text-[#0B0AFF] border border-[#0B0AFF] py-2 md:py-3 px-4 md:px-5 bg-white hover:bg-[#0B0AFF] hover:text-white hover:cursor-pointer">Get started with deposits</a>
+                            </div>
+                            <div className="hidden md:flex md:items-end">
+                                <img className="rounded-br-[30px] w-full md:w-auto max-h-[200px] md:max-h-[300px]" src={featureBg} />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div className="flex flex-col text-center p-10 md:p-20 gap-3 md:gap-5">
+                        <p className="text-4xl md:text-6xl font-lexend">Securing the chains between parties</p>
+                        <p className="text-gray-800 text-base md:text-lg">We believe that solutions will be applied to ecosystem stakeholders to strengthen the supply chain</p>
+                    </div>
+                    <div className="px-6 lg:px-44 md:px-20 mb-10 md:mb-20">
+                        <div className="bg-[#FFB73B] rounded-[30px] flex flex-col md:flex-row justify-between">
+                            <div className="px-6 md:px-20 py-6 md:py-10 w-full md:w-2/3">
+                                <div className="flex flex-col gap-2">
+                                    <p className="text-2xl md:text-4xl font-semibold font-lexend">Safeguarding on <span className="text-[#2C42C0]">TrueOrigin</span></p>
+                                    <p className="text-sm md:text-base">We know that working together as a community is better for everyone. Our platform enables blockchain developers to build their Apps and wallets natively and connect with millions of users, without having to worry about the low-level implementation details.</p>
+                                </div>
+                                <div className="mt-6 md:mt-10">
+                                    <a className="rounded-full bg-white py-2 md:py-3 px-6 md:px-10 hover:bg-black hover:text-white hover:cursor-pointer">Check out our Developer Docs</a>
+                                </div>
+                            </div>
+                            <div className="hidden md:flex">
+                                <img src={customerBg} className="w-full h-auto rounded-tr-[30px] max-h-[200px] md:max-h-[350px]" />
+                            </div>
+                        </div>
+                        <div className="flex flex-col md:flex-row gap-6 md:gap-8 text-white mt-10 md:mt-20">
+                            {landingCardData.map((data) => <LandingCard key={data.title} {...data} />)}
+                        </div>
+                        <div className="flex justify-center mt-10">
+                            <a className="rounded-full bg-white border border-black py-2 md:py-3 px-6 md:px-10 hover:cursor-pointer hover:bg-[#FFB73B]">Learn more about privacy & security</a>
+                        </div>
+                    </div>
+                </section>
+                <hr></hr>
+                <section className="flex flex-col lg:flex-row justify-between gap-8 lg:px-44 px-5 py-20">
+                    <div className="flex flex-col bg-[#1A1A1A] basis-1/2 rounded-[30px] justify-between items-end">
+                        <div className="flex flex-col gap-4 lg:p-20 p-10">
+                            <p className="text-4xl text-white font-lexend">ICP</p>
+                            <p className="text-white">Fully built on the ICP platform, ECDSA enhances security for digital certification beyond existing solutions. Additionally, low latency and low storage costs are highly suitable for big data processing, leading to significant cost savings.</p>
+                            <div className="mt-4">
+                                <a className="bg-gradient-to-r from-[#3B00B9] to-[#29ABE2] px-5 py-3 rounded-[10px] text-white font-lexend hover:cursor-pointer">ICP INFRASTRUCTURE</a>
+                            </div>
+                        </div>
+                        <div className="max-w-[500px]">
+                            <img src={icInfra} />
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-4 bg-[#1A1A1A] basis-1/2 rounded-[30px] justify-between items-end">
+                        <div className="flex flex-col gap-4 lg:p-20 p-10">
+                            <p className="text-4xl text-white font-lexend">Ethereum</p>
+                            <p className="text-white">Support Ethereum through HTTPS Outcalls to enable wallet transaction for user's incentivization. Widely adopted coin makes ETH becomes everyone's favorite.</p>
+                            <div className="mt-4">
+                                <a className="bg-gradient-to-r from-[#FC8941] to-[#5D29E2] px-5 py-3 rounded-[10px] text-white font-lexend hover:cursor-pointer">ETHEREUM COINS</a>
+                            </div>
+                        </div>
+                        <div className="max-w-[500px]">
+                            <img src={eCoin} />
+                        </div>
+                    </div>
+                </section>
+                <section className="flex p-20 justify-center">
+                    <img className="w-3/4 max-w-[1200px]" src={cFusion} />
+                </section>
+                {/* <!-- Footer --> */}
+                <footer className="bg-gray-900 text-white py-6 mt-auto">
+                    <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+                        <div className="mb-3 md:mb-0">&copy; 2024 TrueOrigin, Inc. | Privacy | Terms | Sitemap</div>
+                        <div className="flex space-x-3">
+                            <a href="#" className="text-gray-400 hover:text-white">Facebook</a>
+                            <a href="#" className="text-gray-400 hover:text-white">Twitter</a>
+                            <a href="#" className="text-gray-400 hover:text-white">LinkedIn</a>
+                            <a href="#" className="text-gray-400 hover:text-white">Instagram</a>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+        </>
+    )
+}
+
+export default Homepage;
+</file>
+
+<file path="src/frontend/src/main.tsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { AuthContextProvider } from './contexts/useAuthContext/index.tsx'
+import App from './App.tsx'
+import './index.css'
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <AuthContextProvider>
+      <App />
+    </AuthContextProvider>
+  </StrictMode>,
+)
+</file>
+
+<file path="src/frontend/vite.config.ts">
+import { defineConfig } from 'vite';
+import environment from 'vite-plugin-environment';
+import react from '@vitejs/plugin-react';
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '../../.env' });
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [
+    react(),
+    environment('all', { prefix: 'CANISTER_' }),
+    environment('all', { prefix: 'DFX_' }),
+  ],
+  server: {
+    host: true, // Listen on all addresses
+    port: 3000,
+    https: {
+      // Self-signed certificate (required for HTTPS, which is needed for camera access)
+      // Browsers will show a warning, but you can proceed anyway
+    },
+  }
+})
+</file>
+
+<file path=".gitignore">
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
+
+# Mac OSX temporary files
+.DS_Store
+**/.DS_Store
+
+# dfx temporary files
+.dfx/
+
+# rust
+target/
+
+# frontend code
+node_modules/
+dist/
+.svelte-kit/
+
+# environment variables
+.env
+
+# Cursor Rules
+.cursor
+</file>
+
+<file path="src/frontend/src/contexts/useAuthContext/index.tsx">
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { AuthClient } from '@dfinity/auth-client';
+
+import {
+  AuthContextInterface,
+  AuthContextProviderProps,
+} from './interface';
+import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
+import type { OrganizationInput, ResellerInput, User, UserDetailsInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { handleUserResult } from '../../utils';
+import { Principal } from '@dfinity/principal';
+
+const AuthContext = createContext({} as AuthContextInterface);
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuthContext = () => useContext(AuthContext);
+
+// 7 days in nanoseconds
+const MAX_TTL = BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000);
+
+export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({children}) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authClient, setAuthClient] = useState<AuthClient>();
+  const [profile, setProfile] = useState<User | null>(null);
+  const IDENTITY_PROVIDER = useMemo(() => 
+    process.env.DFX_NETWORK === 'local'
+    ? `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`
+    : `https://identity.ic0.app`
+  , []);
+
+  // Check if user has a specific role
+  const hasRole = useCallback((role: UserRole) => {
+    if (!profile || !profile.user_role.length) return false;
+    const userRole = profile.user_role[0];
+    
+    // Check if the roles match
+    if ('Admin' in role && 'Admin' in userRole) return true;
+    if ('BrandOwner' in role && 'BrandOwner' in userRole) return true;
+    if ('Reseller' in role && 'Reseller' in userRole) return true;
+    
+    return false;
+  }, [profile]);
+
+  // Login with Internet Identity
+  const login = useCallback(() => {
+    if (!authClient) return;
+    setIsLoading(true);
+    
+    authClient.login({
+      identityProvider: IDENTITY_PROVIDER,
+      onSuccess: async () => {
+        setIsAuthenticated(true);
+        try {
+          const user = await TrustOrigin_backend.register();
+          setProfile(user);
+        } catch (error) {
+          console.error('Failed to register user:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onError: (error) => {
+        console.error('Login failed:', error);
+        setIsLoading(false);
+      },
+      maxTimeToLive: MAX_TTL,
+    });
+  }, [authClient, IDENTITY_PROVIDER]);
+
+  // Get user profile information
+  const getProfile = useCallback(async () => {
+    if (!authClient) return;
+    setIsLoading(true);
+
+    try {
+      const principal = authClient.getIdentity().getPrincipal();
+      if (principal.isAnonymous()) {
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const responseData = await TrustOrigin_backend.whoami();
+      if ('err' in responseData) {
+        setProfile(null);
+      } else if (responseData.length > 0) {
+        setProfile(responseData[0] as User);
+      }
+    } catch (error) {
+      console.error('Failed to get profile:', error);
+      setProfile(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authClient]);
+
+  // Create user profile
+  const createProfile = useCallback(async (input: Partial<UserDetailsInput>) => {
+    if (!authClient) return;
+    setIsLoading(true);
+
+    try {
+      const responseData = await TrustOrigin_backend.register();
+      if (input.first_name) { // only fill in the user details, if the user chooses to do so
+        const result = handleUserResult(await TrustOrigin_backend.update_self_details(input as UserDetailsInput))
+        if (result) {
+          setProfile(result);
+        }
+      } else {
+        setProfile(responseData);
+      }
+    } catch (error) {
+      console.error('Failed to create profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authClient]);
+
+  // Update user profile
+  const updateProfile = useCallback(async (input: UserDetailsInput) => {
+    if (!authClient || !input.first_name) return;
+    setIsLoading(true);
+
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.update_self_details(input as UserDetailsInput))
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authClient]);
+
+  // Set user role
+  const setSelfRole = useCallback(async (userRole: UserRole) => {
+    setIsLoading(true);
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.set_self_role(userRole));
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to set role:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Logout user
+  const logout = useCallback(async () => {
+    if (!authClient) return;
+    
+    try {
+      await authClient.logout();
+      setIsAuthenticated(false);
+      setProfile(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  }, [authClient]);
+
+  // Register as a brand owner
+  const signinAsBrandOwner = useCallback(async (input: OrganizationInput) => {
+    setIsLoading(true);
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.register_as_organization(input));
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to register as brand owner:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Register as a reseller
+  const signinAsReseller = useCallback(async (input: ResellerInput) => {
+    setIsLoading(true);
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.register_as_reseller({
+        ...input,
+        org_id: Principal.anonymous(),
+      }));
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to register as reseller:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initialize Auth Client
+  useEffect(() => {
+    const initAuthClient = async () => {
+      setIsLoading(true);
+      try {
+        const client = await AuthClient.create();
+        setAuthClient(client);
+        
+        const isAnonymous = client.getIdentity().getPrincipal().isAnonymous();
+        setIsAuthenticated(!isAnonymous);
+        
+        if (!isAnonymous) {
+          try {
+            const responseData = await TrustOrigin_backend.whoami();
+            if ('err' in responseData) {
+              setProfile(null);
+            } else if (responseData.length > 0) {
+              setProfile(responseData[0] as User);
+            }
+          } catch (error) {
+            console.error('Failed to get profile during initialization:', error);
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth client:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuthClient();
+    // No dependencies to avoid infinite re-renders
+  }, []);
+
+  // Update profile when auth client changes
+  useEffect(() => {
+    if (authClient && !authClient.getIdentity().getPrincipal().isAnonymous()) {
+      getProfile();
+    }
+  }, [authClient, getProfile]);
+
+  const contextValue = useMemo(() => ({
+    profile,
+    authClient,
+    isAuthenticated,
+    isLoading,
+    hasRole,
+    createProfile,
+    updateProfile,
+    setSelfRole,
+    signinAsBrandOwner,
+    signinAsReseller,
+    login,
+    logout,
+  }), [
+    profile, 
+    authClient, 
+    isAuthenticated, 
+    isLoading,
+    hasRole,
+    createProfile, 
+    updateProfile, 
+    setSelfRole, 
+    signinAsBrandOwner, 
+    signinAsReseller, 
+    login, 
+    logout
+  ]);
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+</file>
+
+<file path="src/frontend/src/contexts/useAuthContext/interface.d.ts">
+import type { AuthClient } from '@dfinity/auth-client';
+import type { ReactNode } from 'react';
+import type { User, UserDetailsInput, ResellerInput, OrganizationInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+
+export interface AuthContextProviderProps {
+  children: ReactNode;
+}
+
+export interface userProfileDataInterface {
+  email: string,
+  password: string
+}
+
+export interface AuthContextInterface {
+  isAuthenticated: boolean | undefined;
+  isLoading: boolean;
+  profile: User | null | undefined;
+  hasRole: (role: UserRole) => boolean;
+  login: () => void;
+  logout: () => Promise<void>;
+  createProfile: (input: UserDetailsInput) => Promise<void>;
+  updateProfile: (input: UserDetailsInput) => Promise<void>;
+  setSelfRole: (userRole: UserRole) => Promise<void>;
+  signinAsBrandOwner: (input: OrganizationInput) => Promise<void>;
+  signinAsReseller: (input: ResellerInput) => Promise<void>;
+  authClient: AuthClient | undefined;
+}
+</file>
+
+<file path="src/frontend/src/App.tsx">
+/**
+ * @file Main application component
+ * @fileoverview Root component that sets up routing for the application
+ * with authentication and role-based access control
+ * 
+ * Functions:
+ * - App: Main application component with routing configuration
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Set up routing with react-router
+ * 2. Protect routes that require authentication
+ * 3. Apply role-based access control to protected routes
+ * 
+ * Error Handling:
+ * - Unauthorized access is handled by ProtectedRoute component
+ * 
+ * @module App
+ * @requires react-router-dom - For routing
+ * @requires components/ProtectedRoute - For authentication protection
+ * @exports {FC} App - Main application component
+ */
+
+import './App.css';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { ProtectedRoute, ROLES } from './components/ProtectedRoute';
+import { AuthContextProvider } from './contexts/useAuthContext';
+
+// Lazy load components to improve initial load performance
+const Homepage = lazy(() => import('./pages/home'));
+const LoginPage = lazy(() => import('./pages/auth/login'));
+const ChooseRolePage = lazy(() => import('./pages/auth/choose-role'));
+const UnauthorizedPage = lazy(() => import('./pages/unauthorized'));
+const Dashboard = lazy(() => import('./pages/dashboard'));
+const TestPage = lazy(() => import('./pages/test-page'));
+const VerifyPage = lazy(() => import('./pages/verify'));
+const ProductsPage = lazy(() => import('./pages/brand-owners/products'));
+
+// Loading fallback for lazy-loaded components
+const LoadingFallback = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+  </div>
+);
+
+/**
+ * Main application component with routing configuration
+ * 
+ * Sets up the application routes with authentication protection
+ * and role-based access control
+ * 
+ * @returns {JSX.Element} The application component
+ * @example
+ * <App />
+ */
+function App() {
+  return (
+    <AuthContextProvider>
+      <Router>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Homepage />} />
+            <Route path="/auth/login" element={<LoginPage />} />
+            <Route path="/auth/choose-role" element={<ChooseRolePage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+            <Route path="/verify" element={<VerifyPage />} />
+            
+            {/* Protected routes - require authentication */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            
+            {/* Admin routes - require Admin role */}
+            <Route path="/admin/*" element={
+              <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
+                <div>Admin Dashboard</div>
+              </ProtectedRoute>
+            } />
+            
+            {/* Brand Owner routes - require BrandOwner role */}
+            <Route path="/brand-owners/products" element={
+              <ProtectedRoute requiredRoles={[ROLES.BRAND_OWNER]}>
+                <ProductsPage />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/brand/*" element={
+              <ProtectedRoute requiredRoles={[ROLES.BRAND_OWNER]}>
+                <div>Brand Owner Dashboard</div>
+              </ProtectedRoute>
+            } />
+            
+            {/* Reseller routes - require Reseller role */}
+            <Route path="/reseller/*" element={
+              <ProtectedRoute requiredRoles={[ROLES.RESELLER]}>
+                <div>Reseller Dashboard</div>
+              </ProtectedRoute>
+            } />
+            
+            {/* Test route */}
+            <Route path="/test" element={<TestPage />} />
+          </Routes>
+        </Suspense>
+      </Router>
+    </AuthContextProvider>
+  );
+}
+
+export default App;
+</file>
+
+<file path="src/frontend/package.json">
+{
+  "name": "trustorigin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@dfinity/agent": "^1.4.0",
+    "@dfinity/auth-client": "^1.4.0",
+    "@dfinity/candid": "^1.4.0",
+    "@dfinity/identity": "^1.4.0",
+    "@dfinity/principal": "^1.4.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "dotenv": "^16.4.5",
+    "html5-qrcode": "^2.3.8",
+    "qrcode": "^1.5.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0",
+    "vite-plugin-environment": "^1.1.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.8.0",
+    "@types/node": "^20",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.8.0",
+    "eslint-plugin-react-hooks": "^5.1.0-rc.0",
+    "eslint-plugin-react-refresh": "^0.4.9",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.0.0",
+    "vite": "^5.4.0"
+  }
+}
+</file>
+
+<file path="src/frontend/src/components/Table.tsx">
+import React from 'react';
+import type { Product } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+
+
+const ProductSentiment: React.FC<{ product: Product; isShowing: boolean; isLoading: boolean; doLoad: () => void; }> = ({ product, isShowing, isLoading, doLoad }) => {
+    if (isLoading) {
+        return <span>Loading...</span>
+    };
+    if (isShowing) {
+        const productSentiment = product.metadata.find(m => m.key === 'sentiment');
+        let productSentimentStr = 'Product sentiment is UNKNOWN'
+        if (productSentiment) {
+            productSentimentStr = `Product sentiment is ${productSentiment.value}`;
+        }   
+        return <span>{productSentimentStr}</span>
+    }
+    return <button type="button" onClick={doLoad}>Do Sentiment Analysis</button>
+};
+
+interface TableProps {
+    products: (Product & { showSentiment?: boolean; sentimentLoading?: boolean }) [];
+    onSentimentAnalysis?: (product: Product) => void;
+}
+
+const Table: React.FC<TableProps> = ({ products, onSentimentAnalysis }) => {
+    return (
+        <div className="rounded-lg overflow-hidden">
+            <table className="w-full text-left">
+                <thead className="bg-[#FFB73B]">
+                    <tr>
+                        <th className="px-4 py-4 rounded-l-xl">Product Name</th>
+                        <th className="px-4 py-4">Description</th>
+                        <th className="px-4 py-4">Category</th>
+                        <th className="px-4 py-4">Product ID</th>
+                        <th className="px-4 py-4 rounded-r-xl">ECDSA Public Key</th>
+                        <th className="px-4 py-4 rounded-r-xl">AI Product Sentiment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {products.map((product, index) => {
+                        const { showSentiment = false, sentimentLoading = false } = product;
+
+                        
+                        return (
+                            <tr key={index} className="text-gray-700">
+                                <td className="px-4 py-2">{product.name}</td>
+                                <td className="px-4 py-2">{product.description}</td>
+                                <td className="px-4 py-2">{product.category}</td>
+                                <td className="px-4 py-2">{product.id.toHex()}</td>
+                                <td className="px-4 py-2">{product.public_key}</td>
+                                <td className="px-4 py-2">
+                                    <ProductSentiment 
+                                        product={product}
+                                        isShowing={showSentiment}
+                                        isLoading={sentimentLoading}
+                                        doLoad={() => onSentimentAnalysis && onSentimentAnalysis(product)}
+                                    />
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+export default Table;
+</file>
+
+<file path="src/frontend/src/pages/dashboard.tsx">
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import techImage from '../assets/tech.png';
+import { useAuthContext } from '../contexts/useAuthContext';
+import { AddProductLogo, BrandOwnerLogo, HeatmapLogo, ResellerLogo, UserLogo } from '../components/SidebarLogo';
+import Sidebar from '../components/Sidebar';
+import Filters from '../components/Filters';
+import Table from '../components/Table';
+import { Product, ProductInput } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { TrustOrigin_backend } from '../../../declarations/TrustOrigin_backend';
+
+
+const Dashboard = () => {
+    const navigate = useNavigate();
+    const [activeMenu, setActiveMenu] = useState('Brand Owners Dashboard');
+    const { profile } = useAuthContext();
+    const [productInput, setProductInput] = useState<Partial<ProductInput>>({
+        name: '',
+        description: '',
+        category: '',
+    });
+    const [products, setProducts] = useState<Product[]>([]);
+    const fetchProducts = async () => {
+        if (!profile) {
+            return;
+        }
+        const products = await TrustOrigin_backend.list_products(profile?.org_ids[0]);
+        setProducts(products);
+    };
+    const addProduct = async () => {
+        const sentiment = ['Positive', 'Neutral', 'Negative'];
+        const randomElement = sentiment[Math.floor(Math.random() * sentiment.length)];
+        await TrustOrigin_backend.create_product({
+            name: productInput.name!,
+            description: productInput.description!,
+            category: productInput.category!,
+            org_id: profile!.org_ids[0]!,
+            metadata: [{ key: 'sentiment', value: randomElement }],
+        });
+        setActiveMenu('Brand Owners Dashboard')
+        return fetchProducts()
+    };
+    const onSentimentAnalysis = (product: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
+        const pUpdate = products.map((p: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
+            if (p.id.compareTo(product.id) === 'eq') {
+                p.sentimentLoading = true;
+                setTimeout(() => {
+                    setProducts(products.map((p: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
+                        if (p.id.compareTo(product.id) === 'eq') {
+                            p.sentimentLoading = false;
+                            p.showSentiment = true;
+                        }
+                        return p;
+                    }));
+                }, 5000);
+            }
+            return p;
+        });
+        setProducts(pUpdate);
+    }
+
+    const username = useMemo(() => {
+        if (!profile) {
+            return 'Guest';
+        }
+        if (!profile.first_name) {
+            return `(NO NAME)`
+        }
+        return `${profile.first_name}${profile.last_name ? ' ' + profile.last_name : ''}`;
+    }, [profile]);
+
+    const handleSidebarClick = (menu: typeof activeMenu) => {
+        if (menu === "Products Manager") {
+            navigate('/brand-owners/products');
+            return;
+        }
+        setActiveMenu(menu);
+    }
+    
+    const menuItems = [
+        { label: "Brand Owners Dashboard", icon: BrandOwnerLogo, active: activeMenu === "Brand Owners Dashboard", onClickEvent: handleSidebarClick },
+        { label: "Products Manager", icon: AddProductLogo, active: false, onClickEvent: handleSidebarClick },
+        { label: "Add Product", icon: AddProductLogo, active: activeMenu === "Add Product", onClickEvent: handleSidebarClick },
+        { label: "Reseller Dashboard", icon: ResellerLogo, active: activeMenu === "Reseller Dashboard", onClickEvent: handleSidebarClick },
+        { label: "User Dashboard", icon: UserLogo, active: activeMenu === "User Dashboard", onClickEvent: handleSidebarClick },
+        { label: "Analytics & Heatmap", icon: HeatmapLogo, active: activeMenu === "Analytics & Heatmap", onClickEvent: handleSidebarClick },
+    ];
+
+    const filters = [
+        { label: "Select Date", options: [] },
+        { label: "Select Channel", options: [] },
+        { label: "Voucher Status", options: [] },
+        { label: "Other Filters", options: [] },
+    ];
+
+    const handleApplyFilters = () => {
+        console.log("Filters applied!");
+    };
+
+    const showContent = () => {
+        switch (activeMenu) {
+            case "Brand Owners Dashboard":
+                return (
+                    <>
+                        <Filters filters={filters} onApply={handleApplyFilters} />
+                        <hr className="my-10" />
+                        <h2 className="text-2xl font-bold mb-4 font-lexend">Product Batch</h2>
+                        <Table products={products} onSentimentAnalysis={onSentimentAnalysis} />
+                    </>
+                )
+            case "Add Product":
+                // Handle Add Product click
+                return (
+                    <>
+                        <h2 className="text-2xl font-bold mb-4 font-lexend">Create Product</h2>
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            addProduct();
+                        }}>
+                            <label htmlFor="input-name">Name</label>
+                            <input
+                                id="input-name"
+                                type="text"
+                                value={productInput.name} onChange={(e) => setProductInput({
+                                    ...productInput,
+                                    name: e.target.value,
+                                })}
+                            />
+                            <label htmlFor="input-description">Description</label>
+                            <input
+                                id="input-description"
+                                type="text"
+                                value={productInput.description} onChange={(e) => setProductInput({
+                                    ...productInput,
+                                    description: e.target.value,
+                                })}
+                            />
+                            <label htmlFor="input-category">Category</label>
+                            <input
+                                id="input-category"
+                                type="text"
+                                value={productInput.category} onChange={(e) => setProductInput({
+                                    ...productInput,
+                                    category: e.target.value,
+                                })}
+                            />
+                            <button type="submit">Submit</button>
+                        </form>
+                    </>
+                )
+            case "Reseller Dashboard":
+                // Handle Reseller Dashboard click
+                return (<>under construction</>)
+            case "User Dashboard":
+                // Handle User Dashboard click
+                return (<>under construction</>)
+            case "Analytics & Heatmap":
+                return (<>under construction</>)
+            default:
+                // Handle default case
+                return (<>under construction</>)
+        }
+    }
+
+    useEffect(() => {
+        fetchProducts();
+    }, [profile])
+
+
+    return (
+        <div className="bg-gray-100 font-sans flex">
+            <Sidebar menuItems={menuItems} userAvatar={techImage} username={username} />
+            <div className="flex-1 p-6">
+                <h2 className="text-lg w-fit font-bold mb-20 text-[#212EFF] border-b-4 border-b-[#212EFF] font-lexend">
+                    {activeMenu}
+                </h2>
+                { showContent() }
+            </div>
+        </div>
+    )
+}
+
+
+export default Dashboard;
+</file>
+
+</files>

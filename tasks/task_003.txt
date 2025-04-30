@@ -1,0 +1,77 @@
+# Task ID: 3
+# Title: Implement Reward Redemption Flow
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create the wallet scanning and reward redemption process after successful verification
+# Details:
+Implement the wallet scan/input modal/page (`RedeemWalletModal.tsx`) that allows users to scan a wallet QR code or manually input a wallet address. Create the redeem success modal/page (`RedeemSuccessModal.tsx`) to display confirmation after successful redemption. Integrate with the reward redemption API to process rewards. Implement proper state management to track the verification and redemption flow. Follow the Figma design for mobile-first layout and ensure smooth transitions between verification and redemption steps.
+
+# Test Strategy:
+Test the wallet scanning functionality with different wallet QR codes. Test manual wallet address input with valid and invalid addresses. Verify API integration for reward redemption works correctly. Ensure the UI matches the Figma design and provides clear feedback during the redemption process.
+
+# Subtasks:
+## 1. Implement Wallet Scan/Input Modal Component [pending]
+### Dependencies: None
+### Description: Create the RedeemWalletModal.tsx component that allows users to scan a wallet QR code or manually input a wallet address
+### Details:
+Implementation details:
+1. Create a new component file RedeemWalletModal.tsx in the appropriate directory
+2. Implement a mobile-first UI according to the Figma design with:
+   - A QR code scanner component using a library like react-qr-reader
+   - A manual input field for wallet addresses with validation
+   - A toggle between scan and manual input modes
+   - Appropriate error handling for invalid wallet addresses
+3. Add state management to track the entered/scanned wallet address
+4. Implement form validation to ensure the wallet address is in the correct format
+5. Add a submit button that will be used to proceed to redemption
+6. Create unit tests to verify:
+   - Component renders correctly
+   - Input validation works as expected
+   - Mode switching between scan and manual input functions properly
+   - Submit functionality captures the correct wallet address
+
+## 2. Integrate Reward Redemption API [pending]
+### Dependencies: 3.1
+### Description: Create a service to handle the API integration for redeeming rewards using the wallet address
+### Details:
+Implementation details:
+1. Create a new service file (e.g., rewardService.ts) to handle API interactions
+2. Implement a redeemReward function that:
+   - Takes a wallet address and verification ID as parameters
+   - Makes a POST request to the reward redemption API endpoint
+   - Handles success and error responses appropriately
+   - Returns a promise with the redemption result
+3. Add proper error handling for network issues, server errors, and validation errors
+4. Create a Redux action/reducer or context state updates to manage the redemption process state
+5. Implement loading states during API calls
+6. Add unit tests for the service:
+   - Mock API responses for success and failure scenarios
+   - Test error handling
+   - Verify correct parameters are sent to the API
+7. Connect the RedeemWalletModal submit button to trigger this API call with the entered wallet address
+
+## 3. Implement Redemption Success Modal and Flow [pending]
+### Dependencies: 3.1, 3.2
+### Description: Create the RedeemSuccessModal.tsx component and implement the complete redemption flow with state management
+### Details:
+Implementation details:
+1. Create a new component file RedeemSuccessModal.tsx in the appropriate directory
+2. Implement the success modal UI according to the Figma design with:
+   - Confirmation message
+   - Transaction details (if available from API)
+   - A button to close or return to home
+3. Implement the complete redemption flow state management:
+   - Track verification status
+   - Track wallet input status
+   - Track redemption API call status
+   - Handle transitions between verification, wallet input, and success states
+4. Add smooth transitions between the verification step, wallet input modal, and success modal
+5. Implement proper error handling throughout the flow
+6. Add analytics tracking for successful redemptions
+7. Create unit and integration tests:
+   - Test the success modal renders correctly
+   - Test the complete flow from verification to redemption success
+   - Test error scenarios and recovery
+8. Ensure the entire flow works on both mobile and desktop viewports
+

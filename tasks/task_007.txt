@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Implement Add Product Form
+# Status: in-progress
+# Dependencies: 5, 6
+# Priority: medium
+# Description: Enhance the existing CreateProductModal within brand-owners/products.tsx for adding new products to the system
+# Details:
+Work with the existing `CreateProductModal` component within brand-owners/products.tsx that contains form fields for product name, category, description, and metadata. This task depends on the refactoring subtask from Task 6 to potentially become a standalone component. Ensure the form uses shadcn/ui Form, Input, Textarea, and Select components. Implement or enhance form validation using react-hook-form and zod. Connect to the API to submit new product data. Add functionality to manage metadata key-value pairs. Follow the Figma design for the add product form layout and styling. Implement success and error feedback for form submission.
+
+# Test Strategy:
+Test form validation with valid and invalid inputs. Verify API integration for creating products works correctly. Test adding and removing metadata fields. Ensure the UI matches the Figma design and provides clear feedback during submission.

@@ -26,14 +26,15 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 
 ### 2. Public Verification Interface
 
-- Create minimalist scan-to-verify UI ✅
+- Create minimalist scan-to-verify UI ⏳ (See `plans/design.md` for Customer Verification Flow)
   - Implementation needs:
-    1. QR code scanner component using camera API ✅
-    2. Verification result display with clear visual status ✅
-    3. Product information display on successful verification ✅
-    4. Animation for verification process ✅
-    5. Mobile-first responsive design ✅
-    6. Error handling for invalid codes ✅
+    1. QR code scanner component using camera API ⏳
+    2. Verification result display (Success, Failed, Already Scanned - Modals/Pages) ⏳
+    3. Product information display on successful verification ⏳
+    4. Animation/Graphics for verification process ⏳
+    5. Mobile-first responsive design (iPhone 13 layout) ⏳
+    6. Error handling for invalid codes / API errors ⏳
+    7. Link to reward redemption flow ⏳
 
 ### 3. User Dashboard
 
@@ -68,13 +69,14 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 
 ### 6. Reseller Interface
 
-- Implement reseller-specific features ⏳
+- Implement reseller-specific features ⏳ (See `plans/design.md` for Reseller Dashboard plan)
   - Implementation needs:
-    1. Reseller registration flow
-    2. Unique code generation for products
-    3. Verification interface for reseller codes
-    4. E-commerce URL management
-    5. Reseller analytics dashboard
+    1. Reseller registration flow ⏳
+    2. Reseller certification display and download ⏳
+    3. Unique code generation for products (Future)
+    4. Verification interface for reseller codes (Future)
+    5. E-commerce URL management (Part of Registration) ⏳
+    6. Reseller analytics dashboard (Future)
 
 ## API Integration
 
@@ -131,13 +133,15 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 
 ## Reward System UI
 
-- Create UI for verification rewards ⏳
+- Create UI for verification rewards ⏳ (See `plans/design.md` for Customer Verification Flow)
   - Implementation needs:
-    1. Reward token/points display
-    2. Reward history view
-    3. Special rewards notification
-    4. Reward claiming interface
-    5. Integration with user rewards system
+    1. Reward eligibility check display (on verification success) ⏳
+    2. Wallet QR Scan / Address Input component ⏳
+    3. Reward redemption API integration ⏳
+    4. Redeem success/failure display ⏳
+    5. Reward token/points display (in User Dashboard - Future)
+    6. Reward history view (in User Dashboard - Future)
+    7. Special rewards notification (Future)
 
 ## Sentiment Feedback
 
@@ -163,23 +167,15 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 
 - Implement comprehensive testing approach ⏳
   - Implementation needs:
-    1. Unit tests for key components and utilities
-    2. Integration tests for complex workflows
-    3. E2E tests for critical user journeys
-    4. Accessibility testing
-    5. Performance testing
-    6. Test coverage reporting
+    1. Manual Testing Only
 
 ## Deployment
 
-- Setup deployment pipeline ⏳
+- Setup deployment ⏳
   - Implementation needs:
-    1. CI/CD pipeline configuration
-    2. Build optimization for production
-    3. Environment-specific configuration
-    4. Canister deployment process
-    5. Versioning strategy
-    6. Rollback procedures
+    1. Build optimization for production
+    2. Environment-specific configuration
+    3. Canister deployment process
 
 ## Documentation
 
@@ -194,14 +190,29 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 
 ## Next Steps
 
-1. ~~Setup authentication system with Internet Identity~~ ✅
-2. ~~Implement public verification interface~~ ✅
-3. Create API client for backend integration ✅
-4. Develop UI component library
-5. Build brand owner dashboard (highest business value)
-   - ✅ Product management interface
-   - Serial number and QR code generation
-   - Analytics dashboard
+1.  Implement Landing Page based on Figma Design ⏳ (See `plans/design.md`)
+2.  ~~Setup authentication system with Internet Identity~~ ✅
+3.  Implement Public Verification Interface ⏳ (See `plans/design.md`)
+    *   Implement QR Scanner Page (`ScanPage.tsx`) ⏳
+    *   Implement Verification Result Modals/Pages (`VerificationResultModal.tsx`) ⏳
+    *   Integrate `verify_product_v2` API call ⏳
+4.  Implement Reward Redemption Flow ⏳ (See `plans/design.md`)
+    *   Implement Wallet Scan/Input Modal/Page (`RedeemWalletModal.tsx`) ⏳
+    *   Implement Redeem Success Modal/Page (`RedeemSuccessModal.tsx`) ⏳
+    *   Integrate reward redemption API call ⏳
+5.  Create API client for backend integration ✅
+6.  Develop UI component library ⏳
+7.  Implement Brand Owner Dashboard ⏳ (See `plans/design.md` for full plan)
+    *   Implement Dashboard Layout (Sidebar, Content Area) ⏳
+    *   Implement Product Management Page (Filters, Table, API) ⏳
+    *   Implement Add Product Form/Page (Form, Validation, API) ⏳
+    *   Implement Reseller Management Page (Filters, Table, API) ⏳
+    *   Implement User Management Page (Filters, Table, API) ⏳
+8.  Implement Reseller Dashboard ⏳ (See `plans/design.md` for full plan)
+    *   Implement Dashboard Layout (Sidebar, Content Area) ⏳
+    *   Implement Reseller Registration Page (Form, API) ⏳
+    *   Implement Reseller Certification Page (Data Fetching, Display, Download) ⏳
+9. Implement User Dashboard (Verification History, Profile) ⏳
 
 ## Future Enhancements
 
@@ -211,3 +222,5 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 - Advanced analytics dashboard
 - Performance optimizations for large data sets
 - Offline mode with sync capabilities
+
+

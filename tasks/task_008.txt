@@ -1,0 +1,82 @@
+# Task ID: 8
+# Title: Implement Reseller Dashboard
+# Status: pending
+# Dependencies: 4
+# Priority: medium
+# Description: Create the dashboard layout and registration flow for resellers
+# Details:
+Implement the `ResellerLayout.tsx` component with sidebar navigation similar to the brand owner dashboard. Create the `ResellerRegistrationPage.tsx` with form fields for name, address, phone number, shop IDs, and document uploads. Implement the `ResellerCertificationPage.tsx` to display and download certification. Connect to the API for submitting registration data and fetching certification status. Follow the Figma design for the reseller dashboard layout and styling. Implement proper file upload handling for documents.
+
+# Test Strategy:
+Test the registration form with valid and invalid inputs. Verify file upload functionality works correctly. Test API integration for registration and certification. Ensure the UI matches the Figma design and provides clear feedback during the registration process.
+
+# Subtasks:
+## 1. Implement ResellerLayout.tsx Component with Sidebar Navigation [pending]
+### Dependencies: None
+### Description: Create the base layout component for the reseller dashboard with sidebar navigation similar to the brand owner dashboard.
+### Details:
+Implementation steps:
+1. Create a new `ResellerLayout.tsx` component in the appropriate directory
+2. Implement the sidebar navigation with links to Dashboard, Registration, Certification, and other relevant pages
+3. Create a content area that will render child components
+4. Style the layout according to the Figma design specifications
+5. Implement responsive behavior for mobile and desktop views
+6. Add any necessary authentication checks or guards
+7. Create unit tests for the layout component
+
+Testing approach:
+- Verify that the sidebar navigation renders correctly
+- Test that navigation links work properly
+- Ensure the layout is responsive across different screen sizes
+- Validate that child components render correctly in the content area
+
+## 2. Implement ResellerRegistrationPage.tsx with Form and API Integration [pending]
+### Dependencies: 8.1
+### Description: Create the registration page for resellers with form fields and API integration for submitting registration data.
+### Details:
+Implementation steps:
+1. Create a new `ResellerRegistrationPage.tsx` component
+2. Implement form fields for:
+   - Name
+   - Address
+   - Phone number
+   - Shop IDs
+   - Document uploads
+3. Add form validation for all fields
+4. Implement file upload functionality for documents with:
+   - File size validation
+   - File type validation
+   - Upload progress indicator
+5. Create API service functions to submit registration data to the backend
+6. Add loading states and error handling
+7. Implement success/failure notifications
+8. Style the form according to the Figma design
+
+Testing approach:
+- Test form validation for all fields
+- Verify file upload functionality works correctly
+- Test API integration with mock responses
+- Ensure error states are handled properly
+- Validate that the form submits data in the correct format
+
+## 3. Implement ResellerCertificationPage.tsx with Status Display and Download [pending]
+### Dependencies: 8.1, 8.2
+### Description: Create the certification page that displays certification status and allows downloading of certification documents.
+### Details:
+Implementation steps:
+1. Create a new `ResellerCertificationPage.tsx` component
+2. Implement API service functions to fetch certification status and data
+3. Create UI components to display certification status (pending, approved, rejected)
+4. Add detailed view of certification information
+5. Implement document download functionality for approved certifications
+6. Add appropriate loading states and error handling
+7. Create empty/pending states for users without certifications
+8. Style the page according to the Figma design
+
+Testing approach:
+- Test API integration for fetching certification data
+- Verify that different certification statuses display correctly
+- Test document download functionality
+- Ensure proper error handling for API failures
+- Validate that the UI matches the Figma design specifications
+

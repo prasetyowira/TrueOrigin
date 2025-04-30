@@ -2,6 +2,10 @@
 
 This document tracks all TODO items identified during the backend refactoring to follow ICP API conventions.
 
+## Build Command
+```bash
+cargo build --target wasm32-unknown-unknown --all --profile dev
+```
 ## Storage
 
 - Replace in-memory storage with ic-stable-structures for persistence across upgrades ✅

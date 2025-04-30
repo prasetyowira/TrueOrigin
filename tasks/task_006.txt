@@ -1,0 +1,75 @@
+# Task ID: 6
+# Title: Implement Product Management Page
+# Status: in-progress
+# Dependencies: 5
+# Priority: medium
+# Description: Create the product management interface for brand owners to view and manage products
+# Details:
+Implement the `ProductManagementPage.tsx` component with filter controls (date, category, product ID) and a product table using shadcn/ui Table component. Connect to the API to fetch and display products for the brand owner's organization. Implement filtering functionality to filter products based on selected criteria. Add actions for editing products and generating QR codes. Include pagination for large product lists. Follow the Figma design for the product management page layout and styling.
+
+# Test Strategy:
+Test fetching and displaying products from the API. Verify filtering functionality works correctly. Test pagination with large datasets. Ensure the UI matches the Figma design and is responsive. Test error handling for API failures.
+
+# Subtasks:
+## 1. Refactor Product Components into Separate Reusable Components [pending]
+### Dependencies: None
+### Description: Extract and refactor ProductCard, CreateProductModal, and GenerateQRModal from the inline implementation in brand-owners/products.tsx into separate reusable components.
+### Details:
+1. Create separate component files in the components/product directory:
+   - components/product/ProductCard.tsx
+   - components/product/CreateProductModal.tsx
+   - components/product/GenerateQRModal.tsx
+2. Move the existing implementation from brand-owners/products.tsx to these files
+3. Add proper TypeScript interfaces for component props
+4. Ensure components are properly exported
+5. Update imports in brand-owners/products.tsx to use the new component files
+6. Test each component individually to ensure they render correctly
+7. Implement proper prop passing between parent and child components
+8. Add documentation comments to describe component purpose and usage
+
+## 2. Replace Mock API Calls with Actual Backend Canister Calls [pending]
+### Dependencies: 6.1
+### Description: Replace the mock API calls for product listing and creation with actual calls to the TrustOrigin_backend canister.
+### Details:
+1. Update the API service to include methods for interacting with the TrustOrigin_backend canister:
+   - Implement `listProductsByOrganization(orgId: string)` function
+   - Implement `createProduct(productData: ProductData)` function
+2. Replace mock data fetching in brand-owners/products.tsx with real API calls
+3. Implement proper loading states during API calls
+4. Add error handling for failed API requests
+5. Update the CreateProductModal to use the real product creation API
+6. Ensure the product table refreshes after successful product creation
+7. Test the integration with the backend using different test accounts
+8. Implement proper TypeScript interfaces for API responses
+
+## 3. Implement Edit Product Functionality [pending]
+### Dependencies: 6.1, 6.2
+### Description: Create an EditProductModal component and implement the functionality to edit existing products.
+### Details:
+1. Create a new EditProductModal.tsx component in the components/product directory
+2. Implement the modal UI based on the Figma design, reusing form elements from CreateProductModal where appropriate
+3. Add an edit button/action to each product row in the product table
+4. Implement the API service method `updateProduct(productId: string, productData: ProductData)`
+5. Connect the EditProductModal to the backend API
+6. Pre-populate the edit form with the selected product's current data
+7. Add form validation for the edit form
+8. Implement success/error notifications for the edit operation
+9. Refresh the product table after successful edits
+10. Test editing different product fields and verify changes are persisted
+
+## 4. Implement QR Code Generation and Serial Number Logic [pending]
+### Dependencies: 6.1, 6.2
+### Description: Connect the GenerateQRModal to the backend to implement actual QR code and serial number generation functionality.
+### Details:
+1. Update the GenerateQRModal component to connect with the backend
+2. Implement the API service method `generateProductSerials(productId: string, quantity: number)`
+3. Add form validation for serial number quantity input
+4. Implement loading states during QR code generation
+5. Create a QR code display component that renders the generated QR codes
+6. Add functionality to download individual QR codes or all QR codes as a ZIP file
+7. Implement a preview of generated serial numbers
+8. Add success/error notifications for the generation process
+9. Implement pagination if many QR codes are generated
+10. Test the generation process with different quantities and product types
+11. Ensure generated QR codes contain the correct product information and can be properly scanned
+

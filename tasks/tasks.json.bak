@@ -1,0 +1,357 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Implement Landing Page",
+      "description": "Refine the landing page content, ensure responsiveness, and add any missing sections based on the Figma design",
+      "status": "in-progress",
+      "dependencies": [],
+      "priority": "high",
+      "details": "The basic landing page structure (home.tsx, LandingCard.tsx) has already been implemented. Now focus on refining the content, ensuring responsive behavior across all device sizes, and adding any missing sections from the Figma design in `plans/design.md`. Review and enhance the existing reusable components for the header, hero section, value proposition, key stakeholders section, technology section, and footer. Continue using Tailwind CSS for styling adjustments. Verify that all navigation links to the verification page, login page, and dashboard areas are working properly. Ensure the 'Book Demo' button and other call-to-action elements are fully functional and visually aligned with the design.",
+      "testStrategy": "Manually test the landing page on different screen sizes (mobile, tablet, desktop) to ensure responsive design. Verify all navigation links work correctly. Check that all images and assets are properly loaded and displayed. Compare the implemented page against the Figma design to ensure all sections are included and styled correctly."
+    },
+    {
+      "id": 2,
+      "title": "Implement Public Verification Interface",
+      "description": "Create the QR code scanning and verification result display for product authentication",
+      "status": "in-progress",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Implement the QR scanner page (`ScanPage.tsx`) with camera access using the HTML5 QR code library. Create verification result modals/pages (`VerificationResultModal.tsx`) to display success, failure, or already scanned states. Integrate with the `verify_product_v2` API to validate scanned QR codes. Display product information on successful verification. Follow the mobile-first design from Figma (iPhone 13 layout) and ensure proper error handling for camera permissions and invalid codes.",
+      "testStrategy": "Test QR code scanning with various QR codes (valid first scan, valid subsequent scan, invalid). Verify camera permissions work correctly. Test error handling for network issues and invalid codes. Ensure the UI matches the Figma design and is responsive on mobile devices.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement QR Scanner Page with Camera Access",
+          "description": "Create the ScanPage.tsx component with HTML5 QR code library integration for camera access and QR code scanning functionality",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Create ScanPage.tsx component with responsive layout following the iPhone 13 design from Figma\n2. Integrate the HTML5 QR code library to access device camera\n3. Implement camera permission request and handling\n4. Add error states for camera access denial or unavailability\n5. Create scanning overlay UI with guidance for users\n6. Implement QR code detection callback that passes scanned data to verification function\n7. Add loading state while verification is in progress\n8. Test with various devices to ensure camera works correctly\n9. Implement proper cleanup of camera resources when component unmounts",
+          "status": "pending",
+          "parentTaskId": 2
+        },
+        {
+          "id": 2,
+          "title": "Create Verification Result Modal with Product Information Display",
+          "description": "Develop VerificationResultModal.tsx to show verification outcomes (success/failure/already scanned) with appropriate product information using StatusBadge and ProductInfo components",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation steps:\n1. Create VerificationResultModal.tsx component with three states: success, failure, and already scanned\n2. Implement StatusBadge component to visually indicate verification status\n3. Create ProductInfo component to display product details (name, brand, manufacturing date, etc.)\n4. Style the modal according to Figma designs with mobile-first approach\n5. Add animations for modal appearance/disappearance\n6. Ensure modal is accessible and can be dismissed\n7. Display appropriate messaging for each verification state\n8. For successful verifications, show complete product information\n9. For failures or already scanned products, show appropriate error messaging\n10. Test the modal with various product data structures to ensure proper rendering",
+          "status": "pending",
+          "parentTaskId": 2
+        },
+        {
+          "id": 3,
+          "title": "Integrate Verification API with Robust Error Handling",
+          "description": "Connect the QR scanner to the verify_product_v2 API endpoint with comprehensive error handling and state management",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation steps:\n1. Update productApi.ts to include the verify_product_v2 endpoint integration\n2. Implement proper error handling for API calls (network errors, timeouts, server errors)\n3. Create verification state management to track scanning and verification process\n4. Handle edge cases like invalid QR codes, expired products, or tampered codes\n5. Implement retry logic for failed API calls\n6. Add detailed error logging for debugging purposes\n7. Create user-friendly error messages for different failure scenarios\n8. Implement offline detection and appropriate messaging\n9. Add analytics tracking for verification attempts and results\n10. Test the complete verification flow with various test QR codes (valid, invalid, already scanned)\n11. Ensure proper state transitions between scanning, loading, and result display",
+          "status": "pending",
+          "parentTaskId": 2
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Implement Reward Redemption Flow",
+      "description": "Create the wallet scanning and reward redemption process after successful verification",
+      "status": "pending",
+      "dependencies": [
+        2
+      ],
+      "priority": "high",
+      "details": "Implement the wallet scan/input modal/page (`RedeemWalletModal.tsx`) that allows users to scan a wallet QR code or manually input a wallet address. Create the redeem success modal/page (`RedeemSuccessModal.tsx`) to display confirmation after successful redemption. Integrate with the reward redemption API to process rewards. Implement proper state management to track the verification and redemption flow. Follow the Figma design for mobile-first layout and ensure smooth transitions between verification and redemption steps.",
+      "testStrategy": "Test the wallet scanning functionality with different wallet QR codes. Test manual wallet address input with valid and invalid addresses. Verify API integration for reward redemption works correctly. Ensure the UI matches the Figma design and provides clear feedback during the redemption process.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement Wallet Scan/Input Modal Component",
+          "description": "Create the RedeemWalletModal.tsx component that allows users to scan a wallet QR code or manually input a wallet address",
+          "dependencies": [],
+          "details": "Implementation details:\n1. Create a new component file RedeemWalletModal.tsx in the appropriate directory\n2. Implement a mobile-first UI according to the Figma design with:\n   - A QR code scanner component using a library like react-qr-reader\n   - A manual input field for wallet addresses with validation\n   - A toggle between scan and manual input modes\n   - Appropriate error handling for invalid wallet addresses\n3. Add state management to track the entered/scanned wallet address\n4. Implement form validation to ensure the wallet address is in the correct format\n5. Add a submit button that will be used to proceed to redemption\n6. Create unit tests to verify:\n   - Component renders correctly\n   - Input validation works as expected\n   - Mode switching between scan and manual input functions properly\n   - Submit functionality captures the correct wallet address",
+          "status": "pending",
+          "parentTaskId": 3
+        },
+        {
+          "id": 2,
+          "title": "Integrate Reward Redemption API",
+          "description": "Create a service to handle the API integration for redeeming rewards using the wallet address",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation details:\n1. Create a new service file (e.g., rewardService.ts) to handle API interactions\n2. Implement a redeemReward function that:\n   - Takes a wallet address and verification ID as parameters\n   - Makes a POST request to the reward redemption API endpoint\n   - Handles success and error responses appropriately\n   - Returns a promise with the redemption result\n3. Add proper error handling for network issues, server errors, and validation errors\n4. Create a Redux action/reducer or context state updates to manage the redemption process state\n5. Implement loading states during API calls\n6. Add unit tests for the service:\n   - Mock API responses for success and failure scenarios\n   - Test error handling\n   - Verify correct parameters are sent to the API\n7. Connect the RedeemWalletModal submit button to trigger this API call with the entered wallet address",
+          "status": "pending",
+          "parentTaskId": 3
+        },
+        {
+          "id": 3,
+          "title": "Implement Redemption Success Modal and Flow",
+          "description": "Create the RedeemSuccessModal.tsx component and implement the complete redemption flow with state management",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation details:\n1. Create a new component file RedeemSuccessModal.tsx in the appropriate directory\n2. Implement the success modal UI according to the Figma design with:\n   - Confirmation message\n   - Transaction details (if available from API)\n   - A button to close or return to home\n3. Implement the complete redemption flow state management:\n   - Track verification status\n   - Track wallet input status\n   - Track redemption API call status\n   - Handle transitions between verification, wallet input, and success states\n4. Add smooth transitions between the verification step, wallet input modal, and success modal\n5. Implement proper error handling throughout the flow\n6. Add analytics tracking for successful redemptions\n7. Create unit and integration tests:\n   - Test the success modal renders correctly\n   - Test the complete flow from verification to redemption success\n   - Test error scenarios and recovery\n8. Ensure the entire flow works on both mobile and desktop viewports",
+          "status": "pending",
+          "parentTaskId": 3
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Develop UI Component Library",
+      "description": "Continue developing the reusable UI component library with consistent design tokens",
+      "status": "in-progress",
+      "dependencies": [],
+      "priority": "medium",
+      "details": "Continue developing the UI component library using Tailwind CSS and shadcn/ui as a foundation. Several components have already been implemented (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table). Focus on creating additional reusable components identified in the PRD/designs, particularly:\n\n1. Modal components with standard variations\n2. Button components with different states and variants\n3. Input components with validation states\n4. Remaining form components (selects, checkboxes, radio buttons)\n5. Feedback components (toasts, alerts)\n6. Additional layout and navigation components as needed\n\nMaintain consistent styling with Tailwind CSS across all components. Implement a cohesive design system with tokens for colors, typography, spacing, and shadows. Document each component with usage examples and props. Ensure all components are accessible and responsive.",
+      "testStrategy": "Test each component individually for proper rendering and functionality. Verify components work correctly across different screen sizes. Check accessibility compliance for all interactive components. Ensure consistent styling and behavior across the component library. For already implemented components (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table), perform regression testing to ensure they continue to function correctly with new additions.",
+      "subtasks": [
+        {
+          "id": "4.1",
+          "title": "Implement Modal Component",
+          "description": "Create a reusable Modal component with different size variants and standard features (close button, title area, content area, footer with action buttons)",
+          "status": "pending"
+        },
+        {
+          "id": "4.2",
+          "title": "Implement Button Component System",
+          "description": "Create a comprehensive Button component with variants (primary, secondary, tertiary), states (default, hover, active, disabled), and sizes (small, medium, large)",
+          "status": "pending"
+        },
+        {
+          "id": "4.3",
+          "title": "Implement Input Components",
+          "description": "Create standardized Input components with validation states, error messages, and consistent styling",
+          "status": "pending"
+        },
+        {
+          "id": "4.4",
+          "title": "Document Existing Components",
+          "description": "Create documentation for already implemented components (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table) with usage examples and props",
+          "status": "pending"
+        },
+        {
+          "id": "4.5",
+          "title": "Ensure Design Consistency",
+          "description": "Review all components to ensure consistent application of design tokens and Tailwind classes",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Implement Brand Owner Dashboard Layout",
+      "description": "Create the dashboard layout with sidebar navigation for brand owners",
+      "status": "in-progress",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "Implement the `BrandOwnerLayout.tsx` component that includes a collapsible sidebar with navigation links and a main content area. Use the sidebar design from Figma with icons for each section (Dashboard, Product Management, Add Product, Reseller Management, User Management, Settings). Implement the top bar/header with page title and user information. Set up nested routes within React Router for the brand owner dashboard sections. Ensure the layout is responsive and adapts to different screen sizes.",
+      "testStrategy": "Test the sidebar navigation to ensure all links work correctly. Verify the layout is responsive on different screen sizes. Check that the collapsible sidebar functions properly. Ensure the nested routes render the correct content in the main area.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Enhance Sidebar with Brand Owner Navigation Links and Icons",
+          "description": "Update the existing Sidebar.tsx component to include brand owner specific navigation links with icons as per the Figma design. Implement collapsible functionality and ensure proper styling.",
+          "dependencies": [],
+          "details": "1. Update Sidebar.tsx to include the specific navigation links for brand owners (Dashboard, Product Management, Add Product, Reseller Management, User Management, Settings).\n2. Add appropriate icons for each navigation item from an icon library (e.g., React Icons, Material UI icons).\n3. Implement the collapsible functionality with an expand/collapse button.\n4. Style the sidebar according to the Figma design, including active states for selected items.\n5. Ensure the sidebar is responsive and adapts to different screen sizes (consider using media queries).\n6. Test the sidebar navigation by verifying that links are clickable and the collapse/expand functionality works properly.\n7. Implement smooth transitions for the collapse/expand animations.",
+          "status": "pending",
+          "parentTaskId": 5
+        },
+        {
+          "id": 2,
+          "title": "Implement Main Content Area and React Router Integration",
+          "description": "Create the main content area structure in BrandOwnerLayout.tsx and set up nested routes with React Router to dynamically render content based on sidebar selection.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Create the BrandOwnerLayout.tsx component that incorporates the enhanced Sidebar from subtask 1.\n2. Implement the top bar/header with page title that dynamically updates based on the selected navigation item.\n3. Add user information display in the header (avatar, name, dropdown menu).\n4. Set up the main content area with appropriate padding and responsive layout.\n5. Configure React Router with nested routes for each section (Dashboard, Product Management, etc.).\n6. Create placeholder components for each section that will be rendered in the main content area.\n7. Implement logic to highlight the active navigation item in the sidebar based on the current route.\n8. Test the routing by navigating between different sections and verifying that the correct content is displayed.\n9. Ensure the layout maintains responsiveness across different screen sizes.\n10. Add appropriate loading states for route transitions.",
+          "status": "pending",
+          "parentTaskId": 5
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Implement Product Management Page",
+      "description": "Create the product management interface for brand owners to view and manage products",
+      "status": "in-progress",
+      "dependencies": [
+        5
+      ],
+      "priority": "medium",
+      "details": "Implement the `ProductManagementPage.tsx` component with filter controls (date, category, product ID) and a product table using shadcn/ui Table component. Connect to the API to fetch and display products for the brand owner's organization. Implement filtering functionality to filter products based on selected criteria. Add actions for editing products and generating QR codes. Include pagination for large product lists. Follow the Figma design for the product management page layout and styling.",
+      "testStrategy": "Test fetching and displaying products from the API. Verify filtering functionality works correctly. Test pagination with large datasets. Ensure the UI matches the Figma design and is responsive. Test error handling for API failures.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Refactor Product Components into Separate Reusable Components",
+          "description": "Extract and refactor ProductCard, CreateProductModal, and GenerateQRModal from the inline implementation in brand-owners/products.tsx into separate reusable components.",
+          "dependencies": [],
+          "details": "1. Create separate component files in the components/product directory:\n   - components/product/ProductCard.tsx\n   - components/product/CreateProductModal.tsx\n   - components/product/GenerateQRModal.tsx\n2. Move the existing implementation from brand-owners/products.tsx to these files\n3. Add proper TypeScript interfaces for component props\n4. Ensure components are properly exported\n5. Update imports in brand-owners/products.tsx to use the new component files\n6. Test each component individually to ensure they render correctly\n7. Implement proper prop passing between parent and child components\n8. Add documentation comments to describe component purpose and usage",
+          "status": "pending",
+          "parentTaskId": 6
+        },
+        {
+          "id": 2,
+          "title": "Replace Mock API Calls with Actual Backend Canister Calls",
+          "description": "Replace the mock API calls for product listing and creation with actual calls to the TrustOrigin_backend canister.",
+          "dependencies": [
+            1
+          ],
+          "details": "1. Update the API service to include methods for interacting with the TrustOrigin_backend canister:\n   - Implement `listProductsByOrganization(orgId: string)` function\n   - Implement `createProduct(productData: ProductData)` function\n2. Replace mock data fetching in brand-owners/products.tsx with real API calls\n3. Implement proper loading states during API calls\n4. Add error handling for failed API requests\n5. Update the CreateProductModal to use the real product creation API\n6. Ensure the product table refreshes after successful product creation\n7. Test the integration with the backend using different test accounts\n8. Implement proper TypeScript interfaces for API responses",
+          "status": "pending",
+          "parentTaskId": 6
+        },
+        {
+          "id": 3,
+          "title": "Implement Edit Product Functionality",
+          "description": "Create an EditProductModal component and implement the functionality to edit existing products.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Create a new EditProductModal.tsx component in the components/product directory\n2. Implement the modal UI based on the Figma design, reusing form elements from CreateProductModal where appropriate\n3. Add an edit button/action to each product row in the product table\n4. Implement the API service method `updateProduct(productId: string, productData: ProductData)`\n5. Connect the EditProductModal to the backend API\n6. Pre-populate the edit form with the selected product's current data\n7. Add form validation for the edit form\n8. Implement success/error notifications for the edit operation\n9. Refresh the product table after successful edits\n10. Test editing different product fields and verify changes are persisted",
+          "status": "pending",
+          "parentTaskId": 6
+        },
+        {
+          "id": 4,
+          "title": "Implement QR Code Generation and Serial Number Logic",
+          "description": "Connect the GenerateQRModal to the backend to implement actual QR code and serial number generation functionality.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "1. Update the GenerateQRModal component to connect with the backend\n2. Implement the API service method `generateProductSerials(productId: string, quantity: number)`\n3. Add form validation for serial number quantity input\n4. Implement loading states during QR code generation\n5. Create a QR code display component that renders the generated QR codes\n6. Add functionality to download individual QR codes or all QR codes as a ZIP file\n7. Implement a preview of generated serial numbers\n8. Add success/error notifications for the generation process\n9. Implement pagination if many QR codes are generated\n10. Test the generation process with different quantities and product types\n11. Ensure generated QR codes contain the correct product information and can be properly scanned",
+          "status": "pending",
+          "parentTaskId": 6
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Implement Add Product Form",
+      "description": "Enhance the existing CreateProductModal within brand-owners/products.tsx for adding new products to the system",
+      "status": "in-progress",
+      "dependencies": [
+        5,
+        6
+      ],
+      "priority": "medium",
+      "details": "Work with the existing `CreateProductModal` component within brand-owners/products.tsx that contains form fields for product name, category, description, and metadata. This task depends on the refactoring subtask from Task 6 to potentially become a standalone component. Ensure the form uses shadcn/ui Form, Input, Textarea, and Select components. Implement or enhance form validation using react-hook-form and zod. Connect to the API to submit new product data. Add functionality to manage metadata key-value pairs. Follow the Figma design for the add product form layout and styling. Implement success and error feedback for form submission.",
+      "testStrategy": "Test form validation with valid and invalid inputs. Verify API integration for creating products works correctly. Test adding and removing metadata fields. Ensure the UI matches the Figma design and provides clear feedback during submission."
+    },
+    {
+      "id": 8,
+      "title": "Implement Reseller Dashboard",
+      "description": "Create the dashboard layout and registration flow for resellers",
+      "status": "pending",
+      "dependencies": [
+        4
+      ],
+      "priority": "medium",
+      "details": "Implement the `ResellerLayout.tsx` component with sidebar navigation similar to the brand owner dashboard. Create the `ResellerRegistrationPage.tsx` with form fields for name, address, phone number, shop IDs, and document uploads. Implement the `ResellerCertificationPage.tsx` to display and download certification. Connect to the API for submitting registration data and fetching certification status. Follow the Figma design for the reseller dashboard layout and styling. Implement proper file upload handling for documents.",
+      "testStrategy": "Test the registration form with valid and invalid inputs. Verify file upload functionality works correctly. Test API integration for registration and certification. Ensure the UI matches the Figma design and provides clear feedback during the registration process.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement ResellerLayout.tsx Component with Sidebar Navigation",
+          "description": "Create the base layout component for the reseller dashboard with sidebar navigation similar to the brand owner dashboard.",
+          "dependencies": [],
+          "details": "Implementation steps:\n1. Create a new `ResellerLayout.tsx` component in the appropriate directory\n2. Implement the sidebar navigation with links to Dashboard, Registration, Certification, and other relevant pages\n3. Create a content area that will render child components\n4. Style the layout according to the Figma design specifications\n5. Implement responsive behavior for mobile and desktop views\n6. Add any necessary authentication checks or guards\n7. Create unit tests for the layout component\n\nTesting approach:\n- Verify that the sidebar navigation renders correctly\n- Test that navigation links work properly\n- Ensure the layout is responsive across different screen sizes\n- Validate that child components render correctly in the content area",
+          "status": "pending",
+          "parentTaskId": 8
+        },
+        {
+          "id": 2,
+          "title": "Implement ResellerRegistrationPage.tsx with Form and API Integration",
+          "description": "Create the registration page for resellers with form fields and API integration for submitting registration data.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation steps:\n1. Create a new `ResellerRegistrationPage.tsx` component\n2. Implement form fields for:\n   - Name\n   - Address\n   - Phone number\n   - Shop IDs\n   - Document uploads\n3. Add form validation for all fields\n4. Implement file upload functionality for documents with:\n   - File size validation\n   - File type validation\n   - Upload progress indicator\n5. Create API service functions to submit registration data to the backend\n6. Add loading states and error handling\n7. Implement success/failure notifications\n8. Style the form according to the Figma design\n\nTesting approach:\n- Test form validation for all fields\n- Verify file upload functionality works correctly\n- Test API integration with mock responses\n- Ensure error states are handled properly\n- Validate that the form submits data in the correct format",
+          "status": "pending",
+          "parentTaskId": 8
+        },
+        {
+          "id": 3,
+          "title": "Implement ResellerCertificationPage.tsx with Status Display and Download",
+          "description": "Create the certification page that displays certification status and allows downloading of certification documents.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implementation steps:\n1. Create a new `ResellerCertificationPage.tsx` component\n2. Implement API service functions to fetch certification status and data\n3. Create UI components to display certification status (pending, approved, rejected)\n4. Add detailed view of certification information\n5. Implement document download functionality for approved certifications\n6. Add appropriate loading states and error handling\n7. Create empty/pending states for users without certifications\n8. Style the page according to the Figma design\n\nTesting approach:\n- Test API integration for fetching certification data\n- Verify that different certification statuses display correctly\n- Test document download functionality\n- Ensure proper error handling for API failures\n- Validate that the UI matches the Figma design specifications",
+          "status": "pending",
+          "parentTaskId": 8
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Implement User Dashboard",
+      "description": "Create the user dashboard with verification history and profile management",
+      "status": "pending",
+      "dependencies": [
+        4
+      ],
+      "priority": "low",
+      "details": "Implement the user dashboard with components for profile management (name, email, phone), verification history list with pagination, and reward points/tokens display. Create a user settings page for preference management. Connect to the API to fetch user profile data and verification history. Implement pagination for the verification history list. Follow a responsive design approach to ensure the dashboard works on all device sizes. Add functionality to update user profile information.",
+      "testStrategy": "Test fetching and displaying user profile data and verification history. Verify pagination works correctly. Test updating user profile information. Ensure the dashboard is responsive on different screen sizes. Test error handling for API failures.",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Implement User Dashboard Layout and Profile Management",
+          "description": "Create the user dashboard UI with responsive layout, profile management section, and user settings page with the ability to view and edit user information.",
+          "dependencies": [],
+          "details": "Implementation details:\n1. Create a responsive dashboard layout with sidebar navigation and main content area\n2. Implement profile management section with editable fields for name, email, and phone number\n3. Create a user settings page with preference management options\n4. Connect to the API to fetch user profile data\n5. Implement functionality to update user profile information with form validation\n6. Add a reward points/tokens display component\n7. Ensure responsive design works on all device sizes (mobile, tablet, desktop)\n8. Add loading states and error handling for API interactions\n9. Test profile data fetching and updating functionality\n10. Implement unit tests for profile management components",
+          "status": "pending",
+          "parentTaskId": 9
+        },
+        {
+          "id": 2,
+          "title": "Implement Verification History with Pagination",
+          "description": "Create the verification history section of the dashboard that displays past verifications with pagination support.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation details:\n1. Create a verification history list component that displays past verifications\n2. Connect to the API to fetch verification history data\n3. Implement pagination controls (previous/next buttons, page numbers)\n4. Add functionality to change page size (items per page)\n5. Display verification details including date, status, and type\n6. Implement sorting and filtering options for the verification history\n7. Add loading states while fetching verification data\n8. Implement error handling for API request failures\n9. Ensure the verification history component is responsive across all device sizes\n10. Add unit tests for the verification history component and pagination functionality",
+          "status": "pending",
+          "parentTaskId": 9
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Implement Comprehensive Error Handling",
+      "description": "Enhance and standardize error handling across the application, building upon existing error handling in some components",
+      "status": "in-progress",
+      "dependencies": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "priority": "medium",
+      "details": "Review and build upon existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx components. Implement a global error boundary to catch and display unhandled errors. Standardize API error handling and display mechanisms across all components. Implement consistent form validation errors with clear user feedback. Add network error detection and retry functionality where missing. Set up an error logging system to track and report errors. Create a library of user-friendly error messages for different error scenarios. Ensure all components handle loading, error, and empty states appropriately. Implement toast notifications for success and error feedback.",
+      "testStrategy": "Audit existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx to understand current implementation. Test enhanced error handling with various error scenarios (network errors, API errors, validation errors). Verify error messages are user-friendly and helpful. Test the error boundary with forced errors. Ensure loading states are displayed appropriately during API calls. Check that retry functionality works correctly for recoverable errors. Verify standardized error handling works consistently across all components."
+    }
+  ],
+  "metadata": {
+    "projectName": "TrueOrigin Frontend Implementation",
+    "totalTasks": 10,
+    "sourceFile": "/Users/prasetyopandu/Documents/Project/icp/TrueOrigin/plans/frontend.md",
+    "generatedAt": "2024-10-07"
+  }
+}
