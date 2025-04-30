@@ -2,11 +2,11 @@
 
 # Landing Page Design Implementation Plan
 
-This plan outlines the steps to implement the landing page using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui** components, based on the Figma design ([Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-27&t=Tv11R0RFTmekzkHg-4)).
+This plan outlines the steps to implement the landing page using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui version 2.3.0** components, based on the Figma design ([Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-27&t=Tv11R0RFTmekzkHg-4)).
 
 ## Goal
 
-Create a visually appealing and informative landing page that introduces TrueOrigin, its features, and value propositions to potential users (Brand Owners, Resellers, Customers), built with React and styled with Tailwind CSS v3.4.10, leveraging shadcn/ui where appropriate.
+Create a visually appealing and informative landing page that introduces TrueOrigin, its features, and value propositions to potential users (Brand Owners, Resellers, Customers), built with React and styled with Tailwind CSS v3.4.10, leveraging shadcn/ui version 2.3.0 where appropriate.
 
 ## Structure & Components (Based on Figma Analysis)
 
@@ -63,7 +63,7 @@ Create a visually appealing and informative landing page that introduces TrueOri
 ## Implementation Steps
 
 1.  **Setup:**
-    *   Ensure React, Tailwind CSS (v3.4.10), and shadcn/ui are correctly configured in the project (`frontend.md` setup ✅).
+    *   Ensure React, Tailwind CSS (v3.4.10), and shadcn/ui version 2.3.0 are correctly configured in the project (`frontend.md` setup ✅).
     *   Create a new route for the landing page (e.g., `/`) in the React Router setup.
     *   Create a main `LandingPage.tsx` React component.
 
@@ -114,15 +114,15 @@ Create a visually appealing and informative landing page that introduces TrueOri
 *   Ethereum Logo (`1:290`)
 *   Potentially other background images/SVGs identified in Figma layout.
 
-*(Plan assumes the basic React+Vite+TS+Tailwind (v3.4.10)+shadcn/ui setup is complete as per `frontend.md`)*
+*(Plan assumes the basic React+Vite+TS+Tailwind (v3.4.10)+shadcn/ui version 2.3.0 setup is complete as per `frontend.md`)*
 
 # Login Page Design Implementation Plan
 
-This section outlines the steps to implement the login page using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui** components, based on the Figma design ([Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-1153&t=Tv11R0RFTmekzkHg-4)).
+This section outlines the steps to implement the login page using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui version 2.3.0** components, based on the Figma design ([Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-1153&t=Tv11R0RFTmekzkHg-4)).
 
 ## Goal
 
-Create a login interface using React that allows users to authenticate via Internet Identity after selecting their intended role (Brand Owner, Reseller, or Customer), styled with Tailwind CSS v3.4.10 and potentially using shadcn/ui components.
+Create a login interface using React that allows users to authenticate via Internet Identity after selecting their intended role (Brand Owner, Reseller, or Customer), styled with Tailwind CSS v3.4.10 and potentially using shadcn/ui version 2.3.0 components.
 
 ## Structure & Components (Based on Figma Analysis)
 
@@ -160,7 +160,7 @@ Create a login interface using React that allows users to authenticate via Inter
 ## Implementation Steps
 
 1.  **Setup:**
-    *   Ensure React, Tailwind CSS (v3.4.10), and shadcn/ui are set up.
+    *   Ensure React, Tailwind CSS (v3.4.10), and shadcn/ui version 2.3.0 are set up.
     *   Create a new route for the login page (e.g., `/login`) in the React Router setup.
     *   Create a main `LoginPage.tsx` React component.
 
@@ -194,7 +194,7 @@ Create a login interface using React that allows users to authenticate via Inter
 
 *   Directly implements parts of the **Authentication System** (✅) which is already established in the React application.
 *   Leverages **React Router** for the `/login` route and redirection.
-*   Uses the **UI Component library** (shadcn/ui + custom components) for buttons etc.
+*   Uses the **UI Component library** (shadcn/ui version 2.3.0 + custom components) for buttons etc.
 *   Requires **State Management** (React state) for tracking the selected role.
 *   The task "Implement Login Page UI based on Figma Design" can be added to the frontend plan, likely following the Landing Page implementation.
 
@@ -209,7 +209,7 @@ Create a login interface using React that allows users to authenticate via Inter
 
 # Brand Owner Dashboard Implementation Plan
 
-This section details the plan to implement the Brand Owner Dashboard using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui**, based on the Figma designs:
+This section details the plan to implement the Brand Owner Dashboard using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui version 2.3.0**, based on the Figma designs:
 *   Sidebar/Layout: [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=2006-628) (Structure inferred from component instances like `Group 57`/`Group 58` in other views)
 *   Product Management: [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-2064)
 *   Reseller Management: [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-2164)
@@ -279,12 +279,12 @@ Develop a functional and user-friendly dashboard for Brand Owners to manage thei
         *   `ResellerManagementPage.tsx`
         *   `UserManagementPage.tsx`
         *   `AddProductPage.tsx` (or `AddProductForm.tsx` if it's a modal/dialog within another page)
-    *   Implement filter sections using shadcn/ui components (`DatePicker`, `Select`, `Input`, `Button`).
-    *   Implement data tables using shadcn/ui `Table`. Fetch data using the API client (`frontend.md` - API Integration ✅) and manage state with React Query (`frontend.md` - State Management).
-    *   Implement the "Add Product" form using shadcn/ui `Form`, `Input`, `Textarea`, `Select`, and `Button`. Include form validation (e.g., using `react-hook-form` and `zod` as potentially defined in `frontend.md` State Management). Handle form submission by calling the appropriate API endpoint.
+    *   Implement filter sections using shadcn/ui version 2.3.0 components (`DatePicker`, `Select`, `Input`, `Button`).
+    *   Implement data tables using shadcn/ui version 2.3.0 `Table`. Fetch data using the API client (`frontend.md` - API Integration ✅) and manage state with React Query (`frontend.md` - State Management).
+    *   Implement the "Add Product" form using shadcn/ui version 2.3.0 `Form`, `Input`, `Textarea`, `Select`, and `Button`. Include form validation (e.g., using `react-hook-form` and `zod` as potentially defined in `frontend.md` State Management). Handle form submission by calling the appropriate API endpoint.
 
 4.  **Styling & Responsiveness:**
-    *   Apply specific styles using Tailwind CSS v3.4.10 utility classes or by customizing shadcn/ui component themes to match Figma.
+    *   Apply specific styles using Tailwind CSS v3.4.10 utility classes or by customizing shadcn/ui version 2.3.0 component themes to match Figma.
     *   Ensure the dashboard layout and tables are reasonably responsive, potentially simplifying table views on smaller screens.
 
 5.  **API Integration:**
@@ -311,7 +311,7 @@ Develop a functional and user-friendly dashboard for Brand Owners to manage thei
     *   Implement Reseller Management Page (Filters, Table, API)
     *   Implement User Management Page (Filters, Table, API)
     *   Implement Add Product Form/Page (Form, Validation, API)
-*   Heavily relies on **UI Component library** (shadcn/ui + custom) and **Tailwind CSS**.
+*   Heavily relies on **UI Component library** (shadcn/ui version 2.3.0 + custom) and **Tailwind CSS**.
 *   Requires significant **API Integration** for fetching and submitting data.
 *   Uses **State Management** (React Query for server state, React Hook Form for forms).
 *   Needs **Testing Strategy** applied to components and workflows.
@@ -322,11 +322,11 @@ Develop a functional and user-friendly dashboard for Brand Owners to manage thei
 *   User Profile Image placeholder/component.
 *   Logo (`IMG_9175 2`) if displayed in the sidebar.
 
-*(Plan assumes React, Tailwind CSS v3.4.10, shadcn/ui, React Router, React Query, and API client setup are complete or in progress as per `frontend.md`)*
+*(Plan assumes React, Tailwind CSS v3.4.10, shadcn/ui version 2.3.0, React Router, React Query, and API client setup are complete or in progress as per `frontend.md`)*
 
 # Reseller Dashboard Implementation Plan
 
-This section details the plan to implement the Reseller Dashboard using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui**, based on the Figma designs:
+This section details the plan to implement the Reseller Dashboard using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui version 2.3.0**, based on the Figma designs:
 *   Sidebar/Layout: Inferred from usage in other views (e.g., `Group 58` instance in `1:2383`, `1:2440`). Link: [Figma](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=2006-630)
 *   Reseller Registration: [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-2383)
 *   Reseller Certification: [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-2440)
@@ -390,7 +390,7 @@ Develop a functional dashboard for Resellers to register, manage their profile, 
         *   `ResellerRegistrationPage.tsx`
         *   `ResellerCertificationPage.tsx`
     *   **Registration Page:**
-        *   Implement the form using shadcn/ui `Form`, `Input`, `Textarea`, and a suitable file upload component (maybe a custom one or find a shadcn/ui compatible library).
+        *   Implement the form using shadcn/ui version 2.3.0 `Form`, `Input`, `Textarea`, and a suitable file upload component (maybe a custom one or find a shadcn/ui compatible library).
         *   Use `react-hook-form` + `zod` for validation (`frontend.md` - State Management).
         *   Handle form submission: collect data, call the reseller registration API endpoint.
     *   **Certification Page:**
@@ -434,11 +434,11 @@ Develop a functional dashboard for Resellers to register, manage their profile, 
 *   QR Code placeholder/component.
 *   Logo (`IMG_9175 2`) if used in sidebar.
 
-*(Plan assumes React, Tailwind CSS v3.4.10, shadcn/ui, React Router, React Query, and API client setup are complete or in progress as per `frontend.md`)*
+*(Plan assumes React, Tailwind CSS v3.4.10, shadcn/ui version 2.3.0, React Router, React Query, and API client setup are complete or in progress as per `frontend.md`)*
 
 # Customer Verification & Reward Flow Implementation Plan
 
-This plan covers the implementation of the customer-facing QR code scanning, verification result display, and reward redemption flow using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui**, based on the mobile-first (iPhone 13 layout) Figma designs:
+This plan covers the implementation of the customer-facing QR code scanning, verification result display, and reward redemption flow using **React**, **Tailwind CSS v3.4.10**, and **shadcn/ui version 2.3.0**, based on the mobile-first (iPhone 13 layout) Figma designs:
 *   Scan Page: [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-2927)
 *   Scan Success (1st Time): [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-3319)
 *   Scan Failed (Already Scanned): [Link](https://www.figma.com/design/aTcGv0lx3UQzqE0BsOtdQX/DevCopy---TrueOrigin---ChainFusion-HackerHouse-ICP-2024?node-id=1-3577)
@@ -485,7 +485,7 @@ Implement an intuitive mobile-first interface for customers to scan product QR c
 
 1.  **Setup:**
     *   Identify or create routes for the main scan page (e.g., `/verify` or `/`) and potentially separate routes/states for result/redeem steps if not using modals.
-    *   Ensure React, Tailwind CSS v3.4.10, and shadcn/ui are configured.
+    *   Ensure React, Tailwind CSS v3.4.10, and shadcn/ui version 2.3.0 are configured.
 
 2.  **QR Scanning Component:**
     *   Integrate a React QR code scanning library (e.g., `react-qr-reader` or similar) to access the camera and detect QR codes.
@@ -493,8 +493,8 @@ Implement an intuitive mobile-first interface for customers to scan product QR c
 
 3.  **Page/Component Breakdown:**
     *   `ScanPage.tsx`: Hosts the QR scanner, instructions, logo, and hint text. Handles the QR code detection callback.
-    *   `VerificationResultModal.tsx` (or separate pages): Displays success/failure states dynamically based on API response. Uses shadcn/ui `Dialog` or `Alert` components as a base. Requires props for status (success, already_scanned, invalid), messages, and icons.
-    *   `RedeemWalletModal.tsx` (or page): Includes the wallet QR scanner component and/or a shadcn/ui `Input` field for pasting address. Includes instructions.
+    *   `VerificationResultModal.tsx` (or separate pages): Displays success/failure states dynamically based on API response. Uses shadcn/ui version 2.3.0 `Dialog` or `Alert` components as a base. Requires props for status (success, already_scanned, invalid), messages, and icons.
+    *   `RedeemWalletModal.tsx` (or page): Includes the wallet QR scanner component and/or a shadcn/ui version 2.3.0 `Input` field for pasting address. Includes instructions.
     *   `RedeemSuccessModal.tsx` (or page): Displays the final success message and "Back to Home" button.
 
 4.  **State Management:**
@@ -511,7 +511,7 @@ Implement an intuitive mobile-first interface for customers to scan product QR c
 
 6.  **Styling & Mobile First:**
     *   Apply styles using Tailwind CSS v3.4.10, strictly following the mobile layout from Figma (iPhone 13 dimensions). Use responsive modifiers minimally unless specific tablet/desktop designs are provided later.
-    *   Utilize shadcn/ui components (`Button`, `Dialog`, `Alert`, `Input`) styled to match.
+    *   Utilize shadcn/ui version 2.3.0 components (`Button`, `Dialog`, `Alert`, `Input`) styled to match.
     *   Ensure icons/illustrations (`loading 1`, success/failure graphics, coin icon) are implemented or exported (`frontend.md` - UI Components).
 
 7.  **Refinement & Testing:**
@@ -542,4 +542,4 @@ Implement an intuitive mobile-first interface for customers to scan product QR c
 *   "Have a problem?" Icon (`loading 1` - `1:2940`)
 *   Coin Icon (`dollar (1) 1` - `1:3305`)
 
-*(Plan assumes React, Tailwind CSS v3.4.10, shadcn/ui, React Router, API client, and basic state management setup are complete or in progress as per `frontend.md`)*
+*(Plan assumes React, Tailwind CSS v3.4.10, shadcn/ui version 2.3.0, React Router, API client, and basic state management setup are complete or in progress as per `frontend.md`)*

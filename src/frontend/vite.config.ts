@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import environment from 'vite-plugin-environment';
 import react from '@vitejs/plugin-react';
 import dotenv from 'dotenv';
+import path from "path"
+
 
 dotenv.config({ path: '../../.env' });
 
@@ -18,6 +20,11 @@ export default defineConfig({
     https: {
       // Self-signed certificate (required for HTTPS, which is needed for camera access)
       // Browsers will show a warning, but you can proceed anyway
+    },
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
   }
 })

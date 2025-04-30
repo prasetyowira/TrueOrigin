@@ -5,10 +5,10 @@
 # Priority: medium
 # Description: Enhance and standardize error handling across the application, building upon existing error handling in some components
 # Details:
-Review and build upon existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx components. Implement a global error boundary to catch and display unhandled errors. Standardize API error handling and display mechanisms across all components. Implement consistent form validation errors with clear user feedback. Add network error detection and retry functionality where missing. Set up an error logging system to track and report errors. Create a library of user-friendly error messages for different error scenarios. Ensure all components handle loading, error, and empty states appropriately. Implement toast notifications for success and error feedback.
+Review and build upon existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx components. Implement a global error boundary to catch and display unhandled errors. Standardize API error handling and display mechanisms across all components. Implement consistent form validation errors with clear user feedback. Add network error detection and retry functionality where missing. Set up an error logging system to track and report errors. Create a library of user-friendly error messages for different error scenarios. Ensure all components handle loading, error, and empty states appropriately. Implement toast notifications for success and error feedback using shadcn/ui version 2.3.0 components (Alert, Toast) for consistent UI presentation.
 
 # Test Strategy:
-Audit existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx to understand current implementation. Test enhanced error handling with various error scenarios (network errors, API errors, validation errors). Verify error messages are user-friendly and helpful. Test the error boundary with forced errors. Ensure loading states are displayed appropriately during API calls. Check that retry functionality works correctly for recoverable errors. Verify standardized error handling works consistently across all components.
+Audit existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx to understand current implementation. Test enhanced error handling with various error scenarios (network errors, API errors, validation errors). Verify error messages are user-friendly and helpful. Test the error boundary with forced errors. Ensure loading states are displayed appropriately during API calls. Check that retry functionality works correctly for recoverable errors. Verify standardized error handling works consistently across all components. Confirm shadcn/ui components are properly implemented for error feedback.
 
 # Subtasks:
 ## 1. Define Standard Error Format and Create Error Utility Library [pending]
@@ -21,7 +21,7 @@ Audit existing error handling in QRCodeScanner, productApi, ProtectedRoute, and 
 4. Create a library of user-friendly error messages for common scenarios
 5. Implement utility functions for error classification (network errors, validation errors, etc.)
 6. Add helper functions for error logging and reporting
-7. Create a toast notification system for displaying errors and success messages
+7. Create a toast notification system for displaying errors and success messages using shadcn/ui Toast component v2.3.0
 8. Test the error utilities with various error scenarios
 9. Document the error structure and utilities for other developers
 
@@ -30,7 +30,7 @@ Audit existing error handling in QRCodeScanner, productApi, ProtectedRoute, and 
 ### Description: Create a global error boundary to catch unhandled errors and provide fallback UI
 ### Details:
 1. Create an `ErrorBoundary` component using React's error boundary API
-2. Implement fallback UI for different types of errors using the standard error format
+2. Implement fallback UI for different types of errors using the standard error format and shadcn/ui Alert component v2.3.0
 3. Add error reporting functionality to send errors to logging service
 4. Configure the ErrorBoundary to reset on route changes
 5. Wrap the application root with the ErrorBoundary component
@@ -48,10 +48,10 @@ Audit existing error handling in QRCodeScanner, productApi, ProtectedRoute, and 
 2. Update existing error handling in QRCodeScanner, productApi, ProtectedRoute, and unauthorized.tsx
 3. Implement network error detection and retry functionality in API calls
 4. Create a higher-order component or hook for standardized API error handling
-5. Update form components to use consistent validation error display
-6. Implement toast notifications for API success and error feedback
+5. Update form components to use consistent validation error display with shadcn/ui Alert component v2.3.0
+6. Implement toast notifications for API success and error feedback using shadcn/ui Toast component v2.3.0
 7. Add loading, error, and empty states to all data-fetching components
-8. Create reusable error display components (inline errors, error pages, etc.)
+8. Create reusable error display components (inline errors, error pages, etc.) using shadcn/ui components
 9. Test error handling across different network conditions
 10. Update documentation with examples of proper error handling patterns
 

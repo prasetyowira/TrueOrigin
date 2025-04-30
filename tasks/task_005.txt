@@ -3,12 +3,12 @@
 # Status: in-progress
 # Dependencies: 4
 # Priority: medium
-# Description: Create the dashboard layout with sidebar navigation for brand owners
+# Description: Create the dashboard layout with sidebar navigation for brand owners using shadcn/ui components
 # Details:
-Implement the `BrandOwnerLayout.tsx` component that includes a collapsible sidebar with navigation links and a main content area. Use the sidebar design from Figma with icons for each section (Dashboard, Product Management, Add Product, Reseller Management, User Management, Settings). Implement the top bar/header with page title and user information. Set up nested routes within React Router for the brand owner dashboard sections. Ensure the layout is responsive and adapts to different screen sizes.
+Implement the `BrandOwnerLayout.tsx` component that includes a collapsible sidebar with navigation links and a main content area. Use shadcn/ui version 2.3.0 components for the layout, specifically utilizing the Sidebar/Sheet components for navigation. Use the sidebar design from Figma with icons for each section (Dashboard, Product Management, Add Product, Reseller Management, User Management, Settings). Implement the top bar/header with page title and user information. Set up nested routes within React Router for the brand owner dashboard sections. Ensure the layout is responsive and adapts to different screen sizes.
 
 # Test Strategy:
-Test the sidebar navigation to ensure all links work correctly. Verify the layout is responsive on different screen sizes. Check that the collapsible sidebar functions properly. Ensure the nested routes render the correct content in the main area.
+Test the sidebar navigation to ensure all links work correctly. Verify the layout is responsive on different screen sizes. Check that the collapsible sidebar functions properly. Ensure the nested routes render the correct content in the main area. Verify shadcn/ui components are properly implemented and styled according to the design.
 
 # Subtasks:
 ## 1. Enhance Sidebar with Brand Owner Navigation Links and Icons [pending]
@@ -37,4 +37,16 @@ Test the sidebar navigation to ensure all links work correctly. Verify the layou
 8. Test the routing by navigating between different sections and verifying that the correct content is displayed.
 9. Ensure the layout maintains responsiveness across different screen sizes.
 10. Add appropriate loading states for route transitions.
+
+## 3. Integrate shadcn/ui v2.3.0 Components [pending]
+### Dependencies: None
+### Description: Integrate and configure shadcn/ui version 2.3.0 components for the layout, focusing on Sidebar/Sheet components.
+### Details:
+1. Install shadcn/ui version 2.3.0 and its dependencies.
+2. Replace or enhance the current sidebar implementation with shadcn/ui Sheet component for mobile responsiveness.
+3. Configure the shadcn/ui Sidebar component with proper styling to match the Figma design.
+4. Implement responsive behavior using shadcn/ui's built-in responsive utilities.
+5. Ensure proper theming and styling integration with the rest of the application.
+6. Test the shadcn/ui components across different screen sizes and browsers.
+7. Document any custom configurations or extensions made to the shadcn/ui components for future reference.
 

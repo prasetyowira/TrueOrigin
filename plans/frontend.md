@@ -4,7 +4,7 @@ This document outlines the frontend development plan for the TrueOrigin applicat
 
 ## Frontend Framework and Structure
 
-- Setup React + Vite + TypeScript + Tailwind CSS ✅
+- Setup React + Vite + TypeScript + Tailwind CSS + shadcn/ui version 2.3.0 ✅
   - Project structure follows modern React conventions with:
     1. Component-based architecture
     2. React Router for navigation

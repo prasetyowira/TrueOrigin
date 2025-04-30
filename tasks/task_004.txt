@@ -5,11 +5,11 @@
 # Priority: medium
 # Description: Continue developing the reusable UI component library with consistent design tokens
 # Details:
-Continue developing the UI component library using Tailwind CSS and shadcn/ui as a foundation. Several components have already been implemented (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table). Focus on creating additional reusable components identified in the PRD/designs, particularly:
+Continue developing the UI component library using Tailwind CSS and shadcn/ui version 2.3.0 as a foundation. Several components have already been implemented (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table). Focus on creating additional reusable components identified in the PRD/designs, particularly:
 
-1. Modal components with standard variations
-2. Button components with different states and variants
-3. Input components with validation states
+1. Modal components with standard variations (using shadcn/ui Dialog component as base)
+2. Button components with different states and variants (using shadcn/ui Button component as base)
+3. Input components with validation states (using shadcn/ui Input component as base)
 4. Remaining form components (selects, checkboxes, radio buttons)
 5. Feedback components (toasts, alerts)
 6. Additional layout and navigation components as needed
@@ -22,31 +22,37 @@ Test each component individually for proper rendering and functionality. Verify 
 # Subtasks:
 ## 4.1. Implement Modal Component [pending]
 ### Dependencies: None
-### Description: Create a reusable Modal component with different size variants and standard features (close button, title area, content area, footer with action buttons)
+### Description: Create a reusable Modal component with different size variants and standard features (close button, title area, content area, footer with action buttons). Use shadcn/ui Dialog component as the foundation.
 ### Details:
 
 
 ## 4.2. Implement Button Component System [pending]
 ### Dependencies: None
-### Description: Create a comprehensive Button component with variants (primary, secondary, tertiary), states (default, hover, active, disabled), and sizes (small, medium, large)
+### Description: Create a comprehensive Button component with variants (primary, secondary, tertiary), states (default, hover, active, disabled), and sizes (small, medium, large). Use shadcn/ui Button component as the foundation.
 ### Details:
 
 
 ## 4.3. Implement Input Components [pending]
 ### Dependencies: None
-### Description: Create standardized Input components with validation states, error messages, and consistent styling
+### Description: Create standardized Input components with validation states, error messages, and consistent styling. Use shadcn/ui Input component as the foundation.
 ### Details:
 
 
 ## 4.4. Document Existing Components [pending]
 ### Dependencies: None
-### Description: Create documentation for already implemented components (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table) with usage examples and props
+### Description: Create documentation for already implemented components (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table) with usage examples and props. Ensure documentation specifically covers how these components integrate with shadcn/ui version 2.3.0 and any version-specific features being utilized.
 ### Details:
 
 
 ## 4.5. Ensure Design Consistency [pending]
 ### Dependencies: None
-### Description: Review all components to ensure consistent application of design tokens and Tailwind classes
+### Description: Review all components to ensure consistent application of design tokens and Tailwind classes. Verify that all components follow shadcn/ui version 2.3.0 conventions and best practices for styling and component structure.
+### Details:
+
+
+## 4.6. Verify shadcn/ui Version Compatibility [pending]
+### Dependencies: None
+### Description: Ensure all components are compatible with shadcn/ui version 2.3.0 and leverage its features appropriately
 ### Details:
 
 

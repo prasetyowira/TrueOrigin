@@ -5,10 +5,10 @@
 # Priority: medium
 # Description: Create the product management interface for brand owners to view and manage products
 # Details:
-Implement the `ProductManagementPage.tsx` component with filter controls (date, category, product ID) and a product table using shadcn/ui Table component. Connect to the API to fetch and display products for the brand owner's organization. Implement filtering functionality to filter products based on selected criteria. Add actions for editing products and generating QR codes. Include pagination for large product lists. Follow the Figma design for the product management page layout and styling.
+Implement the `ProductManagementPage.tsx` component with filter controls (date, category, product ID) and a product table using shadcn/ui Table component version 2.3.0. Connect to the API to fetch and display products for the brand owner's organization. Implement filtering functionality to filter products based on selected criteria. Add actions for editing products and generating QR codes. Include pagination for large product lists. Follow the Figma design for the product management page layout and styling. Use shadcn/ui version 2.3.0 for all UI components including Table, Modals, and other interface elements.
 
 # Test Strategy:
-Test fetching and displaying products from the API. Verify filtering functionality works correctly. Test pagination with large datasets. Ensure the UI matches the Figma design and is responsive. Test error handling for API failures.
+Test fetching and displaying products from the API. Verify filtering functionality works correctly. Test pagination with large datasets. Ensure the UI matches the Figma design and is responsive. Test error handling for API failures. Verify that all shadcn/ui components (version 2.3.0) are properly implemented and styled.
 
 # Subtasks:
 ## 1. Refactor Product Components into Separate Reusable Components [pending]
@@ -26,6 +26,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 6. Test each component individually to ensure they render correctly
 7. Implement proper prop passing between parent and child components
 8. Add documentation comments to describe component purpose and usage
+9. Use shadcn/ui version 2.3.0 components for all UI elements
 
 ## 2. Replace Mock API Calls with Actual Backend Canister Calls [pending]
 ### Dependencies: 6.1
@@ -47,7 +48,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 ### Description: Create an EditProductModal component and implement the functionality to edit existing products.
 ### Details:
 1. Create a new EditProductModal.tsx component in the components/product directory
-2. Implement the modal UI based on the Figma design, reusing form elements from CreateProductModal where appropriate
+2. Implement the modal UI based on the Figma design, using shadcn/ui Modal component version 2.3.0
 3. Add an edit button/action to each product row in the product table
 4. Implement the API service method `updateProduct(productId: string, productData: ProductData)`
 5. Connect the EditProductModal to the backend API
@@ -61,7 +62,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 ### Dependencies: 6.1, 6.2
 ### Description: Connect the GenerateQRModal to the backend to implement actual QR code and serial number generation functionality.
 ### Details:
-1. Update the GenerateQRModal component to connect with the backend
+1. Update the GenerateQRModal component to connect with the backend, using shadcn/ui Modal component version 2.3.0
 2. Implement the API service method `generateProductSerials(productId: string, quantity: number)`
 3. Add form validation for serial number quantity input
 4. Implement loading states during QR code generation
@@ -69,7 +70,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 6. Add functionality to download individual QR codes or all QR codes as a ZIP file
 7. Implement a preview of generated serial numbers
 8. Add success/error notifications for the generation process
-9. Implement pagination if many QR codes are generated
+9. Implement pagination if many QR codes are generated, using shadcn/ui pagination components
 10. Test the generation process with different quantities and product types
 11. Ensure generated QR codes contain the correct product information and can be properly scanned
 
