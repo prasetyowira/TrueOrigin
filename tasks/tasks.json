@@ -4,7 +4,7 @@
       "id": 1,
       "title": "Implement Landing Page",
       "description": "Refine the landing page content, ensure responsiveness, and add any missing sections based on the Figma design",
-      "status": "in-progress",
+      "status": "done",
       "dependencies": [],
       "priority": "high",
       "details": "The basic landing page structure (home.tsx, LandingCard.tsx) has already been implemented. Now focus on refining the content, ensuring responsive behavior across all device sizes, and adding any missing sections from the Figma design in `plans/design.md`. Review and enhance the existing reusable components for the header, hero section, value proposition, key stakeholders section, technology section, and footer. Continue using Tailwind CSS for styling adjustments and implement shadcn/ui version 2.3.0 for UI components. Verify that all navigation links to the verification page, login page, and dashboard areas are working properly. Ensure the 'Book Demo' button and other call-to-action elements are fully functional and visually aligned with the design.",
@@ -113,7 +113,7 @@
       "id": 4,
       "title": "Develop UI Component Library",
       "description": "Continue developing the reusable UI component library with consistent design tokens",
-      "status": "in-progress",
+      "status": "done",
       "dependencies": [],
       "priority": "medium",
       "details": "Continue developing the UI component library using Tailwind CSS and shadcn/ui version 2.3.0 as a foundation. Several components have already been implemented (Filters, LandingCard, ProtectedRoute, QRCodeScanner, Sidebar, Table). Additionally, initial implementation/setup for Modal, Button, Input, Checkbox, Radio Group, Toast, Select, and Alert components using shadcn/ui v2.3.0 is now complete. Documentation and initial design consistency review for existing components have also been addressed.\n\nFocus on refining and extending these components, particularly:\n\n1. Enhancing Modal components with additional variations and use cases\n2. Expanding Button components with application-specific variants\n3. Extending Input components with custom validation patterns\n4. Refining form components (selects, checkboxes, radio buttons) for specific use cases\n5. Enhancing feedback components (toasts, alerts) with application-specific messaging\n6. Additional layout and navigation components as needed\n\nMaintain consistent styling with Tailwind CSS across all components. Continue to refine the cohesive design system with tokens for colors, typography, spacing, and shadows. Ensure all components are accessible and responsive, and continue to document new features and variations.",
@@ -153,7 +153,7 @@
           "id": 6,
           "title": "Verify shadcn/ui Version Compatibility",
           "description": "Ensure all components are compatible with shadcn/ui version 2.3.0 and leverage its features appropriately",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 7,

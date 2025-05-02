@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Implement Landing Page
-# Status: in-progress
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Refine the landing page content, ensure responsiveness, and add any missing sections based on the Figma design

@@ -341,7 +341,7 @@ const GenerateQRModal = ({
       // For now, simulating the response
       setTimeout(() => {
         const mockSerialNumbers = Array(quantity).fill(0).map((_, index) => 
-          `SN${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`
+          `SN${product.id.toString().substring(0, 4)}-${(index + 1).toString().padStart(6, '0')}`
         );
         setSerialNumbers(mockSerialNumbers);
         setIsLoading(false);

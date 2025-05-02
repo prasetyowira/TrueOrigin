@@ -8,6 +8,7 @@
     "name": "trustorigin",
     "scripts": {
         "setup-declarations": "dfx generate TrustOrigin_backend",
+        "dev": "npm run dev --workspaces --if-present",
         "build": "npm run build --workspaces --if-present",
         "prebuild": "npm run prebuild --workspaces --if-present",
         "pretest": "npm run prebuild --workspaces --if-present",

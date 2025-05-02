@@ -29,15 +29,22 @@ type LandingCardProps = {
 const LandingCard: React.FC<LandingCardProps> = ({ title, description, image }) => {
     return (
         <Card className={cn(
-            "bg-card text-card-foreground",
-            "rounded-2xl",
-            "flex flex-col justify-between overflow-hidden"
+            "bg-white text-card-foreground",
+            "rounded-2xl shadow-lg",
+            "flex flex-col justify-between h-full overflow-hidden",
+            "transition-transform duration-300 hover:shadow-xl hover:-translate-y-1"
         )}>
-            <CardHeader className="pt-10 px-10">
-                <CardTitle className="text-3xl font-lexend">{title}</CardTitle>
-                <CardDescription>{description}</CardDescription>
+            <CardHeader className="pt-8 px-8">
+                <CardTitle className="text-2xl md:text-3xl font-lexend font-bold mb-3">{title}</CardTitle>
+                <CardDescription className="text-base text-gray-600">{description}</CardDescription>
             </CardHeader>
-            <img src={image} alt={title} className="w-full h-auto object-cover" />
+            <div className="mt-auto">
+                <img 
+                    src={image} 
+                    alt={title} 
+                    className="w-full h-auto object-cover" 
+                />
+            </div>
         </Card>
     )
 }

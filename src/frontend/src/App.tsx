@@ -33,10 +33,8 @@ import { Toaster } from "@/components/ui/toaster";
 // Lazy load components to improve initial load performance
 const Homepage = lazy(() => import('./pages/home'));
 const LoginPage = lazy(() => import('./pages/auth/login'));
-const ChooseRolePage = lazy(() => import('./pages/auth/choose-role'));
 const UnauthorizedPage = lazy(() => import('./pages/unauthorized'));
 const Dashboard = lazy(() => import('./pages/dashboard'));
-const TestPage = lazy(() => import('./pages/test-page'));
 const VerifyPage = lazy(() => import('./pages/verify'));
 const ProductsPage = lazy(() => import('./pages/brand-owners/products'));
 
@@ -66,7 +64,6 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<Homepage />} />
             <Route path="/auth/login" element={<LoginPage />} />
-            <Route path="/auth/choose-role" element={<ChooseRolePage />} />
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
             <Route path="/verify" element={<VerifyPage />} />
             
@@ -104,8 +101,6 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* Test route */}
-            <Route path="/test" element={<TestPage />} />
           </Routes>
         </Suspense>
         <Toaster />

@@ -5,7 +5,7 @@ import { useAuthContext } from '../contexts/useAuthContext';
 import { AddProductLogo, BrandOwnerLogo, HeatmapLogo, ResellerLogo, UserLogo } from '../components/SidebarLogo';
 import Sidebar from '../components/Sidebar';
 import Filters from '../components/Filters';
-import Table from '../components/Table';
+import { ProductTable } from '../components/Table';
 import { Product, ProductInput } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 import { TrustOrigin_backend } from '../../../declarations/TrustOrigin_backend';
 
@@ -105,7 +105,7 @@ const Dashboard = () => {
                         <Filters filters={filters} onApply={handleApplyFilters} />
                         <hr className="my-10" />
                         <h2 className="text-2xl font-bold mb-4 font-lexend">Product Batch</h2>
-                        <Table products={products} onSentimentAnalysis={onSentimentAnalysis} />
+                        <ProductTable products={products} onSentimentAnalysis={onSentimentAnalysis} />
                     </>
                 )
             case "Add Product":

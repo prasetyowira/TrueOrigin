@@ -40,7 +40,7 @@ export interface User {
   name: string;
   email: string;
   isAdmin: boolean;
-  // Add index signature for organization property
+  // Add organization property
   organization?: Organization;
   [key: string]: any;
 }
@@ -80,15 +80,18 @@ const useAuth = () => {
                'Admin' in profile.user_role[0])
     } as User;
     
-    // Only add organization if it exists in the profile
-    if (profile.organization) {
-      (userObj as any).organization = {
-        id: profile.organization.id.toString(),
-        name: profile.organization.name || '',
-        role: profile.user_role && 
-              profile.user_role.length > 0 && 
-              profile.user_role[0] && 
-              'BrandOwner' in profile.user_role[0] ? 'Owner' : 'Member'
+    // Add organization property for brand owners
+    if (profile.user_role && 
+        profile.user_role.length > 0 && 
+        profile.user_role[0] && 
+        'BrandOwner' in profile.user_role[0] &&
+        profile.org_ids && 
+        profile.org_ids.length > 0) {
+      
+      userObj.organization = {
+        id: profile.org_ids[0].toString(),
+        name: profile.org_ids[0].toString(),
+        role: 'Owner'
       };
     }
     
