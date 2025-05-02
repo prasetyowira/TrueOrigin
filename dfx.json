@@ -5,17 +5,6 @@
       "package": "TrustOrigin_backend",
       "type": "rust"
     },
-    "TrustOrigin_frontend": {
-      "dependencies": [
-          "TrustOrigin_backend",
-          "internet_identity"
-      ],
-      "source": [
-          "src/frontend/dist"
-      ],
-      "type": "assets",
-      "workspace": "trustorigin"
-    },
     "internet_identity": {
       "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
       "frontend": {},
