@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Implement Product Management Page
-# Status: in-progress
+# Status: done
 # Dependencies: 5
 # Priority: medium
 # Description: Create the product management interface for brand owners to view and manage products
@@ -11,7 +11,7 @@ Implement the `ProductManagementPage.tsx` component with filter controls (date, 
 Test fetching and displaying products from the API. Verify filtering functionality works correctly. Test pagination with large datasets. Ensure the UI matches the Figma design and is responsive. Test error handling for API failures. Verify that all shadcn/ui components (version 2.3.0) are properly implemented and styled.
 
 # Subtasks:
-## 1. Refactor Product Components into Separate Reusable Components [pending]
+## 1. Refactor Product Components into Separate Reusable Components [done]
 ### Dependencies: None
 ### Description: Extract and refactor ProductCard, CreateProductModal, and GenerateQRModal from the inline implementation in brand-owners/products.tsx into separate reusable components.
 ### Details:
@@ -28,7 +28,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 8. Add documentation comments to describe component purpose and usage
 9. Use shadcn/ui version 2.3.0 components for all UI elements
 
-## 2. Replace Mock API Calls with Actual Backend Canister Calls [pending]
+## 2. Replace Mock API Calls with Actual Backend Canister Calls [done]
 ### Dependencies: 6.1
 ### Description: Replace the mock API calls for product listing and creation with actual calls to the TrustOrigin_backend canister.
 ### Details:
@@ -43,7 +43,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 7. Test the integration with the backend using different test accounts
 8. Implement proper TypeScript interfaces for API responses
 
-## 3. Implement Edit Product Functionality [pending]
+## 3. Implement Edit Product Functionality [done]
 ### Dependencies: 6.1, 6.2
 ### Description: Create an EditProductModal component and implement the functionality to edit existing products.
 ### Details:
@@ -58,7 +58,7 @@ Test fetching and displaying products from the API. Verify filtering functionali
 9. Refresh the product table after successful edits
 10. Test editing different product fields and verify changes are persisted
 
-## 4. Implement QR Code Generation and Serial Number Logic [pending]
+## 4. Implement QR Code Generation and Serial Number Logic [done]
 ### Dependencies: 6.1, 6.2
 ### Description: Connect the GenerateQRModal to the backend to implement actual QR code and serial number generation functionality.
 ### Details:

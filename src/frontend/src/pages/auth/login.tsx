@@ -104,9 +104,9 @@ const LoginPage = () => {
         if (isAuthenticated && profile && profile.user_role && profile.user_role.length > 0) {
             const role = profile.user_role[0];
             if (role && 'BrandOwner' in role) {
-                navigate('/dashboard');
+                navigate('/brand-owners/products');
             } else if (role && 'Reseller' in role) {
-                navigate('/reseller');
+                navigate('/reseller/dashboard');
             } else {
                 navigate('/dashboard');
             }

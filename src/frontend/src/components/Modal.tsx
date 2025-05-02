@@ -7,8 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"; // Assuming shadcn alias is setup as @
-import { cn } from "@/lib/utils"; // For conditional classes
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
   trigger: React.ReactNode; // Element that opens the modal
@@ -22,6 +22,9 @@ interface ModalProps {
   className?: string; // Additional classes for DialogContent
 }
 
+/**
+ * A reusable modal dialog component built on top of shadcn/ui Dialog.
+ */
 const Modal: React.FC<ModalProps> = ({
   trigger,
   title,
@@ -30,44 +33,34 @@ const Modal: React.FC<ModalProps> = ({
   footerContent,
   open,
   onOpenChange,
-  size = "md", // Default size
+  size = "md",
   className,
 }) => {
-  // Map size prop to Tailwind width classes (adjust as needed)
+  // Define size classes based on the size prop
   const sizeClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    full: "max-w-full h-full", // Example for full screen
+    sm: "max-w-md",
+    md: "max-w-xl",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-[90vw] max-h-[90vh]",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
-        className={cn("sm:max-w-[425px]", sizeClasses[size], className)} // Default + size + custom classes
-        // Prevent close on outside click if needed (can be prop later)
-        // onInteractOutside={(e) => e.preventDefault()}
+        className={cn(
+          sizeClasses[size],
+          size === "full" && "overflow-auto",
+          className
+        )}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <div className="py-4"> {/* Add some padding for content */}
-          {children}
-        </div>
-        {footerContent && (
-          <DialogFooter>
-             {/* Example: You might want a default close button if no footer provided */}
-            {footerContent}
-            {/* <DialogClose asChild>
-              <Button type="button" variant="secondary">Close</Button>
-            </DialogClose> */}
-          </DialogFooter>
-        )}
+        {children}
+        {footerContent && <DialogFooter>{footerContent}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );

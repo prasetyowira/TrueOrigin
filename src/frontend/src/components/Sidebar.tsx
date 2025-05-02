@@ -2,6 +2,7 @@ import logo from "../assets/true-origin.png"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from 'lucide-react'; // Placeholder icon
+import { useAuthContext } from "../contexts/useAuthContext";
 
 /**
  * Represents a single navigation item in the sidebar menu.
@@ -25,8 +26,12 @@ type SidebarProps = {
     menuItems: MenuItem[];
     /** URL for the user's avatar image. */
     userAvatar: string;
-    /** The display name of the logged-in user. */
-    username: string;
+    /** The principal ID of the logged-in user. */
+    principalId: string;
+    /** Whether the sidebar is collapsed (optional). */
+    collapsed?: boolean;
+    /** Callback when a menu item is clicked, useful for mobile views (optional). */
+    onItemClick?: () => void;
 }
 
 /**
@@ -34,48 +39,89 @@ type SidebarProps = {
  *
  * @param menuItems - Array of navigation items.
  * @param userAvatar - URL for the user's avatar.
- * @param username - Display name of the user.
+ * @param principalId - Principal ID of the user.
+ * @param collapsed - Whether the sidebar is in collapsed state.
+ * @param onItemClick - Optional callback when a menu item is clicked.
  */
-const Sidebar: React.FC<SidebarProps> = ({ menuItems, userAvatar, username }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+    menuItems, 
+    userAvatar, 
+    principalId,
+    collapsed = false,
+    onItemClick
+}) => {
+    const { logout } = useAuthContext();
+
+    const handleMenuItemClick = (item: MenuItem) => {
+        item.onClickEvent(item.label);
+        if (onItemClick) onItemClick();
+    };
+
+    const handleLogout = async () => {
+        await logout();
+    };
+
+    // We don't need to check for principalId existence here since it has a default value from the parent
+    // The loading/anonymous states are already handled in BrandOwnerLayout
+    const shortPrincipalId = principalId && principalId.length > 10 && principalId !== 'Loading...' && principalId !== 'Anonymous'
+        ? `${principalId.slice(0, 5)}...${principalId.slice(-5)}` 
+        : principalId;
+
+    // Get first letter of principalId for avatar fallback, or use a default
+    const getAvatarFallback = () => {
+        if (!principalId || principalId === 'Loading...' || principalId === 'Anonymous') {
+            return principalId === 'Loading...' ? '...' : 'A';
+        }
+        return principalId.charAt(0).toUpperCase();
+    };
+
     return (
-        <aside className="w-64 bg-white h-screen shadow-md flex flex-col justify-between">
+        <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white h-screen shadow-md flex flex-col justify-between transition-all duration-300 ease-in-out`}>
             <div>
-                <div className="p-4 flex items-center justify-center">
-                    <img src={logo} className="max-w-[180px]" />
+                <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'justify-center'}`}>
+                    <img src={logo} className={collapsed ? "max-w-[40px]" : "max-w-[180px]"} alt="TrueOrigin Logo" />
                 </div>
                 <nav className="mt-8">
-                    <ul className="p-5">
+                    <ul className={`${collapsed ? 'p-2' : 'p-5'}`}>
                         {menuItems.map((item, index) => (
                             <li
                                 key={index}
                                 className={`flex items-center p-2 ${
                                   item.active
-                                    ? "text-primary bg-gray-100"
+                                    ? "text-primary bg-indigo-100 font-semibold"
                                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                                } rounded-lg gap-2 mt-2 cursor-pointer`}
-                                onClick={() => item.onClickEvent(item.label)}
+                                } rounded-lg ${collapsed ? 'justify-center' : 'gap-2'} mt-2 cursor-pointer`}
+                                onClick={() => handleMenuItemClick(item)}
+                                title={collapsed ? item.label : undefined}
                             >
-                                <item.icon fillColor="currentColor" />
-                                <span>{item.label}</span>
+                                <item.icon fillColor={item.active ? "#2C42C0" : "currentColor"} />
+                                {!collapsed && <span>{item.label}</span>}
                             </li>
                         ))}
                     </ul>
                 </nav>
             </div>
-            <div className="p-4 border-t border-gray-200 flex items-center">
+            <div className={`p-4 border-t border-gray-200 ${collapsed ? 'flex flex-col items-center' : 'flex items-center'}`}>
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={userAvatar} alt={username} />
-                    <AvatarFallback>{username.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={userAvatar} alt={principalId} />
+                    <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                 </Avatar>
-                <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">{username}</p>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                        View profile
-                    </a>
-                </div>
-                <Button variant="ghost" size="icon" className="ml-auto rounded-full">
-                    <LogOut className="h-5 w-5" />
-                </Button>
+                {!collapsed && (
+                    <>
+                        <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-900" title={principalId}>{shortPrincipalId}</p>
+                            <p className="text-xs text-muted-foreground">Principal ID</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={handleLogout}>
+                            <LogOut className="h-5 w-5" />
+                        </Button>
+                    </>
+                )}
+                {collapsed && (
+                    <Button variant="ghost" size="icon" className="mt-2 rounded-full" onClick={handleLogout}>
+                        <LogOut className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
         </aside>
     );

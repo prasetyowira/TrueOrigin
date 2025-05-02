@@ -59,6 +59,8 @@ src/
       api/
         productApi.ts
       components/
+        icons/
+          index.tsx
         ui/
           alert.tsx
           avatar.tsx
@@ -71,19 +73,39 @@ src/
           radio-group.tsx
           select.tsx
           table.tsx
+          tabs.tsx
+          textarea.tsx
           toast.tsx
           toaster.tsx
+        Accordion.tsx
+        Avatar.tsx
+        Badge.tsx
+        Breadcrumb.tsx
+        Card.tsx
+        CardGrid.tsx
         ConfirmationModal.tsx
+        Container.tsx
+        DashboardLayout.tsx
+        DataGrid.tsx
         Filters.tsx
         FormField.tsx
+        index.ts
         interfaces.d.ts
         LandingCard.tsx
+        LoadingSpinner.tsx
         Modal.tsx
+        Pagination.tsx
         ProtectedRoute.tsx
         QRCodeScanner.tsx
+        SelectField.tsx
         Sidebar.tsx
         SidebarLogo.tsx
+        SidebarToggle.tsx
         Table.tsx
+        Tabs.tsx
+        TextareaField.tsx
+        Toast.tsx
+        Tooltip.tsx
       contexts/
         useAuthContext/
           index.tsx
@@ -91,6 +113,8 @@ src/
       hooks/
         use-toast.ts
         useAuth.ts
+      layouts/
+        BrandOwnerLayout.tsx
       lib/
         utils.ts
         validators.ts
@@ -99,10 +123,15 @@ src/
           login.tsx
         brand-owners/
           products.tsx
-        dashboard.tsx
         home.tsx
+        placeholder.tsx
         unauthorized.tsx
         verify.tsx
+      providers/
+        index.ts
+        QueryProvider.tsx
+      types/
+        global.d.ts
       App.tsx
       index.css
       main.tsx
@@ -122,6 +151,7 @@ src/
 .gitignore
 .nvmrc
 .repomixignore
+canister_ids.json
 dfx.json
 package.json
 repomix.config.json
@@ -129,6 +159,2431 @@ repomix.config.json
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/frontend/src/components/icons/index.tsx">
+import React from "react";
+
+// Base IconProps type
+type IconProps = {
+  fillColor?: string;
+  strokeColor?: string;
+  width?: number | string;
+  height?: number | string;
+};
+
+// Dashboard Icon
+export const DashboardIcon: React.FC<IconProps> = ({ 
+  fillColor = "currentColor", 
+  strokeColor = "currentColor", 
+  width = 24, 
+  height = 24 
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z"
+        stroke={strokeColor}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 22V12H15V22"
+        stroke={strokeColor}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+};
+
+// Products Icon
+export const ProductsIcon: React.FC<IconProps> = ({
+  fillColor = "currentColor",
+  strokeColor = "currentColor",
+  width = 24,
+  height = 24
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path opacity="0.4" d="M22 9.75C21.59 9.75 21.25 9.41 21.25 9V7C21.25 4.42 19.58 2.75 17 2.75H7C4.42 2.75 2.75 4.42 2.75 7V9C2.75 9.41 2.41 9.75 2 9.75C1.59 9.75 1.25 9.41 1.25 9V7C1.25 3.56 3.56 1.25 7 1.25H17C20.44 1.25 22.75 3.56 22.75 7V9C22.75 9.41 22.41 9.75 22 9.75Z" fill={fillColor} />
+      <path opacity="0.4" d="M17 22.75H7C3.56 22.75 1.25 20.44 1.25 17V15C1.25 14.59 1.59 14.25 2 14.25C2.41 14.25 2.75 14.59 2.75 15V17C2.75 19.58 4.42 21.25 7 21.25H17C19.58 21.25 21.25 19.58 21.25 17V15C21.25 14.59 21.59 14.25 22 14.25C22.41 14.25 22.75 14.59 22.75 15V17C22.75 20.44 20.44 22.75 17 22.75Z" fill={fillColor} />
+      <path d="M16.3999 8.20999L12.6399 6.17996C12.2399 5.96996 11.7699 5.96996 11.3699 6.17996L7.60992 8.20999C7.33992 8.35999 7.16992 8.64995 7.16992 8.97995C7.16992 9.30995 7.33992 9.59997 7.60992 9.74997L11.3699 11.78C11.5699 11.89 11.7899 11.94 12.0099 11.94C12.2299 11.94 12.4499 11.89 12.6499 11.78L16.4099 9.74997C16.6799 9.59997 16.8499 9.30995 16.8499 8.97995C16.8399 8.64995 16.6699 8.35999 16.3999 8.20999Z" fill={fillColor} />
+      <path d="M10.7402 12.4699L7.24023 10.7199C6.97023 10.5899 6.66022 10.6 6.40022 10.76C6.14022 10.92 5.99023 11.1899 5.99023 11.4899V14.7999C5.99023 15.3699 6.31024 15.89 6.82024 16.14L10.3202 17.89C10.4402 17.95 10.5702 17.9799 10.7102 17.9799C10.8702 17.9799 11.0202 17.9399 11.1602 17.8499C11.4202 17.6899 11.5702 17.4199 11.5702 17.1199V13.8099C11.5702 13.2399 11.2602 12.7299 10.7402 12.4699Z" fill={fillColor} />
+      <path d="M17.5899 10.76C17.3299 10.6 17.0199 10.5899 16.7499 10.7199L13.2499 12.4699C12.7399 12.7299 12.4199 13.2399 12.4199 13.8099V17.1199C12.4199 17.4199 12.5699 17.6899 12.8299 17.8499C12.9699 17.9399 13.1199 17.9799 13.2799 17.9799C13.4099 17.9799 13.5399 17.95 13.6699 17.89L17.1699 16.14C17.6799 15.88 17.9999 15.3699 17.9999 14.7999V11.4899C17.9999 11.1899 17.8499 10.92 17.5899 10.76Z" fill={fillColor} />
+    </svg>
+  );
+};
+
+// ProductAddIcon Icon
+export const ProductAddIcon: React.FC<IconProps> = ({
+  fillColor = "currentColor",
+  strokeColor = "currentColor",
+  width = 24,
+  height = 24
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M22 15.7C22 15.69 21.99 15.68 21.98 15.67C21.94 15.61 21.89 15.55 21.84 15.5C21.83 15.49 21.82 15.47 21.81 15.46C21 14.56 19.81 14 18.5 14C17.24 14 16.09 14.52 15.27 15.36C14.48 16.17 14 17.28 14 18.5C14 19.34 14.24 20.14 14.65 20.82C14.87 21.19 15.15 21.53 15.47 21.81C15.49 21.82 15.5 21.83 15.51 21.84C15.56 21.89 15.61 21.93 15.67 21.98C15.67 21.98 15.67 21.98 15.68 21.98C15.69 21.99 15.7 22 15.71 22C16.46 22.63 17.43 23 18.5 23C20.14 23 21.57 22.12 22.35 20.82C22.58 20.43 22.76 20 22.87 19.55C22.96 19.21 23 18.86 23 18.5C23 17.44 22.63 16.46 22 15.7ZM20.18 19.23H19.25V20.2C19.25 20.61 18.91 20.95 18.5 20.95C18.09 20.95 17.75 20.61 17.75 20.2V19.23H16.82C16.41 19.23 16.07 18.89 16.07 18.48C16.07 18.07 16.41 17.73 16.82 17.73H17.75V16.84C17.75 16.43 18.09 16.09 18.5 16.09C18.91 16.09 19.25 16.43 19.25 16.84V17.73H20.18C20.59 17.73 20.93 18.07 20.93 18.48C20.93 18.89 20.6 19.23 20.18 19.23Z" fill={fillColor} />
+      <path opacity="0.4" d="M19.3499 5.65995L13.0599 2.27C12.3999 1.91 11.5999 1.91 10.9299 2.27L4.63991 5.65995C4.17991 5.90995 3.8999 6.39998 3.8999 6.93998C3.8999 7.47998 4.17991 7.96995 4.63991 8.21995L10.9299 11.61C11.2599 11.79 11.6299 11.88 11.9899 11.88C12.3499 11.88 12.7199 11.79 13.0499 11.61L19.3399 8.21995C19.7999 7.96995 20.0799 7.47998 20.0799 6.93998C20.0999 6.39998 19.8099 5.90995 19.3499 5.65995Z" fill={fillColor} />
+      <path opacity="0.4" d="M9.90021 12.79L4.05022 9.86001C3.60022 9.63001 3.08021 9.66001 2.65021 9.92001C2.22021 10.18 1.97021 10.64 1.97021 11.14V16.67C1.97021 17.63 2.50021 18.49 3.36021 18.92L9.21022 21.8401C9.41022 21.9401 9.63022 21.99 9.85022 21.99C10.1102 21.99 10.3702 21.92 10.6002 21.77C11.0302 21.51 11.2802 21.05 11.2802 20.55V15.02C11.2902 14.08 10.7602 13.22 9.90021 12.79Z" fill={fillColor} />
+      <path opacity="0.4" d="M22.03 11.15V15.74C22.02 15.73 22.01 15.71 22 15.7C22 15.69 21.99 15.68 21.9799 15.67C21.9399 15.61 21.89 15.55 21.84 15.5C21.83 15.49 21.82 15.47 21.81 15.46C21 14.56 19.81 14 18.5 14C17.24 14 16.09 14.52 15.27 15.36C14.48 16.17 14 17.28 14 18.5C14 19.34 14.2399 20.14 14.6499 20.82C14.8199 21.11 15.0299 21.37 15.2599 21.61L14.7899 21.85C14.5899 21.95 14.3699 22 14.1499 22C13.8899 22 13.63 21.93 13.39 21.78C12.97 21.52 12.71 21.06 12.71 20.56V15.04C12.71 14.08 13.24 13.22 14.1 12.79L19.95 9.87C20.4 9.64 20.92 9.66 21.35 9.93C21.77 10.19 22.03 10.65 22.03 11.15Z" fill={fillColor} />
+    </svg>
+  );
+};
+
+// ResellerIcon Icon
+export const ResellerIcon: React.FC<IconProps> = ({
+  fillColor = "currentColor",
+  strokeColor = "currentColor",
+  width = 24,
+  height = 24
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path opacity="0.4" d="M15.0002 22.75C14.7302 22.75 14.4802 22.6 14.3502 22.37C14.2202 22.14 14.2202 21.85 14.3602 21.62L15.4102 19.87C15.6202 19.51 16.0802 19.4 16.4402 19.61C16.8002 19.82 16.9102 20.28 16.7002 20.64L16.4302 21.09C19.1902 20.44 21.2602 17.96 21.2602 15C21.2602 14.59 21.6002 14.25 22.0102 14.25C22.4202 14.25 22.7602 14.59 22.7602 15C22.7502 19.27 19.2702 22.75 15.0002 22.75Z" fill={fillColor} />
+      <path opacity="0.4" d="M2 9.75C1.59 9.75 1.25 9.41 1.25 9C1.25 4.73 4.73 1.25 9 1.25C9.27 1.25 9.51999 1.4 9.64999 1.63C9.77999 1.86 9.78 2.15 9.64 2.38L8.59 4.13C8.38 4.49001 7.92 4.60001 7.56 4.39001C7.2 4.18001 7.09 3.71999 7.3 3.35999L7.57001 2.90997C4.81001 3.55997 2.74001 6.04 2.74001 9C2.75001 9.41 2.41 9.75 2 9.75Z" fill={fillColor} />
+      <path d="M10.6704 13.8499L7.53044 12.1599C7.20044 11.9799 6.80044 11.9799 6.47044 12.1599L3.33044 13.8499C3.10044 13.9699 2.96045 14.2199 2.96045 14.4899C2.96045 14.7599 3.10044 15.0099 3.33044 15.1299L6.47044 16.8199C6.64044 16.9099 6.82044 16.9499 7.00044 16.9499C7.18044 16.9499 7.36044 16.9099 7.53044 16.8199L10.6704 15.1299C10.9004 15.0099 11.0404 14.7599 11.0404 14.4899C11.0404 14.2199 10.8904 13.9799 10.6704 13.8499Z" fill={fillColor} />
+      <path d="M5.95023 17.4099L3.03023 15.9499C2.81023 15.8399 2.55023 15.8499 2.33023 15.9799C2.12023 16.1099 1.99023 16.3399 1.99023 16.5899V19.3499C1.99023 19.8299 2.25022 20.2599 2.68022 20.4699L5.60023 21.9299C5.70023 21.9799 5.81023 22.0099 5.92023 22.0099C6.05023 22.0099 6.18023 21.9699 6.30023 21.8999C6.51023 21.7699 6.64023 21.5399 6.64023 21.2899V18.5299C6.65023 18.0499 6.38023 17.6199 5.95023 17.4099Z" fill={fillColor} />
+      <path d="M11.6601 15.9799C11.4501 15.8499 11.1901 15.8399 10.9601 15.9499L8.04008 17.4099C7.61008 17.6199 7.3501 18.0499 7.3501 18.5299V21.2899C7.3501 21.5399 7.48009 21.7699 7.69009 21.8999C7.81009 21.9699 7.9401 22.0099 8.0701 22.0099C8.1801 22.0099 8.29009 21.9799 8.39009 21.9299L11.3101 20.4699C11.7401 20.2599 12.0001 19.8299 12.0001 19.3499V16.5899C12.0001 16.3399 11.8701 16.1099 11.6601 15.9799Z" fill={fillColor} />
+      <path d="M20.6704 3.83001L17.5304 2.14C17.2004 1.96 16.8004 1.96 16.4704 2.14L13.3304 3.83001C13.1004 3.95001 12.9604 4.19996 12.9604 4.46996C12.9604 4.73996 13.1004 4.98998 13.3304 5.10998L16.4704 6.79998C16.6404 6.88998 16.8204 6.92998 17.0004 6.92998C17.1804 6.92998 17.3604 6.88998 17.5304 6.79998L20.6704 5.10998C20.9004 4.98998 21.0404 4.73996 21.0404 4.46996C21.0404 4.18996 20.8904 3.95001 20.6704 3.83001Z" fill={fillColor} />
+      <path d="M15.9502 7.37999L13.0302 5.91997C12.8102 5.80997 12.5502 5.82 12.3302 5.95C12.1202 6.08 11.9902 6.30999 11.9902 6.55999V9.32C11.9902 9.8 12.2502 10.23 12.6802 10.44L15.6002 11.9C15.7002 11.95 15.8102 11.98 15.9202 11.98C16.0502 11.98 16.1802 11.94 16.3002 11.87C16.5102 11.74 16.6402 11.51 16.6402 11.26V8.49999C16.6502 8.01999 16.3802 7.58999 15.9502 7.37999Z" fill={fillColor} />
+      <path d="M21.6601 5.95C21.4501 5.82 21.1901 5.80997 20.9601 5.91997L18.0401 7.37999C17.6101 7.58999 17.3501 8.01999 17.3501 8.49999V11.26C17.3501 11.51 17.4801 11.74 17.6901 11.87C17.8101 11.94 17.9401 11.98 18.0701 11.98C18.1801 11.98 18.2901 11.95 18.3901 11.9L21.3101 10.44C21.7401 10.23 22.0001 9.8 22.0001 9.32V6.55999C22.0001 6.30999 21.8701 6.08 21.6601 5.95Z" fill={fillColor} />
+    </svg>
+  );
+};
+
+// Analytics Icon
+export const AnalyticsIcon: React.FC<IconProps> = ({
+  fillColor = "currentColor",
+  strokeColor = "currentColor",
+  width = 24,
+  height = 24
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path opacity="0.4" d="M21 2V14.1C21 16 20 17 18.1 17H5.89999C3.99999 17 3 16 3 14.1V2H21Z" fill={fillColor} />
+      <path d="M22 2.75H2C1.59 2.75 1.25 2.41 1.25 2C1.25 1.59 1.59 1.25 2 1.25H22C22.41 1.25 22.75 1.59 22.75 2C22.75 2.41 22.41 2.75 22 2.75Z" fill={fillColor} />
+      <path d="M16.6698 22.34C16.5398 22.6 16.2698 22.75 15.9998 22.75C15.8898 22.75 15.7698 22.72 15.6698 22.67L11.9998 20.84L8.32976 22.67C8.22976 22.72 8.10978 22.75 7.99978 22.75C7.72978 22.75 7.45976 22.6 7.32976 22.34C7.13976 21.96 7.28979 21.51 7.66979 21.33L11.2498 19.54V17H12.7498V19.54L16.3298 21.33C16.7098 21.51 16.8598 21.96 16.6698 22.34Z" fill={fillColor} />
+      <path d="M7.49993 11.7499C7.28993 11.7499 7.06994 11.6599 6.91994 11.4799C6.64994 11.1599 6.69992 10.6899 7.01992 10.4199L10.1699 7.78993C10.4599 7.54993 10.8299 7.44994 11.1799 7.50994C11.5399 7.56994 11.8499 7.78991 12.0399 8.10991L13.0899 9.85991L16.0199 7.41994C16.3399 7.14994 16.8099 7.19992 17.0799 7.51992C17.3499 7.83992 17.2999 8.30991 16.9799 8.57991L13.8299 11.2099C13.5399 11.4499 13.1699 11.5499 12.8199 11.4899C12.4599 11.4299 12.1499 11.2099 11.9599 10.8899L10.9099 9.13994L7.97994 11.5799C7.83994 11.6899 7.66993 11.7499 7.49993 11.7499Z" fill={fillColor} />
+    </svg>
+  );
+};
+
+// Users Icon
+export const UsersIcon: React.FC<IconProps> = ({
+  fillColor = "currentColor",
+  strokeColor = "currentColor",
+  width = 24,
+  height = 24
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path opacity="0.4" d="M9 2C6.38 2 4.25 4.13 4.25 6.75C4.25 9.32 6.26 11.4 8.88 11.49C8.96 11.48 9.04 11.48 9.1 11.49C9.12 11.49 9.13 11.49 9.15 11.49C9.16 11.49 9.16 11.49 9.17 11.49C11.73 11.4 13.74 9.32 13.75 6.75C13.75 4.13 11.62 2 9 2Z" fill={fillColor} />
+      <path d="M14.08 14.15C11.29 12.29 6.73996 12.29 3.92996 14.15C2.65996 15 1.95996 16.15 1.95996 17.38C1.95996 18.61 2.65996 19.75 3.91996 20.59C5.31996 21.53 7.15996 22 8.99996 22C10.84 22 12.68 21.53 14.08 20.59C15.34 19.74 16.04 18.6 16.04 17.36C16.03 16.13 15.34 14.99 14.08 14.15Z" fill={fillColor} />
+      <path opacity="0.4" d="M19.9899 7.33998C20.1499 9.27998 18.7699 10.98 16.8599 11.21C16.8499 11.21 16.8499 11.21 16.8399 11.21H16.8099C16.7499 11.21 16.6899 11.21 16.6399 11.23C15.6699 11.28 14.7799 10.97 14.1099 10.4C15.1399 9.47998 15.7299 8.09998 15.6099 6.59998C15.5399 5.78998 15.2599 5.04998 14.8399 4.41998C15.2199 4.22998 15.6599 4.10998 16.1099 4.06998C18.0699 3.89998 19.8199 5.35998 19.9899 7.33998Z" fill={fillColor} />
+      <path d="M21.9902 16.59C21.9102 17.56 21.2902 18.4 20.2502 18.97C19.2502 19.52 17.9902 19.78 16.7402 19.75C17.4602 19.1 17.8802 18.29 17.9602 17.43C18.0602 16.19 17.4702 15 16.2902 14.05C15.6202 13.52 14.8402 13.1 13.9902 12.79C16.2002 12.15 18.9802 12.58 20.6902 13.96C21.6102 14.7 22.0802 15.63 21.9902 16.59Z" fill={fillColor} />
+    </svg>
+  );
+};
+
+export default {
+  DashboardIcon,
+  ProductsIcon,
+  ProductAddIcon,
+  ResellerIcon,
+  AnalyticsIcon,
+  UsersIcon
+};
+</file>
+
+<file path="src/frontend/src/components/ui/tabs.tsx">
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
+
+import { cn } from "@/lib/utils"
+
+const Tabs = TabsPrimitive.Root
+
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      className
+    )}
+    {...props}
+  />
+))
+TabsList.displayName = TabsPrimitive.List.displayName
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      className
+    )}
+    {...props}
+  />
+))
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={cn(
+      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      className
+    )}
+    {...props}
+  />
+))
+TabsContent.displayName = TabsPrimitive.Content.displayName
+
+export { Tabs, TabsList, TabsTrigger, TabsContent }
+</file>
+
+<file path="src/frontend/src/components/ui/textarea.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {}
+
+/**
+ * A styled textarea component that maintains consistent visual styling with other form elements.
+ */
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <textarea
+        className={cn(
+          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Textarea.displayName = "Textarea";
+
+export { Textarea };
+</file>
+
+<file path="src/frontend/src/components/Accordion.tsx">
+import * as React from "react";
+import { ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface AccordionItemProps {
+  title: React.ReactNode;
+  children: React.ReactNode;
+  expanded?: boolean;
+  onChange?: (expanded: boolean) => void;
+  className?: string;
+  titleClassName?: string;
+  contentClassName?: string;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+}
+
+/**
+ * An individual accordion item with a clickable title and expandable content.
+ */
+const AccordionItem: React.FC<AccordionItemProps> = ({
+  title,
+  children,
+  expanded: controlledExpanded,
+  onChange,
+  className,
+  titleClassName,
+  contentClassName,
+  icon = <ChevronDown className="h-4 w-4 transition-transform duration-200" />,
+  disabled = false,
+}) => {
+  const [internalExpanded, setInternalExpanded] = React.useState(false);
+  
+  // Handle controlled vs uncontrolled state
+  const isExpanded = controlledExpanded !== undefined ? controlledExpanded : internalExpanded;
+  
+  const toggleExpanded = () => {
+    if (disabled) return;
+    
+    const newState = !isExpanded;
+    if (controlledExpanded === undefined) {
+      setInternalExpanded(newState);
+    }
+    
+    if (onChange) {
+      onChange(newState);
+    }
+  };
+
+  return (
+    <div className={cn("border-b", className)}>
+      <button
+        type="button"
+        onClick={toggleExpanded}
+        className={cn(
+          "flex w-full items-center justify-between py-4 text-left font-medium transition-all hover:text-primary",
+          disabled && "cursor-not-allowed opacity-50 hover:text-current",
+          titleClassName
+        )}
+        disabled={disabled}
+        aria-expanded={isExpanded}
+      >
+        <span>{title}</span>
+        <span
+          className={cn(
+            "ml-2 flex-shrink-0 transition-transform duration-200",
+            isExpanded && "rotate-180"
+          )}
+        >
+          {icon}
+        </span>
+      </button>
+      <div
+        className={cn(
+          "overflow-hidden transition-all",
+          isExpanded ? "max-h-screen" : "max-h-0",
+          contentClassName
+        )}
+        aria-hidden={!isExpanded}
+      >
+        <div className="pb-4 pt-2">{children}</div>
+      </div>
+    </div>
+  );
+};
+
+interface AccordionProps {
+  children: React.ReactNode;
+  className?: string;
+  allowMultiple?: boolean;
+}
+
+interface AccordionComposition {
+  Item: typeof AccordionItem;
+}
+
+/**
+ * An accordion component that groups collapsible content sections.
+ */
+const Accordion: React.FC<AccordionProps> & AccordionComposition = ({
+  children,
+  className,
+  allowMultiple = false,
+}) => {
+  return (
+    <div className={cn("divide-y divide-border rounded-md border", className)}>
+      {children}
+    </div>
+  );
+};
+
+Accordion.Item = AccordionItem;
+
+export { Accordion, AccordionItem };
+</file>
+
+<file path="src/frontend/src/components/Avatar.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+type AvatarSize = "xs" | "sm" | "md" | "lg" | "xl";
+
+interface AvatarProps {
+  src?: string;
+  alt?: string;
+  initials?: string;
+  size?: AvatarSize;
+  rounded?: "full" | "md" | "lg";
+  className?: string;
+  fallbackClassName?: string;
+}
+
+/**
+ * An avatar component displaying a user image or initials fallback.
+ */
+const Avatar: React.FC<AvatarProps> = ({
+  src,
+  alt = "User avatar",
+  initials,
+  size = "md",
+  rounded = "full",
+  className,
+  fallbackClassName,
+}) => {
+  const [imageError, setImageError] = React.useState(false);
+  
+  // Size classes
+  const sizeClasses: Record<AvatarSize, string> = {
+    xs: "h-6 w-6 text-xs",
+    sm: "h-8 w-8 text-sm",
+    md: "h-10 w-10 text-base",
+    lg: "h-12 w-12 text-lg",
+    xl: "h-16 w-16 text-xl",
+  };
+  
+  // Rounded classes
+  const roundedClasses: Record<string, string> = {
+    full: "rounded-full",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+  
+  // Generate initials if not provided
+  const getInitials = () => {
+    if (initials) return initials;
+    if (!alt || alt === "User avatar") return "U";
+    
+    return alt
+      .split(" ")
+      .map(word => word[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+  
+  const handleImageError = () => {
+    setImageError(true);
+  };
+  
+  return (
+    <div 
+      className={cn(
+        "inline-flex items-center justify-center overflow-hidden bg-muted",
+        sizeClasses[size],
+        roundedClasses[rounded],
+        className
+      )}
+    >
+      {src && !imageError ? (
+        <img
+          src={src}
+          alt={alt}
+          className={cn("h-full w-full object-cover")}
+          onError={handleImageError}
+        />
+      ) : (
+        <div
+          className={cn(
+            "flex h-full w-full items-center justify-center bg-primary/10 font-medium text-primary",
+            fallbackClassName
+          )}
+          aria-label={alt}
+        >
+          {getInitials()}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export { Avatar };
+</file>
+
+<file path="src/frontend/src/components/Badge.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+type BadgeVariant = 
+  | "default"
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "outline";
+
+interface BadgeProps {
+  children: React.ReactNode;
+  variant?: BadgeVariant;
+  size?: "sm" | "md" | "lg";
+  rounded?: boolean;
+  className?: string;
+  icon?: React.ReactNode;
+}
+
+/**
+ * A badge component for displaying statuses, counts, or labels.
+ */
+const Badge: React.FC<BadgeProps> = ({
+  children,
+  variant = "default",
+  size = "md",
+  rounded = false,
+  className,
+  icon,
+}) => {
+  // Variant styles
+  const variantStyles: Record<BadgeVariant, string> = {
+    default: "bg-muted text-muted-foreground",
+    primary: "bg-primary text-primary-foreground",
+    secondary: "bg-secondary text-secondary-foreground",
+    success: "bg-green-100 text-green-800",
+    warning: "bg-yellow-100 text-yellow-800",
+    danger: "bg-red-100 text-red-800",
+    info: "bg-blue-100 text-blue-800",
+    outline: "border border-input bg-transparent text-foreground",
+  };
+
+  // Size styles
+  const sizeStyles = {
+    sm: "text-xs px-2 py-0.5",
+    md: "text-xs px-2.5 py-0.5",
+    lg: "text-sm px-3 py-1",
+  };
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center font-medium",
+        rounded ? "rounded-full" : "rounded-md",
+        variantStyles[variant],
+        sizeStyles[size],
+        className
+      )}
+    >
+      {icon && <span className="mr-1">{icon}</span>}
+      {children}
+    </span>
+  );
+};
+
+export { Badge };
+</file>
+
+<file path="src/frontend/src/components/Breadcrumb.tsx">
+import * as React from "react";
+import { Link } from "react-router-dom";
+import { ChevronRight, Home } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string;
+  icon?: React.ReactNode;
+}
+
+interface BreadcrumbProps {
+  items: BreadcrumbItem[];
+  className?: string;
+  separator?: React.ReactNode;
+  homeIcon?: boolean;
+}
+
+/**
+ * A breadcrumb navigation component displaying the current page location hierarchy.
+ */
+const Breadcrumb: React.FC<BreadcrumbProps> = ({
+  items,
+  className,
+  separator = <ChevronRight className="h-4 w-4 mx-2 text-muted-foreground" />,
+  homeIcon = true,
+}) => {
+  if (!items.length) return null;
+
+  return (
+    <nav className={cn("flex", className)} aria-label="Breadcrumb">
+      <ol className="inline-flex items-center space-x-1 md:space-x-2">
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
+          const isFirst = index === 0;
+          
+          const content = (
+            <div className="flex items-center">
+              {isFirst && homeIcon ? (
+                <Home className="h-4 w-4 mr-1" />
+              ) : item.icon ? (
+                <span className="mr-1">{item.icon}</span>
+              ) : null}
+              <span className={cn(
+                isLast ? "font-medium" : "text-muted-foreground",
+              )}>
+                {item.label}
+              </span>
+            </div>
+          );
+
+          return (
+            <li key={index} className="inline-flex items-center">
+              {index > 0 && separator}
+              {item.href && !isLast ? (
+                <Link
+                  to={item.href}
+                  className="inline-flex items-center hover:text-primary hover:underline transition-colors"
+                >
+                  {content}
+                </Link>
+              ) : (
+                <span className="inline-flex items-center">
+                  {content}
+                </span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  );
+};
+
+export { Breadcrumb, type BreadcrumbItem };
+</file>
+
+<file path="src/frontend/src/components/Card.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+  hoverable?: boolean;
+  bordered?: boolean;
+  elevated?: boolean;
+}
+
+interface CardHeaderProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardBodyProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+interface CardFooterProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+/**
+ * A versatile card component with header, body, and footer sections.
+ */
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ children, className, hoverable, bordered = true, elevated }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "rounded-lg bg-card text-card-foreground",
+          bordered && "border",
+          elevated && "shadow-sm",
+          hoverable && "transition-all duration-200 hover:shadow-md",
+          className
+        )}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+Card.displayName = "Card";
+
+/**
+ * Header section for the Card component.
+ */
+const CardHeader = React.forwardRef<HTMLDivElement, CardHeaderProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn("flex flex-col space-y-1.5 p-6", className)}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+CardHeader.displayName = "CardHeader";
+
+/**
+ * Body section for the Card component.
+ */
+const CardBody = React.forwardRef<HTMLDivElement, CardBodyProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div ref={ref} className={cn("p-6 pt-0", className)}>
+        {children}
+      </div>
+    );
+  }
+);
+
+CardBody.displayName = "CardBody";
+
+/**
+ * Footer section for the Card component.
+ */
+const CardFooter = React.forwardRef<HTMLDivElement, CardFooterProps>(
+  ({ children, className }, ref) => {
+    return (
+      <div
+        ref={ref}
+        className={cn("flex items-center p-6 pt-0", className)}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+
+CardFooter.displayName = "CardFooter";
+
+export { Card, CardHeader, CardBody, CardFooter };
+</file>
+
+<file path="src/frontend/src/components/CardGrid.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+type GridColumns = 1 | 2 | 3 | 4 | 5 | 6;
+
+interface CardGridProps {
+  children: React.ReactNode;
+  className?: string;
+  columns?: {
+    default: GridColumns;
+    sm?: GridColumns;
+    md?: GridColumns;
+    lg?: GridColumns;
+    xl?: GridColumns;
+  };
+  gap?: "none" | "xs" | "sm" | "md" | "lg" | "xl";
+}
+
+/**
+ * A responsive grid layout for displaying cards or content items.
+ */
+const CardGrid: React.FC<CardGridProps> = ({
+  children,
+  className,
+  columns = { default: 1, md: 2, lg: 3 },
+  gap = "md",
+}) => {
+  // Gap size classes
+  const gapClasses = {
+    none: "gap-0",
+    xs: "gap-1",
+    sm: "gap-2",
+    md: "gap-4",
+    lg: "gap-6",
+    xl: "gap-8",
+  };
+
+  // Build responsive grid template columns
+  const gridColClasses = [
+    `grid-cols-${columns.default}`,
+    columns.sm && `sm:grid-cols-${columns.sm}`,
+    columns.md && `md:grid-cols-${columns.md}`,
+    columns.lg && `lg:grid-cols-${columns.lg}`,
+    columns.xl && `xl:grid-cols-${columns.xl}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div
+      className={cn(
+        "grid",
+        gridColClasses,
+        gapClasses[gap],
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+export { CardGrid };
+</file>
+
+<file path="src/frontend/src/components/Container.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+type ContainerSize = "sm" | "md" | "lg" | "xl" | "full";
+
+interface ContainerProps {
+  children: React.ReactNode;
+  size?: ContainerSize;
+  className?: string;
+  centered?: boolean;
+  padded?: boolean;
+}
+
+/**
+ * A responsive container component for layout.
+ */
+const Container: React.FC<ContainerProps> = ({
+  children,
+  size = "lg",
+  className,
+  centered = false,
+  padded = true,
+}) => {
+  const sizeClasses: Record<ContainerSize, string> = {
+    sm: "max-w-screen-sm",
+    md: "max-w-screen-md",
+    lg: "max-w-screen-lg",
+    xl: "max-w-screen-xl",
+    full: "max-w-full",
+  };
+
+  return (
+    <div
+      className={cn(
+        "w-full",
+        sizeClasses[size],
+        padded && "px-4 md:px-6",
+        centered && "mx-auto",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+};
+
+export { Container };
+</file>
+
+<file path="src/frontend/src/components/DashboardLayout.tsx">
+import React, { useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Menu } from './interfaces';
+import { useAuthContext } from '@/contexts/useAuthContext';
+import { Button } from './ui/button';
+import { Menu as MenuIcon, X, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+interface DashboardLayoutProps {
+  menuItems: Menu[];
+  title: string;
+  logo?: React.ReactNode;
+}
+
+/**
+ * Shared dashboard layout component for Brand Owner and Reseller dashboards
+ * 
+ * Provides a responsive sidebar with navigation links and a main content area
+ * that renders the current route's component via Outlet.
+ */
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
+  menuItems,
+  title,
+  logo,
+}) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { logout, profile } = useAuthContext();
+  const navigate = useNavigate();
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/auth/login');
+  };
+
+  // Get user's initial for avatar
+  const getUserInitial = () => {
+    if (profile && profile.first_name && typeof profile.first_name === 'string' && profile.first_name.length > 0) {
+      return profile.first_name[0].toUpperCase();
+    }
+    return 'U';
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-white border-r border-gray-200 shadow-lg transition-transform duration-300 ease-in-out transform lg:relative lg:translate-x-0",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {/* Sidebar Header */}
+        <div className="flex h-16 items-center justify-between px-4 border-b">
+          <div className="flex items-center gap-2">
+            {logo}
+            <h2 className="text-lg font-semibold">{title}</h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            onClick={toggleSidebar}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Sidebar Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-2">
+          <ul className="space-y-1">
+            {menuItems.map((item, index) => (
+              <li key={index}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) => cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
+                    isActive
+                      ? "bg-primary/10 text-primary"
+                      : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                  )}
+                  onClick={() => setIsSidebarOpen(false)}
+                >
+                  {typeof item.logo === 'string' ? (
+                    <span>{item.logo}</span>
+                  ) : (
+                    item.logo
+                  )}
+                  <span>{item.name}</span>
+                  <ChevronRight className="ml-auto h-4 w-4 opacity-50" />
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Sidebar Footer - User profile & logout */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                {getUserInitial()}
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium">{profile?.first_name || 'User'}</p>
+                <p className="text-xs text-gray-500">{profile?.email || ''}</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-gray-700"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex flex-1 flex-col">
+        {/* Top Bar */}
+        <header className="sticky top-0 z-10 flex h-16 items-center bg-white border-b border-gray-200 px-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mr-4 lg:hidden"
+            onClick={toggleSidebar}
+          >
+            <MenuIcon className="h-5 w-5" />
+          </Button>
+          <h1 className="text-xl font-semibold">{title}</h1>
+          <div className="ml-auto flex items-center space-x-4">
+            {/* Other header controls can go here */}
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* Mobile overlay - when sidebar is open */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+    </div>
+  );
+};
+</file>
+
+<file path="src/frontend/src/components/DataGrid.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  SortAsc,
+  SortDesc,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+export interface Column<T> {
+  key: string;
+  header: string;
+  renderCell?: (item: T) => React.ReactNode;
+  sortable?: boolean;
+  hidden?: boolean;
+}
+
+export interface DataGridProps<T> {
+  data: T[];
+  columns: Column<T>[];
+  keyExtractor: (item: T) => string;
+  loading?: boolean;
+  pagination?: boolean;
+  pageSize?: number;
+  pageSizeOptions?: number[];
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+  currentPage?: number;
+  totalItems?: number;
+  sortable?: boolean;
+  onSortChange?: (column: string, direction: "asc" | "desc" | null) => void;
+  filterable?: boolean;
+  onFilterChange?: (column: string, value: string) => void;
+  emptyStateMessage?: string;
+  className?: string;
+  striped?: boolean;
+  bordered?: boolean;
+}
+
+/**
+ * A data grid component for displaying and managing tabular data with sorting, filtering, and pagination.
+ */
+function DataGrid<T>({
+  data,
+  columns,
+  keyExtractor,
+  loading = false,
+  pagination = false,
+  pageSize = 10,
+  pageSizeOptions = [5, 10, 25, 50],
+  onPageChange,
+  onPageSizeChange,
+  currentPage = 1,
+  totalItems = 0,
+  sortable = false,
+  onSortChange,
+  filterable = false,
+  onFilterChange,
+  emptyStateMessage = "No data available",
+  className,
+  striped = false,
+  bordered = false,
+}: DataGridProps<T>) {
+  const [sortColumn, setSortColumn] = React.useState<string | null>(null);
+  const [sortDirection, setSortDirection] = React.useState<"asc" | "desc" | null>(null);
+  const [filters, setFilters] = React.useState<Record<string, string>>({});
+  const [localCurrentPage, setLocalCurrentPage] = React.useState(currentPage);
+  const [localPageSize, setLocalPageSize] = React.useState(pageSize);
+
+  // Handle controlled vs uncontrolled pagination
+  React.useEffect(() => {
+    setLocalCurrentPage(currentPage);
+  }, [currentPage]);
+
+  React.useEffect(() => {
+    setLocalPageSize(pageSize);
+  }, [pageSize]);
+
+  // Calculate pagination details
+  const totalPages = Math.max(1, Math.ceil(totalItems / localPageSize));
+  
+  // Handle sort change
+  const handleSortChange = (column: string) => {
+    if (!sortable || !onSortChange) return;
+    
+    let newDirection: "asc" | "desc" | null = "asc";
+    
+    if (sortColumn === column) {
+      if (sortDirection === "asc") newDirection = "desc";
+      else if (sortDirection === "desc") newDirection = null;
+    }
+    
+    setSortColumn(newDirection ? column : null);
+    setSortDirection(newDirection);
+    onSortChange(column, newDirection);
+  };
+  
+  // Handle filter change
+  const handleFilterChange = (column: string, value: string) => {
+    if (!filterable || !onFilterChange) return;
+    
+    const newFilters = { ...filters, [column]: value };
+    setFilters(newFilters);
+    onFilterChange(column, value);
+  };
+  
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    const newPage = Math.max(1, Math.min(page, totalPages));
+    setLocalCurrentPage(newPage);
+    if (onPageChange) onPageChange(newPage);
+  };
+  
+  // Handle page size change
+  const handlePageSizeChange = (size: string) => {
+    const newSize = parseInt(size, 10);
+    setLocalPageSize(newSize);
+    if (onPageSizeChange) onPageSizeChange(newSize);
+  };
+
+  return (
+    <div className={cn("w-full", className)}>
+      {/* Filters */}
+      {filterable && (
+        <div className="mb-4 grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-4">
+          {columns
+            .filter((column) => !column.hidden)
+            .map((column) => (
+              <div key={`filter-${column.key}`}>
+                <Input 
+                  placeholder={`Filter by ${column.header}`}
+                  value={filters[column.key] || ""}
+                  onChange={(e) => handleFilterChange(column.key, e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            ))}
+        </div>
+      )}
+      
+      {/* Data Table */}
+      <div className="rounded-md border">
+        <Table bordered={bordered}>
+          <TableHeader>
+            <TableRow>
+              {columns
+                .filter((column) => !column.hidden)
+                .map((column) => (
+                  <TableHead 
+                    key={column.key}
+                    className={cn(
+                      column.sortable && sortable && "cursor-pointer select-none",
+                    )}
+                    onClick={() => {
+                      if (column.sortable && sortable) {
+                        handleSortChange(column.key);
+                      }
+                    }}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>{column.header}</span>
+                      {column.sortable && sortable && (
+                        <span className="inline-flex">
+                          {sortColumn === column.key ? (
+                            sortDirection === "asc" ? (
+                              <SortAsc className="h-4 w-4" />
+                            ) : sortDirection === "desc" ? (
+                              <SortDesc className="h-4 w-4" />
+                            ) : (
+                              <ArrowUpDown className="h-4 w-4 opacity-50" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="h-4 w-4 opacity-50" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </TableHead>
+                ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.filter((col) => !col.hidden).length}
+                  className="h-24 text-center"
+                >
+                  <div className="flex items-center justify-center">
+                    <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                    <span className="ml-2">Loading...</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : data.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.filter((col) => !col.hidden).length}
+                  className="h-24 text-center"
+                >
+                  {emptyStateMessage}
+                </TableCell>
+              </TableRow>
+            ) : (
+              data.map((item, rowIndex) => (
+                <TableRow 
+                  key={keyExtractor(item)}
+                  className={cn(
+                    striped && rowIndex % 2 === 1 && "bg-muted/50"
+                  )}
+                >
+                  {columns
+                    .filter((column) => !column.hidden)
+                    .map((column) => (
+                      <TableCell key={`${keyExtractor(item)}-${column.key}`}>
+                        {column.renderCell
+                          ? column.renderCell(item)
+                          : (item as any)[column.key] !== undefined
+                          ? String((item as any)[column.key])
+                          : ""}
+                      </TableCell>
+                    ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+          {pagination && (
+            <TableFooter>
+              <TableRow>
+                <TableCell colSpan={columns.filter((col) => !col.hidden).length}>
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-muted-foreground">
+                        Rows per page:
+                      </span>
+                      <Select
+                        value={String(localPageSize)}
+                        onValueChange={handlePageSizeChange}
+                      >
+                        <SelectTrigger className="h-8 w-[70px]">
+                          <SelectValue placeholder={String(localPageSize)} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {pageSizeOptions.map((size) => (
+                            <SelectItem key={size} value={String(size)}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-muted-foreground">
+                        {(localCurrentPage - 1) * localPageSize + 1}-
+                        {Math.min(localCurrentPage * localPageSize, totalItems)} of {totalItems}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handlePageChange(1)}
+                        disabled={localCurrentPage === 1}
+                      >
+                        <ChevronsLeft className="h-4 w-4" />
+                        <span className="sr-only">First page</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handlePageChange(localCurrentPage - 1)}
+                        disabled={localCurrentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        <span className="sr-only">Previous page</span>
+                      </Button>
+                      <span className="text-sm">
+                        Page {localCurrentPage} of {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handlePageChange(localCurrentPage + 1)}
+                        disabled={localCurrentPage >= totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                        <span className="sr-only">Next page</span>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={localCurrentPage >= totalPages}
+                      >
+                        <ChevronsRight className="h-4 w-4" />
+                        <span className="sr-only">Last page</span>
+                      </Button>
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          )}
+        </Table>
+      </div>
+    </div>
+  );
+}
+
+export { DataGrid };
+</file>
+
+<file path="src/frontend/src/components/index.ts">
+// UI Components
+export { Accordion, AccordionItem } from "./Accordion";
+export { Avatar } from "./Avatar";
+export { Badge } from "./Badge";
+export { Breadcrumb, type BreadcrumbItem } from "./Breadcrumb";
+export { Card, CardHeader, CardBody, CardFooter } from "./Card";
+export { CardGrid } from "./CardGrid";
+export { Container } from "./Container";
+export { DataGrid, type Column } from "./DataGrid";
+export { LoadingSpinner } from "./LoadingSpinner";
+export { default as Modal } from "./Modal";
+export { Pagination } from "./Pagination";
+export { default as SelectField } from "./SelectField";
+export { TextareaField } from "./TextareaField";
+export { Tabs, type TabItem } from "./Tabs";
+export { Toast } from "./Toast";
+export { Tooltip } from "./Tooltip";
+export { default as ConfirmationModal } from "./ConfirmationModal";
+</file>
+
+<file path="src/frontend/src/components/LoadingSpinner.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+type SpinnerSize = "xs" | "sm" | "md" | "lg" | "xl";
+
+interface LoadingSpinnerProps {
+  size?: SpinnerSize;
+  className?: string;
+  color?: string;
+}
+
+/**
+ * A customizable loading spinner with different size variants.
+ */
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
+  size = "md", 
+  className,
+  color = "primary"
+}) => {
+  // Size variants in pixels
+  const sizeClasses: Record<SpinnerSize, string> = {
+    xs: "h-4 w-4 border-[2px]",
+    sm: "h-6 w-6 border-[2px]",
+    md: "h-8 w-8 border-[3px]",
+    lg: "h-12 w-12 border-[3px]",
+    xl: "h-16 w-16 border-[4px]",
+  };
+
+  // Color variants
+  const colorClasses: Record<string, string> = {
+    primary: "border-primary",
+    secondary: "border-secondary",
+    muted: "border-muted",
+    white: "border-white",
+    gray: "border-gray-300",
+  };
+
+  return (
+    <div
+      className={cn(
+        "inline-block animate-spin rounded-full border-solid border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]",
+        sizeClasses[size],
+        colorClasses[color] || `border-${color}`,
+        className
+      )}
+      role="status"
+      aria-label="Loading"
+    >
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+};
+
+export { LoadingSpinner };
+</file>
+
+<file path="src/frontend/src/components/Pagination.tsx">
+import * as React from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  MoreHorizontal,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+interface PaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  siblingCount?: number;
+  className?: string;
+  showFirstLast?: boolean;
+  size?: "sm" | "md" | "lg";
+  variant?: "outline" | "ghost";
+}
+
+/**
+ * A pagination component for navigating through multi-page content.
+ */
+const Pagination: React.FC<PaginationProps> = ({
+  currentPage,
+  totalPages,
+  onPageChange,
+  siblingCount = 1,
+  className,
+  showFirstLast = true,
+  size = "md",
+  variant = "outline",
+}) => {
+  // Prevent out-of-bounds pages
+  const safePage = Math.max(1, Math.min(currentPage, totalPages));
+
+  // Define sizes for different variants
+  const buttonSizes = {
+    sm: "h-7 w-7 text-xs",
+    md: "h-8 w-8 text-sm",
+    lg: "h-9 w-9",
+  };
+  
+  // Generate page numbers to show
+  const generatePagination = (): (number | "dots")[] => {
+    if (totalPages <= siblingCount * 2 + 3) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    
+    // Always include first and last page
+    const startPages = Array.from(
+      { length: siblingCount + 1 },
+      (_, i) => i + 1
+    );
+    const endPages = Array.from(
+      { length: siblingCount + 1 },
+      (_, i) => totalPages - siblingCount + i
+    );
+    
+    // Current page and siblings
+    const middlePages = Array.from(
+      { length: siblingCount * 2 + 1 },
+      (_, i) => currentPage - siblingCount + i
+    ).filter(page => page > 0 && page <= totalPages);
+    
+    const result: (number | "dots")[] = [];
+    
+    // Add first pages
+    startPages.forEach(page => {
+      if (!result.includes(page) && page <= totalPages) {
+        result.push(page);
+      }
+    });
+    
+    // Add dots before middle pages if needed
+    const lastResultItem = result[result.length - 1];
+    if (typeof lastResultItem === 'number' && middlePages[0] > lastResultItem + 1) {
+      result.push("dots");
+    }
+    
+    // Add middle pages
+    middlePages.forEach(page => {
+      const lastItem = result[result.length - 1];
+      if (!result.includes(page) && (lastItem === "dots" || typeof lastItem === 'number' && page > lastItem)) {
+        result.push(page);
+      }
+    });
+    
+    // Add dots after middle pages if needed
+    const lastResult = result[result.length - 1];
+    const lastMiddlePage = middlePages[middlePages.length - 1];
+    
+    if (endPages[0] > (lastResult === "dots" 
+      ? (typeof lastMiddlePage === 'number' ? lastMiddlePage + 1 : 0)
+      : (typeof lastResult === 'number' ? lastResult + 1 : 0))
+    ) {
+      result.push("dots");
+    }
+    
+    // Add end pages
+    endPages.forEach(page => {
+      const lastItem = result[result.length - 1];
+      if (!result.includes(page) && (
+        lastItem === "dots" || 
+        (typeof lastItem === 'number' && page > lastItem)
+      )) {
+        result.push(page);
+      }
+    });
+    
+    return result;
+  };
+  
+  const pageItems = generatePagination();
+  
+  return (
+    <nav
+      role="navigation"
+      aria-label="Pagination"
+      className={cn("flex items-center justify-center", className)}
+    >
+      <ul className="flex items-center gap-1">
+        {showFirstLast && (
+          <li>
+            <Button
+              variant={variant}
+              size="icon"
+              className={buttonSizes[size]}
+              onClick={() => onPageChange(1)}
+              disabled={safePage === 1}
+              aria-label="Go to first page"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+          </li>
+        )}
+        
+        <li>
+          <Button
+            variant={variant}
+            size="icon"
+            className={buttonSizes[size]}
+            onClick={() => onPageChange(safePage - 1)}
+            disabled={safePage === 1}
+            aria-label="Go to previous page"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        </li>
+        
+        {pageItems.map((page, i) => (
+          <li key={i}>
+            {page === "dots" ? (
+              <span className="flex h-8 w-8 items-center justify-center">
+                <MoreHorizontal className="h-4 w-4" />
+              </span>
+            ) : (
+              <Button
+                variant={page === safePage ? "default" : variant}
+                size="icon"
+                className={buttonSizes[size]}
+                onClick={() => onPageChange(page)}
+                aria-current={page === safePage ? "page" : undefined}
+                aria-label={`Page ${page}`}
+              >
+                {page}
+              </Button>
+            )}
+          </li>
+        ))}
+        
+        <li>
+          <Button
+            variant={variant}
+            size="icon"
+            className={buttonSizes[size]}
+            onClick={() => onPageChange(safePage + 1)}
+            disabled={safePage === totalPages}
+            aria-label="Go to next page"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </li>
+        
+        {showFirstLast && (
+          <li>
+            <Button
+              variant={variant}
+              size="icon"
+              className={buttonSizes[size]}
+              onClick={() => onPageChange(totalPages)}
+              disabled={safePage === totalPages}
+              aria-label="Go to last page"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </li>
+        )}
+      </ul>
+    </nav>
+  );
+};
+
+export { Pagination };
+</file>
+
+<file path="src/frontend/src/components/SelectField.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
+interface SelectGroupOption {
+  label: string;
+  options: SelectOption[];
+}
+
+interface SelectFieldProps {
+  id: string;
+  label: string;
+  placeholder?: string;
+  options: SelectOption[] | SelectGroupOption[];
+  value?: string;
+  onChange?: (value: string) => void;
+  error?: string | null | boolean;
+  containerClassName?: string;
+  required?: boolean;
+  disabled?: boolean;
+}
+
+/**
+ * A form select field with label and error handling.
+ */
+const SelectField: React.FC<SelectFieldProps> = ({
+  id,
+  label,
+  placeholder = "Select an option",
+  options,
+  value,
+  onChange,
+  error,
+  containerClassName,
+  required = false,
+  disabled = false,
+}) => {
+  const hasError = Boolean(error);
+  const errorMessage = typeof error === "string" ? error : null;
+  
+  // Check if options are grouped
+  const isGrouped = options.length > 0 && "options" in options[0];
+
+  return (
+    <div className={cn("grid w-full items-center gap-1.5", containerClassName)}>
+      <Label htmlFor={id} className={cn(hasError && "text-destructive")}>
+        {label}
+        {required && <span className="text-destructive ml-1">*</span>}
+      </Label>
+      
+      <Select
+        value={value}
+        onValueChange={onChange}
+        disabled={disabled}
+      >
+        <SelectTrigger 
+          id={id}
+          className={cn(
+            hasError && "border-destructive focus-visible:ring-destructive"
+          )}
+        >
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        
+        <SelectContent>
+          {isGrouped ? (
+            // Render grouped options
+            (options as SelectGroupOption[]).map((group, groupIndex) => (
+              <SelectGroup key={groupIndex}>
+                <SelectLabel>{group.label}</SelectLabel>
+                {group.options.map((option, optionIndex) => (
+                  <SelectItem
+                    key={`${groupIndex}-${optionIndex}`}
+                    value={option.value}
+                  >
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))
+          ) : (
+            // Render flat options
+            (options as SelectOption[]).map((option, index) => (
+              <SelectItem key={index} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
+      
+      {errorMessage && (
+        <p className="text-sm font-medium text-destructive">
+          {errorMessage}
+        </p>
+      )}
+    </div>
+  );
+};
+
+export default SelectField;
+</file>
+
+<file path="src/frontend/src/components/SidebarToggle.tsx">
+import { MenuIcon, ChevronLeftIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+/**
+ * Props for the SidebarToggle component
+ */
+type SidebarToggleProps = {
+  /** Whether the sidebar is currently collapsed */
+  collapsed: boolean;
+  /** Function to toggle the sidebar collapsed state */
+  onClick: () => void;
+  /** Optional classname for additional styling */
+  className?: string;
+};
+
+/**
+ * A button component that toggles the sidebar between expanded and collapsed states
+ * 
+ * @param collapsed Whether the sidebar is currently collapsed
+ * @param onClick Function to call when the toggle is clicked
+ * @param className Optional additional CSS classes
+ */
+const SidebarToggle: React.FC<SidebarToggleProps> = ({
+  collapsed,
+  onClick,
+  className = ""
+}) => {
+  return (
+    <Button
+      onClick={onClick}
+      variant="ghost"
+      size="icon"
+      className={`rounded-full ${className}`}
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+    >
+      {collapsed ? (
+        <MenuIcon className="h-5 w-5" />
+      ) : (
+        <ChevronLeftIcon className="h-5 w-5" />
+      )}
+    </Button>
+  );
+};
+
+export default SidebarToggle;
+</file>
+
+<file path="src/frontend/src/components/Tabs.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+interface TabItem {
+  id: string;
+  label: React.ReactNode;
+  content: React.ReactNode;
+  disabled?: boolean;
+}
+
+interface TabsProps {
+  items: TabItem[];
+  defaultActiveId?: string;
+  onChange?: (id: string) => void;
+  className?: string;
+  tabClassName?: string;
+  activeTabClassName?: string;
+  contentClassName?: string;
+  variant?: "default" | "underline" | "pills";
+}
+
+/**
+ * A tabs component for organizing and navigating between related content sections.
+ */
+const Tabs: React.FC<TabsProps> = ({
+  items,
+  defaultActiveId,
+  onChange,
+  className,
+  tabClassName,
+  activeTabClassName,
+  contentClassName,
+  variant = "default",
+}) => {
+  const [activeId, setActiveId] = React.useState(defaultActiveId || items[0]?.id);
+
+  const handleTabClick = (id: string) => {
+    setActiveId(id);
+    if (onChange) onChange(id);
+  };
+
+  // Style variants
+  const variantStyles = {
+    default: {
+      tabContainer: "border-b border-border",
+      tab: "px-4 py-2 border-b-2 border-transparent",
+      activeTab: "border-primary text-primary font-medium",
+    },
+    underline: {
+      tabContainer: "border-b border-border",
+      tab: "px-4 py-2 border-b-2 border-transparent",
+      activeTab: "border-primary text-primary font-medium",
+    },
+    pills: {
+      tabContainer: "space-x-1",
+      tab: "px-4 py-2 rounded-md",
+      activeTab: "bg-primary/10 text-primary font-medium",
+    },
+  };
+
+  const selectedVariant = variantStyles[variant];
+
+  // Get the active tab content
+  const activeTab = items.find((item) => item.id === activeId);
+
+  return (
+    <div className={cn("w-full", className)}>
+      <div className={cn("flex mb-4", selectedVariant.tabContainer)}>
+        {items.map((item) => (
+          <button
+            key={item.id}
+            className={cn(
+              "transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2",
+              selectedVariant.tab,
+              item.disabled && "opacity-50 cursor-not-allowed",
+              activeId === item.id ? selectedVariant.activeTab : "text-muted-foreground hover:text-foreground",
+              tabClassName,
+              activeId === item.id && activeTabClassName
+            )}
+            onClick={() => !item.disabled && handleTabClick(item.id)}
+            disabled={item.disabled}
+            aria-selected={activeId === item.id}
+            role="tab"
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      <div className={cn("mt-2", contentClassName)}>
+        {activeTab?.content}
+      </div>
+    </div>
+  );
+};
+
+export { Tabs, type TabItem };
+</file>
+
+<file path="src/frontend/src/components/TextareaField.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+interface TextareaFieldProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  id: string;
+  label: string;
+  error?: string | null | boolean;
+  containerClassName?: string;
+  required?: boolean;
+}
+
+/**
+ * A form textarea field with label and error handling.
+ */
+const TextareaField = React.forwardRef<HTMLTextAreaElement, TextareaFieldProps>(
+  ({ id, label, error, className, containerClassName, required = false, ...props }, ref) => {
+    const hasError = Boolean(error);
+    const errorMessage = typeof error === "string" ? error : null;
+
+    return (
+      <div className={cn("grid w-full items-center gap-1.5", containerClassName)}>
+        <Label htmlFor={id} className={cn(hasError && "text-destructive")}>
+          {label}
+          {required && <span className="text-destructive ml-1">*</span>}
+        </Label>
+        <Textarea
+          id={id}
+          ref={ref}
+          className={cn(hasError && "border-destructive focus-visible:ring-destructive", className)}
+          aria-invalid={hasError}
+          {...props}
+        />
+        {errorMessage && (
+          <p className="text-sm font-medium text-destructive">
+            {errorMessage}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+TextareaField.displayName = "TextareaField";
+
+export { TextareaField };
+</file>
+
+<file path="src/frontend/src/components/Toast.tsx">
+import * as React from "react";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+type ToastVariant = "default" | "success" | "warning" | "error" | "info";
+
+interface ToastProps {
+  title: string;
+  message?: string;
+  variant?: ToastVariant;
+  onClose?: () => void;
+  duration?: number; // in milliseconds
+  className?: string;
+}
+
+/**
+ * A toast notification component for displaying feedback messages.
+ */
+const Toast: React.FC<ToastProps> = ({
+  title,
+  message,
+  variant = "default",
+  onClose,
+  duration = 5000, // Default 5 seconds
+  className,
+}) => {
+  const [visible, setVisible] = React.useState(true);
+
+  React.useEffect(() => {
+    if (duration > 0) {
+      const timer = setTimeout(() => {
+        setVisible(false);
+        if (onClose) onClose();
+      }, duration);
+      return () => clearTimeout(timer);
+    }
+  }, [duration, onClose]);
+
+  const handleClose = () => {
+    setVisible(false);
+    if (onClose) onClose();
+  };
+
+  if (!visible) return null;
+
+  // Variant styles
+  const variantStyles: Record<ToastVariant, string> = {
+    default: "bg-background border-border",
+    success: "bg-green-50 border-green-200 text-green-900",
+    warning: "bg-amber-50 border-amber-200 text-amber-900",
+    error: "bg-red-50 border-red-200 text-red-900",
+    info: "bg-blue-50 border-blue-200 text-blue-900",
+  };
+
+  const iconVariants: Record<ToastVariant, React.ReactNode> = {
+    default: null,
+    success: (
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
+        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+    ),
+    warning: (
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-100">
+        <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+    ),
+    error: (
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100">
+        <svg className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </div>
+    ),
+    info: (
+      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+        <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    ),
+  };
+
+  return (
+    <div
+      className={cn(
+        "pointer-events-auto w-full max-w-sm rounded-lg border shadow-lg",
+        "animate-in slide-in-from-top-full fade-in duration-300",
+        variantStyles[variant],
+        className
+      )}
+      role="alert"
+    >
+      <div className="flex p-4">
+        {iconVariants[variant] && (
+          <div className="flex-shrink-0 mr-3">{iconVariants[variant]}</div>
+        )}
+        <div className="flex-1">
+          <h3 className="font-medium">{title}</h3>
+          {message && <p className="mt-1 text-sm opacity-90">{message}</p>}
+        </div>
+        <button
+          type="button"
+          className="ml-4 inline-flex flex-shrink-0 rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2"
+          onClick={handleClose}
+        >
+          <span className="sr-only">Close</span>
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export { Toast };
+</file>
+
+<file path="src/frontend/src/components/Tooltip.tsx">
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+type TooltipPosition = "top" | "right" | "bottom" | "left";
+
+interface TooltipProps {
+  children: React.ReactNode;
+  content: React.ReactNode;
+  position?: TooltipPosition;
+  delay?: number;
+  className?: string;
+  contentClassName?: string;
+  disabled?: boolean;
+}
+
+/**
+ * A tooltip component that displays contextual information on hover.
+ */
+const Tooltip: React.FC<TooltipProps> = ({
+  children,
+  content,
+  position = "top",
+  delay = 300,
+  className,
+  contentClassName,
+  disabled = false,
+}) => {
+  const [isVisible, setIsVisible] = React.useState(false);
+  const [delayHandler, setDelayHandler] = React.useState<NodeJS.Timeout | null>(null);
+  const tooltipRef = React.useRef<HTMLDivElement>(null);
+  
+  // Position classes
+  const positionClasses: Record<TooltipPosition, string> = {
+    top: "bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2 mb-2",
+    right: "left-full top-1/2 transform -translate-y-1/2 translate-x-2 ml-2",
+    bottom: "top-full left-1/2 transform -translate-x-1/2 translate-y-2 mt-2",
+    left: "right-full top-1/2 transform -translate-y-1/2 -translate-x-2 mr-2",
+  };
+  
+  // Arrow position classes
+  const arrowClasses: Record<TooltipPosition, string> = {
+    top: "bottom-[-6px] left-1/2 transform -translate-x-1/2 border-t-gray-800 border-l-transparent border-r-transparent border-b-transparent",
+    right: "left-[-6px] top-1/2 transform -translate-y-1/2 border-r-gray-800 border-t-transparent border-b-transparent border-l-transparent",
+    bottom: "top-[-6px] left-1/2 transform -translate-x-1/2 border-b-gray-800 border-l-transparent border-r-transparent border-t-transparent",
+    left: "right-[-6px] top-1/2 transform -translate-y-1/2 border-l-gray-800 border-t-transparent border-b-transparent border-r-transparent",
+  };
+  
+  const showTooltip = () => {
+    if (disabled) return;
+    
+    if (delayHandler) clearTimeout(delayHandler);
+    const handler = setTimeout(() => {
+      setIsVisible(true);
+    }, delay);
+    setDelayHandler(handler);
+  };
+  
+  const hideTooltip = () => {
+    if (delayHandler) clearTimeout(delayHandler);
+    setDelayHandler(null);
+    setIsVisible(false);
+  };
+  
+  React.useEffect(() => {
+    return () => {
+      if (delayHandler) clearTimeout(delayHandler);
+    };
+  }, [delayHandler]);
+  
+  return (
+    <div className={cn("relative inline-block", className)} onMouseEnter={showTooltip} onMouseLeave={hideTooltip}>
+      {children}
+      
+      {isVisible && (
+        <div
+          ref={tooltipRef}
+          className={cn(
+            "absolute z-50 px-2 py-1 text-xs text-white bg-gray-800 rounded shadow-md whitespace-nowrap",
+            positionClasses[position],
+            contentClassName
+          )}
+          role="tooltip"
+        >
+          {content}
+          <div
+            className={cn(
+              "absolute w-0 h-0 border-4",
+              arrowClasses[position]
+            )}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export { Tooltip };
+</file>
+
+<file path="src/frontend/src/layouts/BrandOwnerLayout.tsx">
+/**
+ * @file Brand Owner Layout Component
+ * @fileoverview Provides a consistent layout for all brand owner pages with a sidebar navigation and content area
+ * 
+ * Functions:
+ * - BrandOwnerLayout: Main layout component for brand owner pages
+ * 
+ * Constants:
+ * - brandOwnerMenuItems: Navigation items for the sidebar
+ * 
+ * Flow:
+ * 1. Render sidebar with navigation options
+ * 2. Render main content area that displays children components
+ * 3. Handle sidebar collapse/expand functionality
+ * 
+ * Error Handling:
+ * - None specific to layout
+ * 
+ * @module layouts/BrandOwnerLayout
+ * @requires components/Sidebar - For navigation sidebar
+ * @exports {FC} BrandOwnerLayout - Main layout component
+ */
+
+import React, { useState, useEffect } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import SidebarToggle from '../components/SidebarToggle';
+import { useAuthContext } from '../contexts/useAuthContext';
+import { 
+  ProductsIcon, 
+  ProductAddIcon,
+  AnalyticsIcon,
+  ResellerIcon,
+  UsersIcon 
+} from '../components/icons';
+import defaultAvatar from '../assets/default-avatar.jpg';
+
+// Define IconProps type matching what's in the icons file
+type IconProps = {
+  fillColor: string;
+};
+
+/**
+ * Props for the BrandOwnerLayout component
+ */
+type BrandOwnerLayoutProps = {
+  children?: React.ReactNode;
+};
+
+/**
+ * Main layout component for brand owner dashboard
+ * Provides sidebar navigation and content area
+ */
+const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { profile, isLoading } = useAuthContext(); 
+  const [collapsed, setCollapsed] = useState(false);
+  
+  const handleMenuToggle = () => {
+    setCollapsed(!collapsed);
+  };
+
+  // Get principal ID from profile for display, handle loading state
+  const principalId = isLoading ? 'Loading...' : (profile?.id?.toText() || 'Anonymous');
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
+
+  const menuItems = [
+    {
+      label: 'Products',
+      icon: ProductsIcon as React.ComponentType<IconProps>,
+      active: location.pathname === '/brand-owners/products',
+      onClickEvent: () => handleNavigate('/brand-owners/products'),
+    },
+    {
+      label: 'Add Product',
+      icon: ProductAddIcon as React.ComponentType<IconProps>,
+      active: location.pathname === '/brand-owners/add-product',
+      onClickEvent: () => handleNavigate('/brand-owners/add-product'),
+    },
+    {
+      label: 'Reseller Management',
+      icon: ResellerIcon as React.ComponentType<IconProps>,
+      active: location.pathname === '/brand-owners/resellers',
+      onClickEvent: () => handleNavigate('/brand-owners/resellers'),
+    },
+    {
+      label: 'User Management',
+      icon: UsersIcon as React.ComponentType<IconProps>,
+      active: location.pathname === '/brand-owners/users',
+      onClickEvent: () => handleNavigate('/brand-owners/users'),
+    },
+    {
+      label: 'Analytic',
+      icon: AnalyticsIcon as React.ComponentType<IconProps>,
+      active: location.pathname === '/brand-owners/analytics',
+      onClickEvent: () => handleNavigate('/brand-owners/analytics'),
+    },
+  ];
+
+  // Get metadata from the profile to check for avatar
+  const getAvatarFromMeta = () => {
+    if (isLoading || !profile?.detail_meta) return '';
+    
+    const avatarMeta = profile.detail_meta.find(item => item.key === 'avatar');
+    return avatarMeta ? avatarMeta.value : defaultAvatar;
+  };
+
+  const userAvatar = getAvatarFromMeta() || defaultAvatar;
+
+  // Restore sidebar state from localStorage on component mount
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarCollapsed');
+    if (savedState !== null) {
+      setCollapsed(savedState === 'true');
+    }
+  }, []);
+
+  // Save sidebar state to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('sidebarCollapsed', String(collapsed));
+  }, [collapsed]);
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar 
+        menuItems={menuItems} 
+        userAvatar={userAvatar} 
+        principalId={principalId}
+        collapsed={collapsed}
+      />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <header className="bg-white shadow-sm z-10">
+          <div className="px-4 py-2 flex items-center">
+            <SidebarToggle collapsed={collapsed} onClick={handleMenuToggle} />
+            <div className="ml-4">
+              <h1 className="text-xl font-semibold">
+                {menuItems.find(item => item.active)?.label || 'Dashboard'}
+              </h1>
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default BrandOwnerLayout;
+</file>
+
+<file path="src/frontend/src/pages/placeholder.tsx">
+/**
+ * @file Placeholder Page Component
+ * @fileoverview Generic placeholder component for pages that are not yet implemented
+ * 
+ * Functions:
+ * - PlaceholderPage: Renders a placeholder UI for unimplemented pages
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Render a simple card with the provided title
+ * 2. Show a message indicating the page is in development
+ * 
+ * Error Handling:
+ * - None
+ * 
+ * @module pages/placeholder
+ * @requires components/ui/card - For card UI component
+ * @exports {FC} PlaceholderPage - Placeholder page component
+ */
+
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Construction } from "lucide-react";
+
+/**
+ * Props for the PlaceholderPage component
+ */
+type PlaceholderPageProps = {
+  /** The title to display in the placeholder */
+  title: string;
+  /** Optional description to display */
+  description?: string;
+};
+
+/**
+ * A generic placeholder component for pages that are not yet implemented
+ * 
+ * @param title - The title to display in the placeholder
+ * @param description - Optional description to display
+ * @returns Placeholder UI element
+ */
+const PlaceholderPage: React.FC<PlaceholderPageProps> = ({ 
+  title,
+  description = "This feature is currently in development and will be available soon."
+}) => {
+  return (
+    <div className="container py-10">
+      <Card className="w-full max-w-3xl mx-auto">
+        <CardHeader className="text-center">
+          <div className="w-full flex justify-center mb-4">
+            <Construction size={48} className="text-amber-500" />
+          </div>
+          <CardTitle className="text-2xl">{title}</CardTitle>
+          <CardDescription>{description}</CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="mb-6 text-gray-600">
+            Our team is working hard to bring you this feature. 
+            Please check back later for updates.
+          </p>
+          <Button variant="outline" onClick={() => window.history.back()}>
+            Go Back
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default PlaceholderPage;
+</file>
+
+<file path="src/frontend/src/providers/index.ts">
+export * from './QueryProvider';
+</file>
+
+<file path="src/frontend/src/providers/QueryProvider.tsx">
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+interface QueryProviderProps {
+  children: ReactNode;
+}
+
+export function QueryProvider({ children }: QueryProviderProps) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  );
+}
+</file>
 
 <file path="scripts/task-complexity-report.json">
 {
@@ -2029,70 +4484,85 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const Table = React.forwardRef<
-  HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      {...props}
-    />
-  </div>
-))
+// Table Container
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  compact?: boolean;
+  bordered?: boolean;
+  striped?: boolean;
+  hoverable?: boolean;
+}
+
+const Table = React.forwardRef<HTMLTableElement, TableProps>(
+  ({ className, compact, bordered, striped, hoverable, ...props }, ref) => {
+    return (
+      <div className="w-full overflow-auto">
+        <table
+          ref={ref}
+          className={cn(
+            "w-full caption-bottom text-sm",
+            bordered && "border border-border [&_td]:border-border [&_th]:border-border [&_td]:border [&_th]:border",
+            className
+          )}
+          {...props}
+        />
+      </div>
+    );
+  }
+);
 Table.displayName = "Table"
 
+// Table Header
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn("bg-muted/50", className)} {...props} />
 ))
 TableHeader.displayName = "TableHeader"
 
+// Table Body
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <tbody
-    ref={ref}
-    className={cn("[&_tr:last-child]:border-0", className)}
-    {...props}
-  />
+  <tbody ref={ref} className={cn("[&_tr:last-child]:border-0", className)} {...props} />
 ))
 TableBody.displayName = "TableBody"
 
+// Table Footer
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn(
-      "border-t bg-muted/50 font-medium [&>tr]:last:border-b-0",
-      className
-    )}
+    className={cn("bg-muted/50 font-medium text-muted-foreground", className)}
     {...props}
   />
 ))
 TableFooter.displayName = "TableFooter"
 
-const TableRow = React.forwardRef<
-  HTMLTableRowElement,
-  React.HTMLAttributes<HTMLTableRowElement>
->(({ className, ...props }, ref) => (
-  <tr
-    ref={ref}
-    className={cn(
-      "border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted",
-      className
-    )}
-    {...props}
-  />
-))
+// Table Row
+interface TableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {
+  selected?: boolean;
+}
+
+const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
+  ({ className, selected, ...props }, ref) => (
+    <tr
+      ref={ref}
+      className={cn(
+        "border-b border-border transition-colors data-[state=selected]:bg-muted",
+        selected && "bg-muted",
+        className
+      )}
+      {...props}
+    />
+  )
+)
 TableRow.displayName = "TableRow"
 
+// Table Head
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
   React.ThHTMLAttributes<HTMLTableCellElement>
@@ -2100,7 +4570,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "h-10 px-2 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+      "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className
     )}
     {...props}
@@ -2108,21 +4578,20 @@ const TableHead = React.forwardRef<
 ))
 TableHead.displayName = "TableHead"
 
+// Table Cell
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn(
-      "p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-      className
-    )}
+    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
     {...props}
   />
 ))
 TableCell.displayName = "TableCell"
 
+// Table Caption
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
   React.HTMLAttributes<HTMLTableCaptionElement>
@@ -2140,8 +4609,8 @@ export {
   TableHeader,
   TableBody,
   TableFooter,
-  TableHead,
   TableRow,
+  TableHead,
   TableCell,
   TableCaption,
 }
@@ -2315,83 +4784,81 @@ export function Toaster() {
 
 <file path="src/frontend/src/components/ConfirmationModal.tsx">
 import * as React from "react";
-import Modal from "./Modal"; // Import the base Modal
 import { Button } from "@/components/ui/button";
-import { DialogClose } from "@/components/ui/dialog";
+import Modal from "@/components/Modal";
 
 interface ConfirmationModalProps {
   trigger: React.ReactNode;
   title: string;
-  description?: string;
-  children: React.ReactNode; // Content explaining the action
-  confirmText?: string; // Default: "Confirm"
-  cancelText?: string; // Default: "Cancel"
-  onConfirm: () => void; // Action to perform on confirm
-  onCancel?: () => void; // Optional action on cancel
-  confirmVariant?: React.ComponentProps<typeof Button>['variant']; // Default: "destructive" or "primary" based on context?
-  cancelVariant?: React.ComponentProps<typeof Button>['variant']; // Default: "secondary"
+  description: string;
+  onConfirm: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  destructive?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  size?: React.ComponentProps<typeof Modal>['size'];
-  className?: string;
 }
 
+/**
+ * A specialized modal for confirmation actions like deletion or approval.
+ */
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   trigger,
   title,
   description,
-  children,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
   onConfirm,
   onCancel,
-  confirmVariant = "destructive", // Often destructive, but could be primary
-  cancelVariant = "secondary",
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  destructive = false,
   open,
   onOpenChange,
-  size,
-  className,
 }) => {
-  const handleConfirm = () => {
-    onConfirm();
-    // Optionally close the modal after confirm, handled by DialogClose or onOpenChange if needed
-  };
+  const [internalOpen, setInternalOpen] = React.useState(false);
+  
+  // Use either controlled or uncontrolled state
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
 
   const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    }
-    // Modal closes automatically due to DialogClose
+    setIsOpen(false);
+    if (onCancel) onCancel();
   };
 
-  const footer = (
-    <>
-      <DialogClose asChild>
-        <Button type="button" variant={cancelVariant} onClick={handleCancel}>
-          {cancelText}
-        </Button>
-      </DialogClose>
-      {/* We might need DialogClose here too if onConfirm doesn't manage state */}
-      <DialogClose asChild>
-        <Button type="button" variant={confirmVariant} onClick={handleConfirm}>
-          {confirmText}
-        </Button>
-      </DialogClose>
-    </>
-  );
+  const handleConfirm = () => {
+    onConfirm();
+    setIsOpen(false);
+  };
 
   return (
     <Modal
       trigger={trigger}
       title={title}
       description={description}
-      footerContent={footer}
-      open={open}
-      onOpenChange={onOpenChange}
-      size={size}
-      className={className}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      size="sm"
+      footerContent={
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+          >
+            {cancelText}
+          </Button>
+          <Button
+            variant={destructive ? "destructive" : "default"}
+            onClick={handleConfirm}
+          >
+            {confirmText}
+          </Button>
+        </div>
+      }
     >
-      {children}
+      <div className="py-2">
+        {/* The description is already in the header, but we need to pass children */}
+      </div>
     </Modal>
   );
 };
@@ -2463,8 +4930,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"; // Assuming shadcn alias is setup as @
-import { cn } from "@/lib/utils"; // For conditional classes
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 interface ModalProps {
   trigger: React.ReactNode; // Element that opens the modal
@@ -2478,6 +4945,9 @@ interface ModalProps {
   className?: string; // Additional classes for DialogContent
 }
 
+/**
+ * A reusable modal dialog component built on top of shadcn/ui Dialog.
+ */
 const Modal: React.FC<ModalProps> = ({
   trigger,
   title,
@@ -2486,44 +4956,34 @@ const Modal: React.FC<ModalProps> = ({
   footerContent,
   open,
   onOpenChange,
-  size = "md", // Default size
+  size = "md",
   className,
 }) => {
-  // Map size prop to Tailwind width classes (adjust as needed)
+  // Define size classes based on the size prop
   const sizeClasses = {
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    full: "max-w-full h-full", // Example for full screen
+    sm: "max-w-md",
+    md: "max-w-xl",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-[90vw] max-h-[90vh]",
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
-        className={cn("sm:max-w-[425px]", sizeClasses[size], className)} // Default + size + custom classes
-        // Prevent close on outside click if needed (can be prop later)
-        // onInteractOutside={(e) => e.preventDefault()}
+        className={cn(
+          sizeClasses[size],
+          size === "full" && "overflow-auto",
+          className
+        )}
       >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          {description && (
-            <DialogDescription>{description}</DialogDescription>
-          )}
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <div className="py-4"> {/* Add some padding for content */}
-          {children}
-        </div>
-        {footerContent && (
-          <DialogFooter>
-             {/* Example: You might want a default close button if no footer provided */}
-            {footerContent}
-            {/* <DialogClose asChild>
-              <Button type="button" variant="secondary">Close</Button>
-            </DialogClose> */}
-          </DialogFooter>
-        )}
+        {children}
+        {footerContent && <DialogFooter>{footerContent}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );
@@ -2906,142 +5366,6 @@ function useToast() {
 }
 
 export { useToast, toast }
-</file>
-
-<file path="src/frontend/src/hooks/useAuth.ts">
-/**
- * @file Authentication hook
- * @fileoverview Custom hook for managing user authentication state
- * 
- * Functions:
- * - useAuth: Main hook for authentication
- * 
- * Constants:
- * - None
- * 
- * Flow:
- * 1. Initialize auth context
- * 2. Provide user login/logout functionality
- * 3. Cache authentication state
- * 4. Load user profile and organization data
- * 
- * Error Handling:
- * - Login errors
- * - Session expiration
- * - Network issues
- * 
- * @module hooks/useAuth
- * @requires react - React library
- * @requires TrustOrigin_backend - Backend canister
- * @exports {Hook} useAuth - Authentication hook
- */
-
-import { useState } from 'react';
-import { useAuthContext } from '../contexts/useAuthContext';
-
-// Define frontend-specific user types
-export interface Organization {
-  id: string;
-  name: string;
-  role: 'Owner' | 'Member';
-}
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  isAdmin: boolean;
-  // Add organization property
-  organization?: Organization;
-  [key: string]: any;
-}
-
-/**
- * Authentication hook that provides authentication state and methods
- * This hook acts as a wrapper around the AuthContext for components
- * that need authentication functionality
- * 
- * @returns Authentication state and methods
- */
-const useAuth = () => {
-  const { 
-    isAuthenticated, 
-    isLoading: isAuthenticating,
-    profile,
-    login,
-    logout
-  } = useAuthContext();
-  
-  const [error, setError] = useState<string | null>(null);
-
-  // Transform backend profile to frontend user format
-  let user: User | null = null;
-  
-  if (profile) {
-    // Create a user object with required properties
-    const userObj = {
-      id: profile.id.toString(),
-      name: profile.first_name && profile.last_name && profile.first_name[0] && profile.last_name[0] ? 
-        `${profile.first_name[0]} ${profile.last_name[0]}` : 
-        'Unknown User',
-      email: profile.email && profile.email[0] ? profile.email[0] : '',
-      isAdmin: !!(profile.user_role && 
-               profile.user_role.length > 0 && 
-               profile.user_role[0] && 
-               'Admin' in profile.user_role[0])
-    } as User;
-    
-    // Add organization property for brand owners
-    if (profile.user_role && 
-        profile.user_role.length > 0 && 
-        profile.user_role[0] && 
-        'BrandOwner' in profile.user_role[0] &&
-        profile.org_ids && 
-        profile.org_ids.length > 0) {
-      
-      userObj.organization = {
-        id: profile.org_ids[0].toString(),
-        name: profile.org_ids[0].toString(),
-        role: 'Owner'
-      };
-    }
-    
-    user = userObj;
-  }
-
-  // Wrapper for login to handle errors
-  const handleLogin = async () => {
-    try {
-      setError(null);
-      login();
-    } catch (err) {
-      console.error('Login error:', err);
-      setError('Failed to login. Please try again.');
-    }
-  };
-
-  // Wrapper for logout to handle errors
-  const handleLogout = async () => {
-    try {
-      setError(null);
-      await logout();
-    } catch (err) {
-      console.error('Logout error:', err);
-      setError('Failed to logout. Please try again.');
-    }
-  };
-
-  return {
-    isAuthenticated: !!isAuthenticated,
-    isAuthenticating,
-    user,
-    login: handleLogin,
-    logout: handleLogout,
-    error
-  };
-};
-
-export default useAuth;
 </file>
 
 <file path="src/frontend/src/lib/utils.ts">
@@ -3428,6 +5752,13 @@ const VerifyPage = () => {
 export default VerifyPage;
 </file>
 
+<file path="src/frontend/src/types/global.d.ts">
+// Global polyfill type definitions
+interface Window {
+  global: typeof globalThis;
+}
+</file>
+
 <file path="src/frontend/src/utils.ts">
 import type { UserResult, User } from "../../declarations/TrustOrigin_backend/TrustOrigin_backend.did";
 
@@ -3607,79 +5938,15 @@ target/
 tasks/
 </file>
 
-<file path="dfx.json">
+<file path="canister_ids.json">
 {
-  "canisters": {
-    "TrustOrigin_backend": {
-      "candid": "src/backend/backend.did",
-      "package": "TrustOrigin_backend",
-      "type": "rust"
+    "backend": {
+      "ic": "wwf6q-riaaa-aaaap-qpywq-cai"
     },
-    "TrustOrigin_frontend": {
-      "dependencies": [
-          "TrustOrigin_backend",
-          "internet_identity"
-      ],
-      "source": [
-          "src/frontend/dist"
-      ],
-      "type": "assets",
-      "workspace": "trustorigin"
-    },
-    "internet_identity": {
-      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
-      "frontend": {},
-      "remote": {
-          "id": {
-              "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
-          }
-      },
-      "type": "custom",
-      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
+    "frontend": {
+      "ic": "w7gvm-haaaa-aaaap-qpyxa-cai"
     }
-  },
-  "defaults": {
-    "build": {
-      "args": "",
-      "packtool": ""
-    }
-  },
-  "output_env_file": ".env",
-  "version": 1
-}
-</file>
-
-<file path="package.json">
-{
-    "engines": {
-        "node": ">=16.0.0",
-        "npm": ">=7.0.0",
-        "pnpm": ">=7.0.0",
-        "husky": "9.1.4"
-    },
-    "name": "trustorigin",
-    "scripts": {
-        "setup-declarations": "dfx generate TrustOrigin_backend",
-        "dev": "npm run dev --workspaces --if-present",
-        "build": "npm run build --workspaces --if-present",
-        "prebuild": "npm run prebuild --workspaces --if-present",
-        "pretest": "npm run prebuild --workspaces --if-present",
-        "start": "npm start --workspaces --if-present",
-        "test": "npm test --workspaces --if-present",
-        "prepare": "husky"
-    },
-    "type": "module",
-    "workspaces": [
-        "src/frontend"
-    ],
-    "dependencies": {
-        "@dfinity/agent": "^2.0.0"
-    },
-    "devDependencies": {
-        "husky": "^9.1.4"
-    },
-    "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
-}
+  }
 </file>
 
 <file path="repomix.config.json">
@@ -3826,61 +6093,6 @@ const Filters: React.FC<FiltersProps> = ({ filters, onApply, className }) => {
 };
 
 export default Filters;
-</file>
-
-<file path="src/frontend/src/components/LandingCard.tsx">
-import {
-    Card,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { cn } from "@/lib/utils";
-
-/**
- * Props for the LandingCard component.
- */
-type LandingCardProps = {
-    /** The main title displayed on the card. */
-    title: string;
-    /** The descriptive text content of the card. */
-    description: string;
-    /** URL for the image displayed at the bottom of the card. */
-    image: string;
-};
-
-/**
- * Renders a card component specifically designed for the landing page,
- * displaying a title, description, and an image.
- *
- * @param title - The card title.
- * @param description - The card description.
- * @param image - URL for the card image.
- */
-const LandingCard: React.FC<LandingCardProps> = ({ title, description, image }) => {
-    return (
-        <Card className={cn(
-            "bg-white text-card-foreground",
-            "rounded-2xl shadow-lg",
-            "flex flex-col justify-between h-full overflow-hidden",
-            "transition-transform duration-300 hover:shadow-xl hover:-translate-y-1"
-        )}>
-            <CardHeader className="pt-8 px-8">
-                <CardTitle className="text-2xl md:text-3xl font-lexend font-bold mb-3">{title}</CardTitle>
-                <CardDescription className="text-base text-gray-600">{description}</CardDescription>
-            </CardHeader>
-            <div className="mt-auto">
-                <img 
-                    src={image} 
-                    alt={title} 
-                    className="w-full h-auto object-cover" 
-                />
-            </div>
-        </Card>
-    )
-}
-
-export default LandingCard
 </file>
 
 <file path="src/frontend/src/components/QRCodeScanner.tsx">
@@ -4121,6 +6333,7 @@ import logo from "../assets/true-origin.png"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from 'lucide-react'; // Placeholder icon
+import { useAuthContext } from "../contexts/useAuthContext";
 
 /**
  * Represents a single navigation item in the sidebar menu.
@@ -4144,8 +6357,12 @@ type SidebarProps = {
     menuItems: MenuItem[];
     /** URL for the user's avatar image. */
     userAvatar: string;
-    /** The display name of the logged-in user. */
-    username: string;
+    /** The principal ID of the logged-in user. */
+    principalId: string;
+    /** Whether the sidebar is collapsed (optional). */
+    collapsed?: boolean;
+    /** Callback when a menu item is clicked, useful for mobile views (optional). */
+    onItemClick?: () => void;
 }
 
 /**
@@ -4153,54 +6370,870 @@ type SidebarProps = {
  *
  * @param menuItems - Array of navigation items.
  * @param userAvatar - URL for the user's avatar.
- * @param username - Display name of the user.
+ * @param principalId - Principal ID of the user.
+ * @param collapsed - Whether the sidebar is in collapsed state.
+ * @param onItemClick - Optional callback when a menu item is clicked.
  */
-const Sidebar: React.FC<SidebarProps> = ({ menuItems, userAvatar, username }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+    menuItems, 
+    userAvatar, 
+    principalId,
+    collapsed = false,
+    onItemClick
+}) => {
+    const { logout } = useAuthContext();
+
+    const handleMenuItemClick = (item: MenuItem) => {
+        item.onClickEvent(item.label);
+        if (onItemClick) onItemClick();
+    };
+
+    const handleLogout = async () => {
+        await logout();
+    };
+
+    // We don't need to check for principalId existence here since it has a default value from the parent
+    // The loading/anonymous states are already handled in BrandOwnerLayout
+    const shortPrincipalId = principalId && principalId.length > 10 && principalId !== 'Loading...' && principalId !== 'Anonymous'
+        ? `${principalId.slice(0, 5)}...${principalId.slice(-5)}` 
+        : principalId;
+
+    // Get first letter of principalId for avatar fallback, or use a default
+    const getAvatarFallback = () => {
+        if (!principalId || principalId === 'Loading...' || principalId === 'Anonymous') {
+            return principalId === 'Loading...' ? '...' : 'A';
+        }
+        return principalId.charAt(0).toUpperCase();
+    };
+
     return (
-        <aside className="w-64 bg-white h-screen shadow-md flex flex-col justify-between">
+        <aside className={`${collapsed ? 'w-20' : 'w-64'} bg-white h-screen shadow-md flex flex-col justify-between transition-all duration-300 ease-in-out`}>
             <div>
-                <div className="p-4 flex items-center justify-center">
-                    <img src={logo} className="max-w-[180px]" />
+                <div className={`p-4 flex items-center ${collapsed ? 'justify-center' : 'justify-center'}`}>
+                    <img src={logo} className={collapsed ? "max-w-[40px]" : "max-w-[180px]"} alt="TrueOrigin Logo" />
                 </div>
                 <nav className="mt-8">
-                    <ul className="p-5">
+                    <ul className={`${collapsed ? 'p-2' : 'p-5'}`}>
                         {menuItems.map((item, index) => (
                             <li
                                 key={index}
                                 className={`flex items-center p-2 ${
                                   item.active
-                                    ? "text-primary bg-gray-100"
+                                    ? "text-primary bg-indigo-100 font-semibold"
                                     : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                                } rounded-lg gap-2 mt-2 cursor-pointer`}
-                                onClick={() => item.onClickEvent(item.label)}
+                                } rounded-lg ${collapsed ? 'justify-center' : 'gap-2'} mt-2 cursor-pointer`}
+                                onClick={() => handleMenuItemClick(item)}
+                                title={collapsed ? item.label : undefined}
                             >
-                                <item.icon fillColor="currentColor" />
-                                <span>{item.label}</span>
+                                <item.icon fillColor={item.active ? "#2C42C0" : "currentColor"} />
+                                {!collapsed && <span>{item.label}</span>}
                             </li>
                         ))}
                     </ul>
                 </nav>
             </div>
-            <div className="p-4 border-t border-gray-200 flex items-center">
+            <div className={`p-4 border-t border-gray-200 ${collapsed ? 'flex flex-col items-center' : 'flex items-center'}`}>
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={userAvatar} alt={username} />
-                    <AvatarFallback>{username.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={userAvatar} alt={principalId} />
+                    <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
                 </Avatar>
-                <div className="ml-3">
-                    <p className="text-sm font-medium text-gray-900">{username}</p>
-                    <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-                        View profile
-                    </a>
-                </div>
-                <Button variant="ghost" size="icon" className="ml-auto rounded-full">
-                    <LogOut className="h-5 w-5" />
-                </Button>
+                {!collapsed && (
+                    <>
+                        <div className="ml-3">
+                            <p className="text-sm font-medium text-gray-900" title={principalId}>{shortPrincipalId}</p>
+                            <p className="text-xs text-muted-foreground">Principal ID</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={handleLogout}>
+                            <LogOut className="h-5 w-5" />
+                        </Button>
+                    </>
+                )}
+                {collapsed && (
+                    <Button variant="ghost" size="icon" className="mt-2 rounded-full" onClick={handleLogout}>
+                        <LogOut className="h-5 w-5" />
+                    </Button>
+                )}
             </div>
         </aside>
     );
 };
 
 export default Sidebar
+</file>
+
+<file path="src/frontend/src/hooks/useAuth.ts">
+/**
+ * @file Authentication hook
+ * @fileoverview Custom hook for managing user authentication state
+ * 
+ * Functions:
+ * - useAuth: Main hook for authentication
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Initialize auth context
+ * 2. Provide user login/logout functionality
+ * 3. Cache authentication state
+ * 4. Load user profile and organization data
+ * 
+ * Error Handling:
+ * - Login errors
+ * - Session expiration
+ * - Network issues
+ * 
+ * @module hooks/useAuth
+ * @requires react - React library
+ * @requires TrustOrigin_backend - Backend canister
+ * @exports {Hook} useAuth - Authentication hook
+ */
+
+import { useState } from 'react';
+import { useAuthContext } from '../contexts/useAuthContext';
+
+// Define frontend-specific user types
+export interface Organization {
+  id: string;
+  name: string;
+  role: 'Owner' | 'Member';
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  isAdmin: boolean;
+  // Add organization property
+  organization?: Organization;
+  [key: string]: any;
+}
+
+/**
+ * Authentication hook that provides authentication state and methods
+ * This hook acts as a wrapper around the AuthContext for components
+ * that need authentication functionality
+ * 
+ * @returns Authentication state and methods
+ */
+const useAuth = () => {
+  const { 
+    isAuthenticated, 
+    isLoading: isAuthenticating,
+    profile,
+    login,
+    logout
+  } = useAuthContext();
+  
+  const [error, setError] = useState<string | null>(null);
+
+  // Transform backend profile to frontend user format
+  let user: User | null = null;
+  
+  if (profile) {
+    // Create a user object with required properties
+    const userObj = {
+      id: profile.id.toString(),
+      name: profile.first_name && profile.last_name && profile.first_name[0] && profile.last_name[0] ? 
+        `${profile.first_name[0]} ${profile.last_name[0]}` : 
+        'Unknown User',
+      email: profile.email && profile.email[0] ? profile.email[0] : '',
+      isAdmin: !!(profile.user_role && 
+               profile.user_role.length > 0 && 
+               profile.user_role[0] && 
+               'Admin' in profile.user_role[0])
+    } as User;
+    
+    // Add organization property for brand owners
+    if (profile.user_role && 
+        profile.user_role.length > 0 && 
+        profile.user_role[0] && 
+        'BrandOwner' in profile.user_role[0] &&
+        profile.org_ids && 
+        profile.org_ids.length > 0) {
+      
+      userObj.organization = {
+        id: profile.org_ids[0].toString(),
+        name: profile.org_ids[0].toString(),
+        role: 'Owner'
+      };
+    }
+    
+    user = userObj;
+  }
+
+  // Wrapper for login to handle errors
+  const handleLogin = async () => {
+    try {
+      setError(null);
+      login();
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Failed to login. Please try again.');
+    }
+  };
+
+  // Wrapper for logout to handle errors
+  const handleLogout = async () => {
+    try {
+      setError(null);
+      await logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError('Failed to logout. Please try again.');
+    }
+  };
+
+  return {
+    isAuthenticated: !!isAuthenticated,
+    isAuthenticating,
+    user,
+    login: handleLogin,
+    logout: handleLogout,
+    error
+  };
+};
+
+export default useAuth;
+</file>
+
+<file path="src/frontend/src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%
+  }
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+</file>
+
+<file path="src/frontend/tailwind.config.js">
+import { transform } from 'typescript'
+
+/** @type {import('tailwindcss').Config} */
+export default {
+    darkMode: ["class"],
+    content: ["./src/**/*.{html,js,ts,tsx}"],
+  theme: {
+  	extend: {
+  		fontFamily: {
+  			lexend: [
+  				'Lexend',
+  				'sans-serif'
+  			]
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		},
+  		colors: {
+  			background: 'hsl(var(--background))',
+  			foreground: 'hsl(var(--foreground))',
+  			card: {
+  				DEFAULT: 'hsl(var(--card))',
+  				foreground: 'hsl(var(--card-foreground))'
+  			},
+  			popover: {
+  				DEFAULT: 'hsl(var(--popover))',
+  				foreground: 'hsl(var(--popover-foreground))'
+  			},
+  			primary: {
+  				DEFAULT: 'hsl(var(--primary))',
+  				foreground: 'hsl(var(--primary-foreground))'
+  			},
+  			secondary: {
+  				DEFAULT: 'hsl(var(--secondary))',
+  				foreground: 'hsl(var(--secondary-foreground))'
+  			},
+  			muted: {
+  				DEFAULT: 'hsl(var(--muted))',
+  				foreground: 'hsl(var(--muted-foreground))'
+  			},
+  			accent: {
+  				DEFAULT: 'hsl(var(--accent))',
+  				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			destructive: {
+  				DEFAULT: 'hsl(var(--destructive))',
+  				foreground: 'hsl(var(--destructive-foreground))'
+  			},
+  			border: 'hsl(var(--border))',
+  			input: 'hsl(var(--input))',
+  			ring: 'hsl(var(--ring))',
+  			chart: {
+  				'1': 'hsl(var(--chart-1))',
+  				'2': 'hsl(var(--chart-2))',
+  				'3': 'hsl(var(--chart-3))',
+  				'4': 'hsl(var(--chart-4))',
+  				'5': 'hsl(var(--chart-5))'
+  			}
+  		}
+  	}
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+</file>
+
+<file path="src/frontend/tsconfig.app.json">
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": ["src"]
+}
+</file>
+
+<file path="src/frontend/tsconfig.json">
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
+</file>
+
+<file path=".gitignore">
+# Various IDEs and Editors
+.vscode/
+.idea/
+**/*~
+
+# Mac OSX temporary files
+.DS_Store
+**/.DS_Store
+
+# dfx temporary files
+.dfx/
+
+# rust
+target/
+
+# frontend code
+node_modules/
+dist/
+.svelte-kit/
+
+# environment variables
+.env
+
+# Cursor Rules
+.cursor
+</file>
+
+<file path="dfx.json">
+{
+  "canisters": {
+    "TrustOrigin_backend": {
+      "candid": "src/backend/backend.did",
+      "package": "TrustOrigin_backend",
+      "type": "rust"
+    },
+    "internet_identity": {
+      "candid": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity.did",
+      "frontend": {},
+      "remote": {
+          "id": {
+              "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+          }
+      },
+      "type": "custom",
+      "wasm": "https://github.com/dfinity/internet-identity/releases/latest/download/internet_identity_dev.wasm.gz"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
+</file>
+
+<file path="package.json">
+{
+    "engines": {
+        "node": ">=16.0.0",
+        "npm": ">=7.0.0",
+        "pnpm": ">=7.0.0",
+        "husky": "9.1.4"
+    },
+    "name": "trustorigin",
+    "scripts": {
+        "setup-declarations": "dfx generate TrustOrigin_backend",
+        "dev": "npm run dev --workspaces --if-present",
+        "build": "npm run build --workspaces --if-present",
+        "prebuild": "npm run prebuild --workspaces --if-present",
+        "pretest": "npm run prebuild --workspaces --if-present",
+        "start": "npm start --workspaces --if-present",
+        "test": "npm test --workspaces --if-present",
+        "prepare": "husky"
+    },
+    "type": "module",
+    "workspaces": [
+        "src/frontend"
+    ],
+    "dependencies": {
+        "@dfinity/agent": "^2.0.0"
+    },
+    "devDependencies": {
+        "husky": "^9.1.4"
+    },
+    "packageManager": "pnpm@9.7.1+sha512.faf344af2d6ca65c4c5c8c2224ea77a81a5e8859cbc4e06b1511ddce2f0151512431dd19e6aff31f2c6a8f5f2aced9bd2273e1fed7dd4de1868984059d2c4247"
+}
+</file>
+
+<file path="src/frontend/src/components/LandingCard.tsx">
+import {
+    Card,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import { cn } from "@/lib/utils";
+
+/**
+ * Props for the LandingCard component.
+ */
+type LandingCardProps = {
+    /** The main title displayed on the card. */
+    title: string;
+    /** The descriptive text content of the card. */
+    description: string;
+    /** URL for the image displayed at the bottom of the card. */
+    image: string;
+};
+
+/**
+ * Renders a card component specifically designed for the landing page,
+ * displaying a title, description, and an image.
+ *
+ * @param title - The card title.
+ * @param description - The card description.
+ * @param image - URL for the card image.
+ */
+const LandingCard: React.FC<LandingCardProps> = ({ title, description, image }) => {
+    return (
+        <Card className={cn(
+            "bg-white text-card-foreground",
+            "rounded-2xl shadow-lg",
+            "flex flex-col justify-between h-full overflow-hidden",
+            "transition-transform duration-300 hover:shadow-xl hover:-translate-y-1"
+        )}>
+            <CardHeader className="pt-8 px-8">
+                <CardTitle className="text-2xl md:text-3xl font-lexend font-bold mb-3">{title}</CardTitle>
+                <CardDescription className="text-base text-gray-600">{description}</CardDescription>
+            </CardHeader>
+            <div className="mt-auto">
+                <img 
+                    src={image} 
+                    alt={title} 
+                    className="w-full h-auto object-cover" 
+                />
+            </div>
+        </Card>
+    )
+}
+
+export default LandingCard
+</file>
+
+<file path="src/frontend/src/contexts/useAuthContext/index.tsx">
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { AuthClient } from '@dfinity/auth-client';
+
+import {
+  AuthContextInterface,
+  AuthContextProviderProps,
+} from './interface';
+import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
+import type { OrganizationInput, ResellerInput, User, UserDetailsInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { handleUserResult } from '../../utils';
+import { Principal } from '@dfinity/principal';
+
+const AuthContext = createContext({} as AuthContextInterface);
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useAuthContext = () => useContext(AuthContext);
+
+// 7 days in nanoseconds
+const MAX_TTL = BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000);
+
+export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({children}) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authClient, setAuthClient] = useState<AuthClient>();
+  const [profile, setProfile] = useState<User | null>(null);
+  const IDENTITY_PROVIDER = useMemo(() => 
+    process.env.DFX_NETWORK === 'local'
+    ? `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`
+    : `https://identity.ic0.app`
+  , []);
+
+  // Check if user has a specific role
+  const hasRole = useCallback((role: UserRole) => {
+    if (!profile || !profile.user_role.length) return false;
+    const userRole = profile.user_role[0];
+    
+    // Check if the roles match
+    if ('Admin' in role && 'Admin' in userRole) return true;
+    if ('BrandOwner' in role && 'BrandOwner' in userRole) return true;
+    if ('Reseller' in role && 'Reseller' in userRole) return true;
+    
+    return false;
+  }, [profile]);
+
+  // Login with Internet Identity
+  const login = useCallback(() => {
+    if (!authClient) return;
+    setIsLoading(true);
+    
+    authClient.login({
+      identityProvider: IDENTITY_PROVIDER,
+      onSuccess: async () => {
+        setIsAuthenticated(true);
+        try {
+          const user = await TrustOrigin_backend.register();
+          setProfile(user);
+        } catch (error) {
+          console.error('Failed to register user:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      },
+      onError: (error) => {
+        console.error('Login failed:', error);
+        setIsLoading(false);
+      },
+      maxTimeToLive: MAX_TTL,
+    });
+  }, [authClient, IDENTITY_PROVIDER]);
+
+  // Get user profile information
+  const getProfile = useCallback(async () => {
+    if (!authClient) return;
+    setIsLoading(true);
+
+    try {
+      const principal = authClient.getIdentity().getPrincipal();
+      if (principal.isAnonymous()) {
+        setProfile(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const responseData = await TrustOrigin_backend.whoami();
+      if ('err' in responseData) {
+        setProfile(null);
+      } else if (responseData.length > 0) {
+        setProfile(responseData[0] as User);
+      }
+    } catch (error) {
+      console.error('Failed to get profile:', error);
+      setProfile(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authClient]);
+
+  // Create user profile
+  const createProfile = useCallback(async (input: Partial<UserDetailsInput>) => {
+    if (!authClient) return;
+    setIsLoading(true);
+
+    try {
+      const responseData = await TrustOrigin_backend.register();
+      if (input.first_name) { // only fill in the user details, if the user chooses to do so
+        const result = handleUserResult(await TrustOrigin_backend.update_self_details(input as UserDetailsInput))
+        if (result) {
+          setProfile(result);
+        }
+      } else {
+        setProfile(responseData);
+      }
+    } catch (error) {
+      console.error('Failed to create profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authClient]);
+
+  // Update user profile
+  const updateProfile = useCallback(async (input: UserDetailsInput) => {
+    if (!authClient || !input.first_name) return;
+    setIsLoading(true);
+
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.update_self_details(input as UserDetailsInput))
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authClient]);
+
+  // Set user role
+  const setSelfRole = useCallback(async (userRole: UserRole) => {
+    setIsLoading(true);
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.set_self_role(userRole));
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to set role:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Logout user
+  const logout = useCallback(async () => {
+    if (!authClient) return;
+    
+    try {
+      await authClient.logout();
+      setIsAuthenticated(false);
+      setProfile(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  }, [authClient]);
+
+  // Register as a brand owner
+  const signinAsBrandOwner = useCallback(async (input: OrganizationInput) => {
+    setIsLoading(true);
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.register_as_organization(input));
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to register as brand owner:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Register as a reseller
+  const signinAsReseller = useCallback(async (input: ResellerInput) => {
+    setIsLoading(true);
+    try {
+      const result = handleUserResult(await TrustOrigin_backend.register_as_reseller({
+        ...input,
+        org_id: Principal.anonymous(),
+      }));
+      if (result) {
+        setProfile(result);
+      }
+    } catch (error) {
+      console.error('Failed to register as reseller:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initialize Auth Client
+  useEffect(() => {
+    const initAuthClient = async () => {
+      setIsLoading(true);
+      try {
+        const client = await AuthClient.create();
+        setAuthClient(client);
+        
+        const isAnonymous = client.getIdentity().getPrincipal().isAnonymous();
+        setIsAuthenticated(!isAnonymous);
+        
+        if (!isAnonymous) {
+          try {
+            const responseData = await TrustOrigin_backend.whoami();
+            if ('err' in responseData) {
+              setProfile(null);
+            } else if (responseData.length > 0) {
+              setProfile(responseData[0] as User);
+            }
+          } catch (error) {
+            console.error('Failed to get profile during initialization:', error);
+            setProfile(null);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth client:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuthClient();
+    // No dependencies to avoid infinite re-renders
+  }, []);
+
+  // Update profile when auth client changes
+  useEffect(() => {
+    if (authClient && !authClient.getIdentity().getPrincipal().isAnonymous()) {
+      getProfile();
+    }
+  }, [authClient, getProfile]);
+
+  const contextValue = useMemo(() => ({
+    profile,
+    authClient,
+    isAuthenticated,
+    isLoading,
+    hasRole,
+    createProfile,
+    updateProfile,
+    setSelfRole,
+    signinAsBrandOwner,
+    signinAsReseller,
+    login,
+    logout,
+  }), [
+    profile, 
+    authClient, 
+    isAuthenticated, 
+    isLoading,
+    hasRole,
+    createProfile, 
+    updateProfile, 
+    setSelfRole, 
+    signinAsBrandOwner, 
+    signinAsReseller, 
+    login, 
+    logout
+  ]);
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+</file>
+
+<file path="src/frontend/src/contexts/useAuthContext/interface.d.ts">
+import type { AuthClient } from '@dfinity/auth-client';
+import type { ReactNode } from 'react';
+import type { User, UserDetailsInput, ResellerInput, OrganizationInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+
+export interface AuthContextProviderProps {
+  children: ReactNode;
+}
+
+export interface userProfileDataInterface {
+  email: string,
+  password: string
+}
+
+export interface AuthContextInterface {
+  isAuthenticated: boolean | undefined;
+  isLoading: boolean;
+  profile: User | null | undefined;
+  hasRole: (role: UserRole) => boolean;
+  login: () => void;
+  logout: () => Promise<void>;
+  createProfile: (input: UserDetailsInput) => Promise<void>;
+  updateProfile: (input: UserDetailsInput) => Promise<void>;
+  setSelfRole: (userRole: UserRole) => Promise<void>;
+  signinAsBrandOwner: (input: OrganizationInput) => Promise<void>;
+  signinAsReseller: (input: ResellerInput) => Promise<void>;
+  authClient: AuthClient | undefined;
+}
 </file>
 
 <file path="src/frontend/src/pages/auth/login.tsx">
@@ -4310,9 +7343,9 @@ const LoginPage = () => {
         if (isAuthenticated && profile && profile.user_role && profile.user_role.length > 0) {
             const role = profile.user_role[0];
             if (role && 'BrandOwner' in role) {
-                navigate('/dashboard');
+                navigate('/brand-owners/products');
             } else if (role && 'Reseller' in role) {
-                navigate('/reseller');
+                navigate('/reseller/dashboard');
             } else {
                 navigate('/dashboard');
             }
@@ -4391,18 +7424,15 @@ export default LoginPage;
  * 
  * Functions:
  * - ProductsPage: Main page component
- * - ProductList: Displays list of products
- * - ProductCard: Displays individual product in a card
- * - CreateProductModal: Modal for creating a new product
+ * - ProductTable: Displays list of products in a table
  * 
  * Constants:
- * - None
+ * - ITEMS_PER_PAGE: Number of items per page
  * 
  * Flow:
  * 1. Fetch products for the brand owner's organization
- * 2. Display products in a responsive grid
- * 3. Allow creation of new products
- * 4. Enable management of existing products
+ * 2. Display products in a table
+ * 3. Enable management of existing products
  * 
  * Error Handling:
  * - Loading state for API calls
@@ -4414,629 +7444,267 @@ export default LoginPage;
  * @exports {FC} ProductsPage - Products page component
  */
 
-import { useEffect, useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
-import { Principal } from '@dfinity/principal';
-import useAuth from '../../hooks/useAuth';
+import { Product } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { useAuthContext } from '@/contexts/useAuthContext';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Pagination } from '@/components/Pagination';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-// Types
-interface Product {
-  id: Principal;
-  name: string;
-  description: string;
-  org_id: Principal;
-  category: string;
-  create_time: bigint;
-  update_time: bigint;
-  active: boolean;
-  metadata: Array<{ key: string; value: string }>;
-}
+// Constants
+const ITEMS_PER_PAGE = 10;
 
-interface CreateProductFormData {
-  name: string;
-  description: string;
-  category: string;
-  metadata: Array<{ key: string; value: string }>;
-}
-
-// Helper function to convert metadata array to a more usable object
-const metadataToObject = (metadata: Array<{ key: string; value: string }>) => {
-  return metadata.reduce((acc, { key, value }) => {
-    acc[key] = value;
-    return acc;
-  }, {} as Record<string, string>);
-};
-
-/**
- * Product Card Component
- * 
- * Displays an individual product in a card layout
- * 
- * @param {Object} product - Product data to display
- * @param {Function} onEdit - Callback when edit is clicked
- * @param {Function} onGenerateQR - Callback to generate QR codes
- * @returns {JSX.Element} Product card component
- */
-const ProductCard = ({ 
-  product, 
-  onEdit, 
-  onGenerateQR 
-}: { 
-  product: Product; 
-  onEdit: (product: Product) => void;
-  onGenerateQR: (product: Product) => void;
-}) => {
-  const metadata = metadataToObject(product.metadata);
+const ProductsPage: React.FC = () => {
+  // Get the authenticated user's profile from AuthContext
+  const { profile, isLoading: authLoading } = useAuthContext();
   
+  // Get the organization ID from the user's profile
+  const orgId = useMemo(() => {
+    if (!profile || !profile.org_ids || profile.org_ids.length === 0) return null;
+    return profile.org_ids[0]; // Assuming first org is the relevant one
+  }, [profile]);
+
+  // State for filters
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [productIdFilter, setProductIdFilter] = useState<string>('');
+
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Fetch products using React Query
+  const { 
+    data: products = [], 
+    isLoading: productsLoading, 
+    error: productsError,
+    refetch
+  } = useQuery<Product[], Error>({
+    queryKey: ['products', orgId?.toString()],
+    queryFn: async () => {
+      if (!orgId) return [];
+      const result = await TrustOrigin_backend.list_products(orgId);
+      return result;
+    },
+    enabled: !!orgId, // Only run query if orgId is available
+  });
+
+  // Retry fetching products when auth loads or orgId changes
+  useEffect(() => {
+    if (!authLoading && orgId) {
+      refetch();
+    }
+  }, [authLoading, orgId, refetch]);
+
+  // Extract unique categories from products
+  const categories = useMemo(() => {
+    const uniqueCategories = new Set(products.map(p => p.category));
+    return Array.from(uniqueCategories);
+  }, [products]);
+
+  // Apply filters to products
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      // Category filter - match 'all' or exact category
+      const categoryMatch = 
+        categoryFilter === 'all' || 
+        product.category.toLowerCase() === categoryFilter.toLowerCase();
+      
+      // Product ID filter - case insensitive search on Principal ID string
+      const productIdString = product.id.toString().toLowerCase();
+      const productIdMatch = 
+        productIdFilter === '' || 
+        productIdString.includes(productIdFilter.toLowerCase());
+      
+      return categoryMatch && productIdMatch;
+    });
+  }, [products, categoryFilter, productIdFilter]);
+
+  // Calculate total pages for pagination
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
+  // Paginate the filtered products
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage]);
+
+  // Handle page change from pagination component
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+  
+  // Handler for clearing all filters
+  const handleClearFilters = () => {
+    setCategoryFilter('all');
+    setProductIdFilter('');
+    setCurrentPage(1);
+  };
+
+  // Handle refresh button click
+  const handleRefresh = () => {
+    refetch();
+  };
+
+  // Handle loading state (auth loading or products loading)
+  const isLoading = authLoading || productsLoading;
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
-      <div className="p-5">
-        <h3 className="font-bold text-lg text-gray-800 mb-2 truncate">{product.name}</h3>
-        
-        <div className="text-sm text-gray-500 mb-4">
-          <p className="mb-1">Category: {product.category}</p>
-          <p className="mb-1">ID: {product.id.toString().substring(0, 10)}...</p>
-          <p className="mb-3">Created: {new Date(Number(product.create_time) / 1000000).toLocaleDateString()}</p>
-        </div>
-        
-        <p className="text-gray-700 mb-4 line-clamp-3">{product.description}</p>
-        
-        {metadata.imageUrl && (
-          <div className="relative h-40 mb-4 bg-gray-100 rounded overflow-hidden">
-            <img 
-              src={metadata.imageUrl} 
-              alt={product.name} 
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = 'https://via.placeholder.com/300x200?text=No+Image';
+    <div className="p-6 space-y-6">
+      <h1 className="text-2xl font-semibold">Product Management</h1>
+
+      {/* Filters Section */}
+      <div className="space-y-4 p-4 border rounded-lg">
+        <h2 className="text-lg font-medium">Filter Products</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div>
+            <label className="text-sm font-medium">Date</label>
+            <Input 
+              placeholder="Select Date" 
+              disabled 
+              title="Date filter not implemented yet"
+            />
+          </div>
+          <div>
+            <label htmlFor="category-filter" className="text-sm font-medium">Category</label>
+            <Select 
+              value={categoryFilter} 
+              onValueChange={(value) => {
+                setCategoryFilter(value);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger id="category-filter">
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category} value={category}>
+                    {category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label htmlFor="product-id-filter" className="text-sm font-medium">Product ID</label>
+            <Input 
+              id="product-id-filter" 
+              placeholder="Enter Product ID" 
+              value={productIdFilter} 
+              onChange={(e) => {
+                setProductIdFilter(e.target.value);
+                setCurrentPage(1);
               }}
             />
           </div>
-        )}
-        
-        <div className="flex justify-between mt-3">
-          <button 
-            onClick={() => onEdit(product)}
-            className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded text-sm"
-          >
-            Edit
-          </button>
-          <button 
-            onClick={() => onGenerateQR(product)}
-            className="bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded text-sm"
-          >
-            Generate QR
-          </button>
+          <div>
+            <label htmlFor="other-filters" className="text-sm font-medium">Other Filters</label>
+            <Input 
+              id="other-filters" 
+              placeholder="Other Filters" 
+              disabled 
+              title="Other filters not implemented yet"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleClearFilters} 
+              disabled={isLoading}
+              className="flex-1"
+            >
+              Clear
+            </Button>
+            <Button 
+              onClick={handleRefresh} 
+              disabled={isLoading}
+              className="flex-1"
+            >
+              Refresh
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
 
-/**
- * Create Product Modal
- * 
- * Modal component for creating a new product
- * 
- * @param {boolean} isOpen - Whether the modal is open
- * @param {Function} onClose - Function to close the modal
- * @param {Function} onSubmit - Function to handle form submission
- * @returns {JSX.Element} Modal component
- */
-const CreateProductModal = ({ 
-  isOpen, 
-  onClose, 
-  onSubmit 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  onSubmit: (data: CreateProductFormData) => void;
-}) => {
-  const [formData, setFormData] = useState<CreateProductFormData>({
-    name: '',
-    description: '',
-    category: '',
-    metadata: []
-  });
-  
-  const [metadataKey, setMetadataKey] = useState('');
-  const [metadataValue, setMetadataValue] = useState('');
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-  
-  const addMetadata = () => {
-    if (metadataKey && metadataValue) {
-      setFormData(prev => ({
-        ...prev,
-        metadata: [...prev.metadata, { key: metadataKey, value: metadataValue }]
-      }));
-      setMetadataKey('');
-      setMetadataValue('');
-    }
-  };
-  
-  const removeMetadata = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      metadata: prev.metadata.filter((_, i) => i !== index)
-    }));
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-  
-  if (!isOpen) return null;
-  
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Create New Product</h2>
+      {/* Products Table Section */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-medium">Product List</h2>
+          {filteredProducts.length > 0 && (
+            <p className="text-sm text-gray-500">
+              Showing {paginatedProducts.length} of {filteredProducts.length} products
+            </p>
+          )}
+        </div>
         
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2" htmlFor="name">
-              Product Name
-            </label>
-            <input
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="name"
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2" htmlFor="category">
-              Category
-            </label>
-            <input
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="category"
-              type="text"
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2" htmlFor="description">
-              Description
-            </label>
-            <textarea
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="description"
-              name="description"
-              rows={4}
-              value={formData.description}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Metadata
-            </label>
-            
-            <div className="flex mb-2">
-              <input
-                className="appearance-none border rounded w-1/3 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
-                placeholder="Key"
-                value={metadataKey}
-                onChange={(e) => setMetadataKey(e.target.value)}
-              />
-              <input
-                className="appearance-none border rounded w-1/2 py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mr-2"
-                placeholder="Value"
-                value={metadataValue}
-                onChange={(e) => setMetadataValue(e.target.value)}
-              />
-              <button
-                type="button"
-                className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded"
-                onClick={addMetadata}
-              >
-                Add
-              </button>
-            </div>
-            
-            {formData.metadata.length > 0 && (
-              <div className="mt-2 border p-2 rounded">
-                <h4 className="font-semibold mb-2">Current Metadata:</h4>
-                <ul>
-                  {formData.metadata.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center mb-1 pb-1 border-b">
-                      <span>
-                        <strong>{item.key}:</strong> {item.value}
-                      </span>
-                      <button
-                        type="button"
-                        className="text-red-500 text-sm"
-                        onClick={() => removeMetadata(index)}
-                      >
-                        Remove
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-          
-          <div className="flex justify-end mt-6">
-            <button
-              type="button"
-              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded"
-            >
-              Create Product
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-/**
- * Generate QR Code Modal
- * 
- * Modal component for generating QR codes for a product
- * 
- * @param {boolean} isOpen - Whether the modal is open
- * @param {Function} onClose - Function to close the modal
- * @param {Product} product - Product to generate QR codes for
- * @returns {JSX.Element} Modal component
- */
-const GenerateQRModal = ({ 
-  isOpen, 
-  onClose, 
-  product 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  product: Product | null;
-}) => {
-  const [quantity, setQuantity] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [serialNumbers, setSerialNumbers] = useState<string[]>([]);
-  
-  const generateSerialNumbers = async () => {
-    if (!product) return;
-    
-    try {
-      setIsLoading(true);
-      // TODO: Implement actual serial number generation API call
-      // const result = await TrustOrigin_backend.generate_serial_numbers(product.id, BigInt(quantity));
-      
-      // For now, simulating the response
-      setTimeout(() => {
-        const mockSerialNumbers = Array(quantity).fill(0).map((_, index) => 
-          `SN${product.id.toString().substring(0, 4)}-${(index + 1).toString().padStart(6, '0')}`
-        );
-        setSerialNumbers(mockSerialNumbers);
-        setIsLoading(false);
-      }, 1000);
-    } catch (error) {
-      console.error('Error generating serial numbers:', error);
-      setIsLoading(false);
-    }
-  };
-  
-  if (!isOpen || !product) return null;
-  
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-2xl font-bold mb-4">Generate QR Codes for {product.name}</h2>
+        <div className="border rounded-lg overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Product ID</TableHead>
+                <TableHead>ECDSA Public Key</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    <LoadingSpinner />
+                  </TableCell>
+                </TableRow>
+              ) : productsError ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center text-red-600">
+                    Error loading products: {productsError.message}
+                  </TableCell>
+                </TableRow>
+              ) : paginatedProducts.length > 0 ? (
+                paginatedProducts.map((product) => (
+                  <TableRow key={product.id.toString()}>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      {product.description}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {product.id.toString()}
+                    </TableCell>
+                    <TableCell className="truncate max-w-xs font-mono text-xs">
+                      {product.public_key}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    {products.length === 0 
+                      ? "No products found. Add products to get started."
+                      : "No products match your filters."}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
         
-        <div className="mb-4">
-          <label className="block text-gray-700 font-bold mb-2" htmlFor="quantity">
-            Quantity to Generate
-          </label>
-          <input
-            className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="quantity"
-            type="number"
-            min="1"
-            max="100"
-            value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
           />
-        </div>
-        
-        <div className="flex justify-between mt-6">
-          <button
-            type="button"
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded"
-            onClick={onClose}
-          >
-            Close
-          </button>
-          <button
-            type="button"
-            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded"
-            onClick={generateSerialNumbers}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Generating...' : 'Generate Serial Numbers'}
-          </button>
-        </div>
-        
-        {serialNumbers.length > 0 && (
-          <div className="mt-6">
-            <h3 className="font-bold text-lg mb-2">Generated Serial Numbers</h3>
-            <div className="border rounded p-3 max-h-40 overflow-y-auto">
-              <ul>
-                {serialNumbers.map((sn, index) => (
-                  <li key={index} className="mb-1 pb-1 border-b last:border-b-0">
-                    {sn}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                onClick={() => {
-                  // TODO: Implement download functionality
-                  alert('Download functionality will be implemented in a future update');
-                }}
-              >
-                Download QR Codes
-              </button>
-            </div>
-          </div>
         )}
       </div>
-    </div>
-  );
-};
-
-// Mock API implementation
-const mockProductAPI = {
-  list_products_by_organization: async (_: Principal) => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Return mock products
-    return {
-      products: [
-        {
-          id: Principal.fromText('aaaaa-aa'),
-          name: 'Premium Coffee Beans',
-          description: 'Ethically sourced premium coffee beans from Colombia. Perfect for a morning brew.',
-          org_id: Principal.fromText('aaaaa-aa'),
-          category: 'Food & Beverage',
-          create_time: BigInt(Date.now() * 1000),
-          update_time: BigInt(Date.now() * 1000),
-          active: true,
-          metadata: [
-            { key: 'origin', value: 'Colombia' },
-            { key: 'weight', value: '500g' },
-            { key: 'imageUrl', value: 'https://images.unsplash.com/photo-1599639351204-52a974584ed8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=764&q=80' }
-          ]
-        },
-        {
-          id: Principal.fromText('bbbbb-bb'),
-          name: 'Organic Honey',
-          description: 'Pure raw organic honey harvested from our sustainable apiaries.',
-          org_id: Principal.fromText('aaaaa-aa'),
-          category: 'Food & Beverage',
-          create_time: BigInt(Date.now() * 1000),
-          update_time: BigInt(Date.now() * 1000),
-          active: true,
-          metadata: [
-            { key: 'origin', value: 'Local Farm' },
-            { key: 'weight', value: '250g' },
-            { key: 'imageUrl', value: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=686&q=80' }
-          ]
-        }
-      ]
-    };
-  },
-  
-  create_product: async (productData: any) => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Return mock created product
-    return {
-      product: {
-        id: Principal.fromText('ccccc-cc'),
-        name: productData.name,
-        description: productData.description,
-        org_id: productData.org_id,
-        category: productData.category,
-        create_time: BigInt(Date.now() * 1000),
-        update_time: BigInt(Date.now() * 1000),
-        active: true,
-        metadata: productData.metadata
-      }
-    };
-  }
-};
-
-// Extend the backend with our mock methods for development
-const extendedBackend = {
-  ...TrustOrigin_backend,
-  list_products_by_organization: mockProductAPI.list_products_by_organization,
-  create_product: mockProductAPI.create_product
-};
-
-/**
- * Products Page for Brand Owners
- * 
- * Main page component for managing products
- * 
- * @returns {JSX.Element} Products page component
- */
-const ProductsPage = () => {
-  const { user } = useAuth();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
-  
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        if (!user) {
-          setError('No user profile found');
-          setLoading(false);
-          return;
-        }
-        
-        // Get organization ID from user context, safely handling potential type issues
-        const orgId = user && (user as any).organization ? (user as any).organization.id : null;
-        
-        if (!orgId) {
-          setError('No organization associated with your account');
-          setLoading(false);
-          return;
-        }
-        
-        // Fetch products for the organization
-        const response = await extendedBackend.list_products_by_organization(
-          Principal.fromText(orgId)
-        );
-        
-        if ('products' in response) {
-          setProducts(response.products);
-        } else {
-          setError('Failed to fetch products');
-        }
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Error fetching products. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchProducts();
-  }, [user]);
-  
-  const handleCreateProduct = async (formData: CreateProductFormData) => {
-    try {
-      if (!user) {
-        setError('No user profile found');
-        return;
-      }
-      
-      const orgId = user && (user as any).organization ? (user as any).organization.id : null;
-      
-      if (!orgId) {
-        setError('No organization associated with your account');
-        return;
-      }
-      
-      // Create product in backend
-      const response = await extendedBackend.create_product({
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        org_id: Principal.fromText(orgId),
-        metadata: formData.metadata
-      });
-      
-      if ('product' in response) {
-        // Add the new product to the state
-        setProducts(prevProducts => [...prevProducts, response.product]);
-        setIsCreateModalOpen(false);
-      } else {
-        setError('Failed to create product');
-      }
-    } catch (err) {
-      console.error('Error creating product:', err);
-      setError('Error creating product. Please try again.');
-    }
-  };
-  
-  const handleEditProduct = (product: Product) => {
-    // TODO: Implement edit functionality
-    alert(`Edit functionality for ${product.name} will be implemented in a future update`);
-  };
-  
-  const handleGenerateQR = (product: Product) => {
-    setSelectedProduct(product);
-    setIsQRModalOpen(true);
-  };
-  
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Products</h1>
-        <button
-          className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          Create Product
-        </button>
-      </div>
-      
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p>{error}</p>
-        </div>
-      ) : products.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-600 mb-4">No products found. Create your first product to get started!</p>
-          <button
-            className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded"
-            onClick={() => setIsCreateModalOpen(true)}
-          >
-            Create Product
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map(product => (
-            <ProductCard
-              key={product.id.toString()}
-              product={product}
-              onEdit={handleEditProduct}
-              onGenerateQR={handleGenerateQR}
-            />
-          ))}
-        </div>
-      )}
-      
-      <CreateProductModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateProduct}
-      />
-      
-      <GenerateQRModal
-        isOpen={isQRModalOpen}
-        onClose={() => setIsQRModalOpen(false)}
-        product={selectedProduct}
-      />
     </div>
   );
 };
@@ -5417,540 +8085,20 @@ function Homepage() {
 export default Homepage;
 </file>
 
-<file path="src/frontend/src/index.css">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
-  }
-}
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-</file>
-
 <file path="src/frontend/src/main.tsx">
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { AuthContextProvider } from './contexts/useAuthContext/index.tsx'
+// Polyfill for the 'global' object used by dfinity libraries
+window.global = window;
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthContextProvider>
-      <App />
-    </AuthContextProvider>
-  </StrictMode>,
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
 )
-</file>
-
-<file path="src/frontend/tailwind.config.js">
-import { transform } from 'typescript'
-
-/** @type {import('tailwindcss').Config} */
-export default {
-    darkMode: ["class"],
-    content: ["./src/**/*.{html,js,ts,tsx}"],
-  theme: {
-  	extend: {
-  		fontFamily: {
-  			lexend: [
-  				'Lexend',
-  				'sans-serif'
-  			]
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
-  		},
-  		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
-  			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
-  			},
-  			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
-  			},
-  			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
-  			},
-  			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
-  			},
-  			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
-  			},
-  			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
-  			},
-  			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
-  			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
-  			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
-  			}
-  		}
-  	}
-  },
-  plugins: [require("tailwindcss-animate")],
-}
-</file>
-
-<file path="src/frontend/tsconfig.app.json">
-{
-  "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ]
-    }
-  },
-  "include": ["src"]
-}
-</file>
-
-<file path="src/frontend/tsconfig.json">
-{
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
-}
-</file>
-
-<file path=".gitignore">
-# Various IDEs and Editors
-.vscode/
-.idea/
-**/*~
-
-# Mac OSX temporary files
-.DS_Store
-**/.DS_Store
-
-# dfx temporary files
-.dfx/
-
-# rust
-target/
-
-# frontend code
-node_modules/
-dist/
-.svelte-kit/
-
-# environment variables
-.env
-
-# Cursor Rules
-.cursor
-</file>
-
-<file path="src/frontend/src/contexts/useAuthContext/index.tsx">
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import { AuthClient } from '@dfinity/auth-client';
-
-import {
-  AuthContextInterface,
-  AuthContextProviderProps,
-} from './interface';
-import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
-import type { OrganizationInput, ResellerInput, User, UserDetailsInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
-import { handleUserResult } from '../../utils';
-import { Principal } from '@dfinity/principal';
-
-const AuthContext = createContext({} as AuthContextInterface);
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const useAuthContext = () => useContext(AuthContext);
-
-// 7 days in nanoseconds
-const MAX_TTL = BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000);
-
-export const AuthContextProvider: React.FC<AuthContextProviderProps> = ({children}) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [authClient, setAuthClient] = useState<AuthClient>();
-  const [profile, setProfile] = useState<User | null>(null);
-  const IDENTITY_PROVIDER = useMemo(() => 
-    process.env.DFX_NETWORK === 'local'
-    ? `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`
-    : `https://identity.ic0.app`
-  , []);
-
-  // Check if user has a specific role
-  const hasRole = useCallback((role: UserRole) => {
-    if (!profile || !profile.user_role.length) return false;
-    const userRole = profile.user_role[0];
-    
-    // Check if the roles match
-    if ('Admin' in role && 'Admin' in userRole) return true;
-    if ('BrandOwner' in role && 'BrandOwner' in userRole) return true;
-    if ('Reseller' in role && 'Reseller' in userRole) return true;
-    
-    return false;
-  }, [profile]);
-
-  // Login with Internet Identity
-  const login = useCallback(() => {
-    if (!authClient) return;
-    setIsLoading(true);
-    
-    authClient.login({
-      identityProvider: IDENTITY_PROVIDER,
-      onSuccess: async () => {
-        setIsAuthenticated(true);
-        try {
-          const user = await TrustOrigin_backend.register();
-          setProfile(user);
-        } catch (error) {
-          console.error('Failed to register user:', error);
-        } finally {
-          setIsLoading(false);
-        }
-      },
-      onError: (error) => {
-        console.error('Login failed:', error);
-        setIsLoading(false);
-      },
-      maxTimeToLive: MAX_TTL,
-    });
-  }, [authClient, IDENTITY_PROVIDER]);
-
-  // Get user profile information
-  const getProfile = useCallback(async () => {
-    if (!authClient) return;
-    setIsLoading(true);
-
-    try {
-      const principal = authClient.getIdentity().getPrincipal();
-      if (principal.isAnonymous()) {
-        setProfile(null);
-        setIsLoading(false);
-        return;
-      }
-
-      const responseData = await TrustOrigin_backend.whoami();
-      if ('err' in responseData) {
-        setProfile(null);
-      } else if (responseData.length > 0) {
-        setProfile(responseData[0] as User);
-      }
-    } catch (error) {
-      console.error('Failed to get profile:', error);
-      setProfile(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [authClient]);
-
-  // Create user profile
-  const createProfile = useCallback(async (input: Partial<UserDetailsInput>) => {
-    if (!authClient) return;
-    setIsLoading(true);
-
-    try {
-      const responseData = await TrustOrigin_backend.register();
-      if (input.first_name) { // only fill in the user details, if the user chooses to do so
-        const result = handleUserResult(await TrustOrigin_backend.update_self_details(input as UserDetailsInput))
-        if (result) {
-          setProfile(result);
-        }
-      } else {
-        setProfile(responseData);
-      }
-    } catch (error) {
-      console.error('Failed to create profile:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [authClient]);
-
-  // Update user profile
-  const updateProfile = useCallback(async (input: UserDetailsInput) => {
-    if (!authClient || !input.first_name) return;
-    setIsLoading(true);
-
-    try {
-      const result = handleUserResult(await TrustOrigin_backend.update_self_details(input as UserDetailsInput))
-      if (result) {
-        setProfile(result);
-      }
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [authClient]);
-
-  // Set user role
-  const setSelfRole = useCallback(async (userRole: UserRole) => {
-    setIsLoading(true);
-    try {
-      const result = handleUserResult(await TrustOrigin_backend.set_self_role(userRole));
-      if (result) {
-        setProfile(result);
-      }
-    } catch (error) {
-      console.error('Failed to set role:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Logout user
-  const logout = useCallback(async () => {
-    if (!authClient) return;
-    
-    try {
-      await authClient.logout();
-      setIsAuthenticated(false);
-      setProfile(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  }, [authClient]);
-
-  // Register as a brand owner
-  const signinAsBrandOwner = useCallback(async (input: OrganizationInput) => {
-    setIsLoading(true);
-    try {
-      const result = handleUserResult(await TrustOrigin_backend.register_as_organization(input));
-      if (result) {
-        setProfile(result);
-      }
-    } catch (error) {
-      console.error('Failed to register as brand owner:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Register as a reseller
-  const signinAsReseller = useCallback(async (input: ResellerInput) => {
-    setIsLoading(true);
-    try {
-      const result = handleUserResult(await TrustOrigin_backend.register_as_reseller({
-        ...input,
-        org_id: Principal.anonymous(),
-      }));
-      if (result) {
-        setProfile(result);
-      }
-    } catch (error) {
-      console.error('Failed to register as reseller:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Initialize Auth Client
-  useEffect(() => {
-    const initAuthClient = async () => {
-      setIsLoading(true);
-      try {
-        const client = await AuthClient.create();
-        setAuthClient(client);
-        
-        const isAnonymous = client.getIdentity().getPrincipal().isAnonymous();
-        setIsAuthenticated(!isAnonymous);
-        
-        if (!isAnonymous) {
-          try {
-            const responseData = await TrustOrigin_backend.whoami();
-            if ('err' in responseData) {
-              setProfile(null);
-            } else if (responseData.length > 0) {
-              setProfile(responseData[0] as User);
-            }
-          } catch (error) {
-            console.error('Failed to get profile during initialization:', error);
-            setProfile(null);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to initialize auth client:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initAuthClient();
-    // No dependencies to avoid infinite re-renders
-  }, []);
-
-  // Update profile when auth client changes
-  useEffect(() => {
-    if (authClient && !authClient.getIdentity().getPrincipal().isAnonymous()) {
-      getProfile();
-    }
-  }, [authClient, getProfile]);
-
-  const contextValue = useMemo(() => ({
-    profile,
-    authClient,
-    isAuthenticated,
-    isLoading,
-    hasRole,
-    createProfile,
-    updateProfile,
-    setSelfRole,
-    signinAsBrandOwner,
-    signinAsReseller,
-    login,
-    logout,
-  }), [
-    profile, 
-    authClient, 
-    isAuthenticated, 
-    isLoading,
-    hasRole,
-    createProfile, 
-    updateProfile, 
-    setSelfRole, 
-    signinAsBrandOwner, 
-    signinAsReseller, 
-    login, 
-    logout
-  ]);
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-</file>
-
-<file path="src/frontend/src/contexts/useAuthContext/interface.d.ts">
-import type { AuthClient } from '@dfinity/auth-client';
-import type { ReactNode } from 'react';
-import type { User, UserDetailsInput, ResellerInput, OrganizationInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
-
-export interface AuthContextProviderProps {
-  children: ReactNode;
-}
-
-export interface userProfileDataInterface {
-  email: string,
-  password: string
-}
-
-export interface AuthContextInterface {
-  isAuthenticated: boolean | undefined;
-  isLoading: boolean;
-  profile: User | null | undefined;
-  hasRole: (role: UserRole) => boolean;
-  login: () => void;
-  logout: () => Promise<void>;
-  createProfile: (input: UserDetailsInput) => Promise<void>;
-  updateProfile: (input: UserDetailsInput) => Promise<void>;
-  setSelfRole: (userRole: UserRole) => Promise<void>;
-  signinAsBrandOwner: (input: OrganizationInput) => Promise<void>;
-  signinAsReseller: (input: ResellerInput) => Promise<void>;
-  authClient: AuthClient | undefined;
-}
 </file>
 
 <file path="src/frontend/vite.config.ts">
@@ -6013,19 +8161,49 @@ export default defineConfig({
  */
 
 import './App.css';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Outlet } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { ProtectedRoute, ROLES } from './components/ProtectedRoute';
 import { AuthContextProvider } from './contexts/useAuthContext';
 import { Toaster } from "@/components/ui/toaster";
+import BrandOwnerLayout from './layouts/BrandOwnerLayout';
+import { QueryProvider } from './providers/QueryProvider';
 
 // Lazy load components to improve initial load performance
-const Homepage = lazy(() => import('./pages/home'));
-const LoginPage = lazy(() => import('./pages/auth/login'));
-const UnauthorizedPage = lazy(() => import('./pages/unauthorized'));
-const Dashboard = lazy(() => import('./pages/dashboard'));
-const VerifyPage = lazy(() => import('./pages/verify'));
-const ProductsPage = lazy(() => import('./pages/brand-owners/products'));
+const Homepage = lazy(() => import('@/pages/home'));
+const LoginPage = lazy(() => import('@/pages/auth/login'));
+const UnauthorizedPage = lazy(() => import('@/pages/unauthorized'));
+const VerifyPage = lazy(() => import('@/pages/verify'));
+const ProductsPage = lazy(() => import('@/pages/brand-owners/products'));
+
+// Lazy load placeholders for future development
+const AddProductPage = lazy(() => 
+  import('@/pages/placeholder').then(module => ({ 
+    default: () => module.default({ title: 'Add Product' }) 
+  }))
+);
+const ResellerManagementPage = lazy(() => 
+  import('@/pages/placeholder').then(module => ({ 
+    default: () => module.default({ title: 'Reseller Dashboard' }) 
+  }))
+);
+const AnalyticsPage = lazy(() => 
+  import('@/pages/placeholder').then(module => ({ 
+    default: () => module.default({ title: 'Analytics Dashboard' }) 
+  }))
+);
+const UserManagementPage = lazy(() => 
+  import('@/pages/placeholder').then(module => ({ 
+    default: () => module.default({ title: 'User Dashboard' }) 
+  }))
+);
+
+// Layout wrapper component for brand owner routes
+const BrandOwnerLayoutWrapper = () => (
+  <BrandOwnerLayout>
+    <Outlet />
+  </BrandOwnerLayout>
+);
 
 // Loading fallback for lazy-loaded components
 const LoadingFallback = () => (
@@ -6046,246 +8224,57 @@ const LoadingFallback = () => (
  */
 function App() {
   return (
-    <AuthContextProvider>
-      <Router>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Homepage />} />
-            <Route path="/auth/login" element={<LoginPage />} />
-            <Route path="/unauthorized" element={<UnauthorizedPage />} />
-            <Route path="/verify" element={<VerifyPage />} />
-            
-            {/* Protected routes - require authentication */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Admin routes - require Admin role */}
-            <Route path="/admin/*" element={
-              <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
-                <div>Admin Dashboard</div>
-              </ProtectedRoute>
-            } />
-            
-            {/* Brand Owner routes - require BrandOwner role */}
-            <Route path="/brand-owners/products" element={
-              <ProtectedRoute requiredRoles={[ROLES.BRAND_OWNER]}>
-                <ProductsPage />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/brand/*" element={
-              <ProtectedRoute requiredRoles={[ROLES.BRAND_OWNER]}>
-                <div>Brand Owner Dashboard</div>
-              </ProtectedRoute>
-            } />
-            
-            {/* Reseller routes - require Reseller role */}
-            <Route path="/reseller/*" element={
-              <ProtectedRoute requiredRoles={[ROLES.RESELLER]}>
-                <div>Reseller Dashboard</div>
-              </ProtectedRoute>
-            } />
-            
-          </Routes>
-        </Suspense>
-        <Toaster />
-      </Router>
-    </AuthContextProvider>
+    <QueryProvider>
+      <AuthContextProvider>
+        <Router>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Homepage />} />
+              <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              <Route path="/verify" element={<VerifyPage />} />
+              
+              {/* Admin routes - require Admin role */}
+              <Route path="/admin/*" element={
+                <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
+                  <div>Admin Dashboard</div>
+                </ProtectedRoute>
+              } />
+              
+              {/* Brand Owner routes - require BrandOwner role */}
+              <Route path="/brand-owners/*" element={
+                <ProtectedRoute requiredRoles={[ROLES.BRAND_OWNER]}>
+                  <Routes>
+                    <Route element={<BrandOwnerLayoutWrapper />}>
+                      <Route path="products" element={<ProductsPage />} />
+                      <Route path="add-product" element={<AddProductPage />} />
+                      <Route path="resellers" element={<ResellerManagementPage />} />
+                      <Route path="users" element={<UserManagementPage />} />
+                      <Route path="analytics" element={<AnalyticsPage />} />
+                      <Route path="*" element={<ProductsPage />} />
+                    </Route>
+                  </Routes>
+                </ProtectedRoute>
+              } />
+              
+              {/* Reseller routes - require Reseller role */}
+              <Route path="/reseller/*" element={
+                <ProtectedRoute requiredRoles={[ROLES.RESELLER]}>
+                  <div>Reseller Dashboard</div>
+                </ProtectedRoute>
+              } />
+              
+            </Routes>
+          </Suspense>
+          <Toaster />
+        </Router>
+      </AuthContextProvider>
+    </QueryProvider>
   );
 }
 
 export default App;
-</file>
-
-<file path="src/frontend/src/pages/dashboard.tsx">
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import techImage from '../assets/tech.png';
-import { useAuthContext } from '../contexts/useAuthContext';
-import { AddProductLogo, BrandOwnerLogo, HeatmapLogo, ResellerLogo, UserLogo } from '../components/SidebarLogo';
-import Sidebar from '../components/Sidebar';
-import Filters from '../components/Filters';
-import { ProductTable } from '../components/Table';
-import { Product, ProductInput } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
-import { TrustOrigin_backend } from '../../../declarations/TrustOrigin_backend';
-
-
-const Dashboard = () => {
-    const navigate = useNavigate();
-    const [activeMenu, setActiveMenu] = useState('Brand Owners Dashboard');
-    const { profile } = useAuthContext();
-    const [productInput, setProductInput] = useState<Partial<ProductInput>>({
-        name: '',
-        description: '',
-        category: '',
-    });
-    const [products, setProducts] = useState<Product[]>([]);
-    const fetchProducts = async () => {
-        if (!profile) {
-            return;
-        }
-        const products = await TrustOrigin_backend.list_products(profile?.org_ids[0]);
-        setProducts(products);
-    };
-    const addProduct = async () => {
-        const sentiment = ['Positive', 'Neutral', 'Negative'];
-        const randomElement = sentiment[Math.floor(Math.random() * sentiment.length)];
-        await TrustOrigin_backend.create_product({
-            name: productInput.name!,
-            description: productInput.description!,
-            category: productInput.category!,
-            org_id: profile!.org_ids[0]!,
-            metadata: [{ key: 'sentiment', value: randomElement }],
-        });
-        setActiveMenu('Brand Owners Dashboard')
-        return fetchProducts()
-    };
-    const onSentimentAnalysis = (product: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
-        const pUpdate = products.map((p: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
-            if (p.id.compareTo(product.id) === 'eq') {
-                p.sentimentLoading = true;
-                setTimeout(() => {
-                    setProducts(products.map((p: Product & { showSentiment?: boolean; sentimentLoading?: boolean; }) => {
-                        if (p.id.compareTo(product.id) === 'eq') {
-                            p.sentimentLoading = false;
-                            p.showSentiment = true;
-                        }
-                        return p;
-                    }));
-                }, 5000);
-            }
-            return p;
-        });
-        setProducts(pUpdate);
-    }
-
-    const username = useMemo(() => {
-        if (!profile) {
-            return 'Guest';
-        }
-        if (!profile.first_name) {
-            return `(NO NAME)`
-        }
-        return `${profile.first_name}${profile.last_name ? ' ' + profile.last_name : ''}`;
-    }, [profile]);
-
-    const handleSidebarClick = (menu: typeof activeMenu) => {
-        if (menu === "Products Manager") {
-            navigate('/brand-owners/products');
-            return;
-        }
-        setActiveMenu(menu);
-    }
-    
-    const menuItems = [
-        { label: "Brand Owners Dashboard", icon: BrandOwnerLogo, active: activeMenu === "Brand Owners Dashboard", onClickEvent: handleSidebarClick },
-        { label: "Products Manager", icon: AddProductLogo, active: false, onClickEvent: handleSidebarClick },
-        { label: "Add Product", icon: AddProductLogo, active: activeMenu === "Add Product", onClickEvent: handleSidebarClick },
-        { label: "Reseller Dashboard", icon: ResellerLogo, active: activeMenu === "Reseller Dashboard", onClickEvent: handleSidebarClick },
-        { label: "User Dashboard", icon: UserLogo, active: activeMenu === "User Dashboard", onClickEvent: handleSidebarClick },
-        { label: "Analytics & Heatmap", icon: HeatmapLogo, active: activeMenu === "Analytics & Heatmap", onClickEvent: handleSidebarClick },
-    ];
-
-    const filters = [
-        { label: "Select Date", options: [] },
-        { label: "Select Channel", options: [] },
-        { label: "Voucher Status", options: [] },
-        { label: "Other Filters", options: [] },
-    ];
-
-    const handleApplyFilters = () => {
-        console.log("Filters applied!");
-    };
-
-    const showContent = () => {
-        switch (activeMenu) {
-            case "Brand Owners Dashboard":
-                return (
-                    <>
-                        <Filters filters={filters} onApply={handleApplyFilters} />
-                        <hr className="my-10" />
-                        <h2 className="text-2xl font-bold mb-4 font-lexend">Product Batch</h2>
-                        <ProductTable products={products} onSentimentAnalysis={onSentimentAnalysis} />
-                    </>
-                )
-            case "Add Product":
-                // Handle Add Product click
-                return (
-                    <>
-                        <h2 className="text-2xl font-bold mb-4 font-lexend">Create Product</h2>
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            addProduct();
-                        }}>
-                            <label htmlFor="input-name">Name</label>
-                            <input
-                                id="input-name"
-                                type="text"
-                                value={productInput.name} onChange={(e) => setProductInput({
-                                    ...productInput,
-                                    name: e.target.value,
-                                })}
-                            />
-                            <label htmlFor="input-description">Description</label>
-                            <input
-                                id="input-description"
-                                type="text"
-                                value={productInput.description} onChange={(e) => setProductInput({
-                                    ...productInput,
-                                    description: e.target.value,
-                                })}
-                            />
-                            <label htmlFor="input-category">Category</label>
-                            <input
-                                id="input-category"
-                                type="text"
-                                value={productInput.category} onChange={(e) => setProductInput({
-                                    ...productInput,
-                                    category: e.target.value,
-                                })}
-                            />
-                            <button type="submit">Submit</button>
-                        </form>
-                    </>
-                )
-            case "Reseller Dashboard":
-                // Handle Reseller Dashboard click
-                return (<>under construction</>)
-            case "User Dashboard":
-                // Handle User Dashboard click
-                return (<>under construction</>)
-            case "Analytics & Heatmap":
-                return (<>under construction</>)
-            default:
-                // Handle default case
-                return (<>under construction</>)
-        }
-    }
-
-    useEffect(() => {
-        fetchProducts();
-    }, [profile])
-
-
-    return (
-        <div className="bg-gray-100 font-sans flex">
-            <Sidebar menuItems={menuItems} userAvatar={techImage} username={username} />
-            <div className="flex-1 p-6">
-                <h2 className="text-lg w-fit font-bold mb-20 text-[#212EFF] border-b-4 border-b-[#212EFF] font-lexend">
-                    {activeMenu}
-                </h2>
-                { showContent() }
-            </div>
-        </div>
-    )
-}
-
-
-export default Dashboard;
 </file>
 
 <file path="src/frontend/package.json">
@@ -6313,10 +8302,13 @@ export default Dashboard;
     "@radix-ui/react-radio-group": "^1.3.4",
     "@radix-ui/react-select": "^2.2.2",
     "@radix-ui/react-slot": "^1.2.0",
+    "@radix-ui/react-tabs": "^1.1.9",
     "@radix-ui/react-toast": "^1.2.11",
+    "@tanstack/react-query": "^5.75.0",
     "@vitejs/plugin-react": "^4.3.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.503.0",

@@ -242,7 +242,7 @@
       "id": 5,
       "title": "Implement Brand Owner Dashboard Layout",
       "description": "Create the dashboard layout with sidebar navigation for brand owners using shadcn/ui components",
-      "status": "in-progress",
+      "status": "done",
       "dependencies": [
         4
       ],
@@ -256,7 +256,7 @@
           "description": "Update the existing Sidebar.tsx component to include brand owner specific navigation links with icons as per the Figma design. Implement collapsible functionality and ensure proper styling.",
           "dependencies": [],
           "details": "1. Update Sidebar.tsx to include the specific navigation links for brand owners (Dashboard, Product Management, Add Product, Reseller Management, User Management, Settings).\n2. Add appropriate icons for each navigation item from an icon library (e.g., React Icons, Material UI icons).\n3. Implement the collapsible functionality with an expand/collapse button.\n4. Style the sidebar according to the Figma design, including active states for selected items.\n5. Ensure the sidebar is responsive and adapts to different screen sizes (consider using media queries).\n6. Test the sidebar navigation by verifying that links are clickable and the collapse/expand functionality works properly.\n7. Implement smooth transitions for the collapse/expand animations.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 5
         },
         {
@@ -267,7 +267,7 @@
             1
           ],
           "details": "1. Create the BrandOwnerLayout.tsx component that incorporates the enhanced Sidebar from subtask 1.\n2. Implement the top bar/header with page title that dynamically updates based on the selected navigation item.\n3. Add user information display in the header (avatar, name, dropdown menu).\n4. Set up the main content area with appropriate padding and responsive layout.\n5. Configure React Router with nested routes for each section (Dashboard, Product Management, etc.).\n6. Create placeholder components for each section that will be rendered in the main content area.\n7. Implement logic to highlight the active navigation item in the sidebar based on the current route.\n8. Test the routing by navigating between different sections and verifying that the correct content is displayed.\n9. Ensure the layout maintains responsiveness across different screen sizes.\n10. Add appropriate loading states for route transitions.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 5
         },
         {
@@ -276,7 +276,7 @@
           "description": "Integrate and configure shadcn/ui version 2.3.0 components for the layout, focusing on Sidebar/Sheet components.",
           "dependencies": [],
           "details": "1. Install shadcn/ui version 2.3.0 and its dependencies.\n2. Replace or enhance the current sidebar implementation with shadcn/ui Sheet component for mobile responsiveness.\n3. Configure the shadcn/ui Sidebar component with proper styling to match the Figma design.\n4. Implement responsive behavior using shadcn/ui's built-in responsive utilities.\n5. Ensure proper theming and styling integration with the rest of the application.\n6. Test the shadcn/ui components across different screen sizes and browsers.\n7. Document any custom configurations or extensions made to the shadcn/ui components for future reference.",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 5
         }
       ]
@@ -285,7 +285,7 @@
       "id": 6,
       "title": "Implement Product Management Page",
       "description": "Create the product management interface for brand owners to view and manage products",
-      "status": "in-progress",
+      "status": "done",
       "dependencies": [
         5
       ],
@@ -299,7 +299,7 @@
           "description": "Extract and refactor ProductCard, CreateProductModal, and GenerateQRModal from the inline implementation in brand-owners/products.tsx into separate reusable components.",
           "dependencies": [],
           "details": "1. Create separate component files in the components/product directory:\n   - components/product/ProductCard.tsx\n   - components/product/CreateProductModal.tsx\n   - components/product/GenerateQRModal.tsx\n2. Move the existing implementation from brand-owners/products.tsx to these files\n3. Add proper TypeScript interfaces for component props\n4. Ensure components are properly exported\n5. Update imports in brand-owners/products.tsx to use the new component files\n6. Test each component individually to ensure they render correctly\n7. Implement proper prop passing between parent and child components\n8. Add documentation comments to describe component purpose and usage\n9. Use shadcn/ui version 2.3.0 components for all UI elements",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 6
         },
         {
@@ -310,7 +310,7 @@
             1
           ],
           "details": "1. Update the API service to include methods for interacting with the TrustOrigin_backend canister:\n   - Implement `listProductsByOrganization(orgId: string)` function\n   - Implement `createProduct(productData: ProductData)` function\n2. Replace mock data fetching in brand-owners/products.tsx with real API calls\n3. Implement proper loading states during API calls\n4. Add error handling for failed API requests\n5. Update the CreateProductModal to use the real product creation API\n6. Ensure the product table refreshes after successful product creation\n7. Test the integration with the backend using different test accounts\n8. Implement proper TypeScript interfaces for API responses",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 6
         },
         {
@@ -322,7 +322,7 @@
             2
           ],
           "details": "1. Create a new EditProductModal.tsx component in the components/product directory\n2. Implement the modal UI based on the Figma design, using shadcn/ui Modal component version 2.3.0\n3. Add an edit button/action to each product row in the product table\n4. Implement the API service method `updateProduct(productId: string, productData: ProductData)`\n5. Connect the EditProductModal to the backend API\n6. Pre-populate the edit form with the selected product's current data\n7. Add form validation for the edit form\n8. Implement success/error notifications for the edit operation\n9. Refresh the product table after successful edits\n10. Test editing different product fields and verify changes are persisted",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 6
         },
         {
@@ -334,7 +334,7 @@
             2
           ],
           "details": "1. Update the GenerateQRModal component to connect with the backend, using shadcn/ui Modal component version 2.3.0\n2. Implement the API service method `generateProductSerials(productId: string, quantity: number)`\n3. Add form validation for serial number quantity input\n4. Implement loading states during QR code generation\n5. Create a QR code display component that renders the generated QR codes\n6. Add functionality to download individual QR codes or all QR codes as a ZIP file\n7. Implement a preview of generated serial numbers\n8. Add success/error notifications for the generation process\n9. Implement pagination if many QR codes are generated, using shadcn/ui pagination components\n10. Test the generation process with different quantities and product types\n11. Ensure generated QR codes contain the correct product information and can be properly scanned",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 6
         }
       ]

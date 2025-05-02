@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement Brand Owner Dashboard Layout
-# Status: in-progress
+# Status: done
 # Dependencies: 4
 # Priority: medium
 # Description: Create the dashboard layout with sidebar navigation for brand owners using shadcn/ui components
@@ -11,7 +11,7 @@ Implement the `BrandOwnerLayout.tsx` component that includes a collapsible sideb
 Test the sidebar navigation to ensure all links work correctly. Verify the layout is responsive on different screen sizes. Check that the collapsible sidebar functions properly. Ensure the nested routes render the correct content in the main area. Verify shadcn/ui components are properly implemented and styled according to the design.
 
 # Subtasks:
-## 1. Enhance Sidebar with Brand Owner Navigation Links and Icons [pending]
+## 1. Enhance Sidebar with Brand Owner Navigation Links and Icons [done]
 ### Dependencies: None
 ### Description: Update the existing Sidebar.tsx component to include brand owner specific navigation links with icons as per the Figma design. Implement collapsible functionality and ensure proper styling.
 ### Details:
@@ -23,7 +23,7 @@ Test the sidebar navigation to ensure all links work correctly. Verify the layou
 6. Test the sidebar navigation by verifying that links are clickable and the collapse/expand functionality works properly.
 7. Implement smooth transitions for the collapse/expand animations.
 
-## 2. Implement Main Content Area and React Router Integration [pending]
+## 2. Implement Main Content Area and React Router Integration [done]
 ### Dependencies: 5.1
 ### Description: Create the main content area structure in BrandOwnerLayout.tsx and set up nested routes with React Router to dynamically render content based on sidebar selection.
 ### Details:
@@ -38,7 +38,7 @@ Test the sidebar navigation to ensure all links work correctly. Verify the layou
 9. Ensure the layout maintains responsiveness across different screen sizes.
 10. Add appropriate loading states for route transitions.
 
-## 3. Integrate shadcn/ui v2.3.0 Components [pending]
+## 3. Integrate shadcn/ui v2.3.0 Components [done]
 ### Dependencies: None
 ### Description: Integrate and configure shadcn/ui version 2.3.0 components for the layout, focusing on Sidebar/Sheet components.
 ### Details:
