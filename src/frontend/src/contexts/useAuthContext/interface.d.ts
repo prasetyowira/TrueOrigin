@@ -1,5 +1,6 @@
 import type { AuthClient } from '@dfinity/auth-client';
 import type { ReactNode } from 'react';
+import type { Principal } from '@dfinity/principal';
 import type { User, UserDetailsInput, ResellerInput, OrganizationInput, UserRole } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 
 export interface AuthContextProviderProps {
@@ -24,4 +25,8 @@ export interface AuthContextInterface {
   signinAsBrandOwner: (input: OrganizationInput) => Promise<void>;
   signinAsReseller: (input: ResellerInput) => Promise<void>;
   authClient: AuthClient | undefined;
+  // Organization selection related properties
+  selectedOrgId: Principal | null;
+  selectOrganization: (orgId: Principal) => void;
+  getCurrentOrgId: () => Principal | null;
 }

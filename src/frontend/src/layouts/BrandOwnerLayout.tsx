@@ -26,6 +26,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import SidebarToggle from '../components/SidebarToggle';
 import { useAuthContext } from '../contexts/useAuthContext';
+import { useGetOrganization } from '../hooks';
 import { 
   ProductsIcon, 
   ProductAddIcon,
@@ -34,6 +35,7 @@ import {
   UsersIcon 
 } from '../components/icons';
 import defaultAvatar from '../assets/default-avatar.jpg';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 // Define IconProps type matching what's in the icons file
 type IconProps = {
@@ -57,6 +59,9 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
   const { profile, isLoading } = useAuthContext(); 
   const [collapsed, setCollapsed] = useState(false);
   
+  // Fetch organization data
+  const { data: organization, isLoading: isLoadingOrg } = useGetOrganization();
+
   const handleMenuToggle = () => {
     setCollapsed(!collapsed);
   };
@@ -124,6 +129,14 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
     localStorage.setItem('sidebarCollapsed', String(collapsed));
   }, [collapsed]);
 
+  // Format organization ID for display (shortened version)
+  const formatOrgId = (id: string) => {
+    if (id.length > 10) {
+      return `${id.slice(0, 5)}...${id.slice(-5)}`;
+    }
+    return id;
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar 
@@ -134,12 +147,39 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
       />
       <div className="flex flex-col flex-1 overflow-hidden">
         <header className="bg-white shadow-sm z-10">
-          <div className="px-4 py-2 flex items-center">
-            <SidebarToggle collapsed={collapsed} onClick={handleMenuToggle} />
-            <div className="ml-4">
-              <h1 className="text-xl font-semibold">
-                {menuItems.find(item => item.active)?.label || 'Dashboard'}
-              </h1>
+          <div className="px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center">
+              <SidebarToggle collapsed={collapsed} onClick={handleMenuToggle} />
+              <div className="ml-4">
+                <h1 className="text-xl font-semibold">
+                  {menuItems.find(item => item.active)?.label || 'Dashboard'}
+                </h1>
+              </div>
+            </div>
+            
+            {/* Organization Info */}
+            <div className="flex items-center">
+              {isLoadingOrg ? (
+                <div className="flex items-center text-sm text-gray-500">
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  <span>Loading organization...</span>
+                </div>
+              ) : organization ? (
+                <div className="flex flex-col items-end">
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium mr-1">Organization:</span>
+                    <span className="text-sm font-bold text-primary">{organization.name}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-xs text-gray-500 mr-1">ID:</span>
+                    <span className="text-xs text-gray-500" title={organization.id.toString()}>
+                      {formatOrgId(organization.id.toString())}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No organization found</div>
+              )}
             </div>
           </div>
         </header>

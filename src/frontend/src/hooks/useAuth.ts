@@ -27,6 +27,7 @@
 
 import { useState } from 'react';
 import { useAuthContext } from '../contexts/useAuthContext';
+import { Principal } from '@dfinity/principal';
 
 // Define frontend-specific user types
 export interface Organization {
@@ -58,10 +59,24 @@ const useAuth = () => {
     isLoading: isAuthenticating,
     profile,
     login,
-    logout
+    logout,
+    selectedOrgId,
+    selectOrganization
   } = useAuthContext();
   
   const [error, setError] = useState<string | null>(null);
+
+  console.log("[DEBUG useAuth] Current state:", { 
+    isAuthenticated, 
+    isAuthenticating, 
+    hasProfile: !!profile,
+    selectedOrgId: selectedOrgId?.toString(),
+    profileDetails: profile ? {
+      id: profile.id.toString(),
+      userRole: profile.user_role ? profile.user_role.map(r => Object.keys(r)[0]) : [],
+      hasOrgIds: profile.org_ids?.length > 0
+    } : null
+  });
 
   // Transform backend profile to frontend user format
   let user: User | null = null;
@@ -80,31 +95,33 @@ const useAuth = () => {
                'Admin' in profile.user_role[0])
     } as User;
     
-    // Add organization property for brand owners
+    // Add organization property for users with organization roles
     if (profile.user_role && 
         profile.user_role.length > 0 && 
-        profile.user_role[0] && 
-        'BrandOwner' in profile.user_role[0] &&
-        profile.org_ids && 
-        profile.org_ids.length > 0) {
+        profile.user_role[0] && // Ensure user_role[0] exists
+        (('BrandOwner' in profile.user_role[0]) || ('Reseller' in profile.user_role[0])) &&
+        selectedOrgId) {
       
       userObj.organization = {
-        id: profile.org_ids[0].toString(),
-        name: profile.org_ids[0].toString(),
+        id: selectedOrgId.toString(),
+        name: selectedOrgId.toString(), // This will be updated by useGetOrganization in components
         role: 'Owner'
       };
+      console.log("[DEBUG useAuth] Added organization to user:", userObj.organization);
     }
     
     user = userObj;
+    console.log("[DEBUG useAuth] Transformed user object:", user);
   }
 
   // Wrapper for login to handle errors
   const handleLogin = async () => {
     try {
       setError(null);
+      console.log("[DEBUG useAuth] Calling login method");
       login();
     } catch (err) {
-      console.error('Login error:', err);
+      console.error('[DEBUG useAuth] Login error:', err);
       setError('Failed to login. Please try again.');
     }
   };
@@ -120,13 +137,28 @@ const useAuth = () => {
     }
   };
 
+  // Wrapper for selectOrganization to handle errors
+  const handleSelectOrganization = async (orgId: string) => {
+    try {
+      setError(null);
+      console.log("[DEBUG useAuth] Selecting organization:", orgId);
+      const principalOrgId = Principal.fromText(orgId);
+      selectOrganization(principalOrgId);
+    } catch (err) {
+      console.error('[DEBUG useAuth] Organization selection error:', err);
+      setError('Failed to select organization. Please try again.');
+    }
+  };
+
   return {
     isAuthenticated: !!isAuthenticated,
     isAuthenticating,
     user,
     login: handleLogin,
     logout: handleLogout,
-    error
+    selectOrganization: handleSelectOrganization,
+    error,
+    isLoading: isAuthenticating
   };
 };
 

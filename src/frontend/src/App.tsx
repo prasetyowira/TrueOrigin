@@ -38,13 +38,9 @@ const LoginPage = lazy(() => import('@/pages/auth/login'));
 const UnauthorizedPage = lazy(() => import('@/pages/unauthorized'));
 const VerifyPage = lazy(() => import('@/pages/verify'));
 const ProductsPage = lazy(() => import('@/pages/brand-owners/products'));
+const AddProductPage = lazy(() => import('@/pages/brand-owners/add-product'));
 
 // Lazy load placeholders for future development
-const AddProductPage = lazy(() => 
-  import('@/pages/placeholder').then(module => ({ 
-    default: () => module.default({ title: 'Add Product' }) 
-  }))
-);
 const ResellerManagementPage = lazy(() => 
   import('@/pages/placeholder').then(module => ({ 
     default: () => module.default({ title: 'Reseller Dashboard' }) 

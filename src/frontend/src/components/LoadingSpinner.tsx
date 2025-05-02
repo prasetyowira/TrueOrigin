@@ -1,54 +1,46 @@
-import * as React from "react";
+/**
+ * @file LoadingSpinner component
+ * @fileoverview Reusable loading spinner component
+ * 
+ * @module components/LoadingSpinner
+ * @exports {FC} LoadingSpinner - Loading spinner component
+ */
+
 import { cn } from "@/lib/utils";
 
-type SpinnerSize = "xs" | "sm" | "md" | "lg" | "xl";
-
-interface LoadingSpinnerProps {
-  size?: SpinnerSize;
-  className?: string;
-  color?: string;
+interface LoadingSpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
+  size?: 'sm' | 'md' | 'lg';
 }
 
 /**
- * A customizable loading spinner with different size variants.
+ * Displays a loading spinner animation
+ * 
+ * @param props - Component props including className and size
+ * @returns Loading spinner component
  */
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = "md", 
-  className,
-  color = "primary"
-}) => {
-  // Size variants in pixels
-  const sizeClasses: Record<SpinnerSize, string> = {
-    xs: "h-4 w-4 border-[2px]",
-    sm: "h-6 w-6 border-[2px]",
-    md: "h-8 w-8 border-[3px]",
-    lg: "h-12 w-12 border-[3px]",
-    xl: "h-16 w-16 border-[4px]",
-  };
-
-  // Color variants
-  const colorClasses: Record<string, string> = {
-    primary: "border-primary",
-    secondary: "border-secondary",
-    muted: "border-muted",
-    white: "border-white",
-    gray: "border-gray-300",
+export function LoadingSpinner({ 
+  className, 
+  size = 'md',
+  ...props 
+}: LoadingSpinnerProps) {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-6 w-6',
+    lg: 'h-8 w-8',
   };
 
   return (
     <div
       className={cn(
-        "inline-block animate-spin rounded-full border-solid border-current border-r-transparent motion-reduce:animate-[spin_1.5s_linear_infinite]",
+        "animate-spin text-transparent rounded-full border-2 border-t-primary border-r-primary border-b-gray-200 border-l-gray-200",
         sizeClasses[size],
-        colorClasses[color] || `border-${color}`,
         className
       )}
       role="status"
       aria-label="Loading"
+      {...props}
     >
       <span className="sr-only">Loading...</span>
     </div>
   );
-};
-
-export { LoadingSpinner }; 
+} 

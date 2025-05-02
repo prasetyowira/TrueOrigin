@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: Implement Add Product Form
-# Status: in-progress
+# Status: done
 # Dependencies: 5, 6
 # Priority: medium
 # Description: Enhance the existing CreateProductModal within brand-owners/products.tsx for adding new products to the system

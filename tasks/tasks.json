@@ -343,7 +343,7 @@
       "id": 7,
       "title": "Implement Add Product Form",
       "description": "Enhance the existing CreateProductModal within brand-owners/products.tsx for adding new products to the system",
-      "status": "in-progress",
+      "status": "done",
       "dependencies": [
         5,
         6
