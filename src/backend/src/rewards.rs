@@ -232,4 +232,4 @@ pub fn get_user_rewards(user_id: Principal) -> Option<UserRewards> {
     USER_REWARDS.with(|rewards| {
         rewards.borrow().get(&user_id)
     })
-} 
+}

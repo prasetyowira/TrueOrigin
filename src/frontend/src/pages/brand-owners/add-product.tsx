@@ -50,12 +50,13 @@ const addProductSchema = z.object({
 type AddProductFormValues = z.infer<typeof addProductSchema>;
 
 const AddProductPage: React.FC = () => {
-  const { profile, isLoading: authLoading } = useAuthContext();
+  // Use selectedOrgId directly from the context
+  const { selectedOrgId, isLoading: authLoading } = useAuthContext();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Get the organization ID from the user's profile
-  const orgId = profile?.org_ids && profile.org_ids.length > 0 ? profile.org_ids[0] : null;
+  // Use the selected organization ID
+  const orgId = selectedOrgId;
   
   // Initialize form with react-hook-form and zod validation
   const form = useForm<AddProductFormValues>({
@@ -137,6 +138,7 @@ const AddProductPage: React.FC = () => {
         <h1 className="text-2xl font-semibold">Add Product</h1>
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
           <p>You need to create an organization before adding products.</p>
+          {/* Optionally guide user on how to select/create org if needed */}
         </div>
       </div>
     );

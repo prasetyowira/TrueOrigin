@@ -41,13 +41,10 @@ const ITEMS_PER_PAGE = 10;
 
 const ProductsPage: React.FC = () => {
   // Get the authenticated user's profile from AuthContext
-  const { profile, isLoading: authLoading } = useAuthContext();
+  const { selectedOrgId, isLoading: authLoading } = useAuthContext();
   
-  // Get the organization ID from the user's profile
-  const orgId = useMemo(() => {
-    if (!profile || !profile.org_ids || profile.org_ids.length === 0) return null;
-    return profile.org_ids[0]; // Assuming first org is the relevant one
-  }, [profile]);
+  // Use the selected organization ID directly
+  const orgId = selectedOrgId;
 
   // State for filters
   const [categoryFilter, setCategoryFilter] = useState<string>('all');

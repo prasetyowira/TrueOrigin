@@ -356,4 +356,13 @@ pub fn paginate<T: Clone>(
     };
     
     (paginated_items, pagination)
-} 
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct ProductVerificationDetail {
+    pub user_email: Option<String>,
+    pub product_id: Principal,
+    pub product_name: String,
+    pub serial_no: Principal,
+    pub created_at: u64,
+}

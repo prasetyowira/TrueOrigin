@@ -40,7 +40,8 @@ use crate::api::{
     UpdateOrganizationRequest, OrganizationsListResponse, PaginationRequest, paginate,
     VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo,
     GenerateResellerUniqueCodeRequest, ResellerUniqueCodeResponse, VerifyResellerRequest,
-    ResellerVerificationResponse, ResellerVerificationStatus, UserResponse, ProductResponse
+    ResellerVerificationResponse, ResellerVerificationStatus, UserResponse, ProductResponse,
+    ProductVerificationDetail,
 };
 use crate::rate_limiter;
 use crate::rewards;
@@ -286,6 +287,28 @@ pub fn list_products(org_id: Principal) -> Vec<Product> {
             .iter()
             .filter(|(_, product)| product.org_id == org_id)
             .map(|(_, product)| product.clone())
+            .collect()
+    })
+}
+
+#[query]
+pub fn list_resellers_by_org_id(org_id: Principal) -> Vec<Reseller> {
+    // Check for read permission within the organization. 
+    // Using ReadOrganization permission as a baseline, adjust if a specific Reseller permission exists.
+    let authorization_result =
+        authorize_for_organization(api::caller(), org_id, Permission::ReadOrganization); 
+    if authorization_result.is_err() {
+        // Return empty vector if user does not have permission or org doesn't exist
+        ic_cdk::print(format!("Authorization failed for listing resellers in org {}: {:?}", org_id, authorization_result.err()));
+        return vec![]; 
+    }
+
+    RESELLERS.with(|resellers| {
+        resellers
+            .borrow()
+            .iter()
+            .filter(|(_, reseller)| reseller.org_id == org_id)
+            .map(|(_, reseller)| reseller.clone())
             .collect()
     })
 }
@@ -2153,4 +2176,68 @@ pub fn get_scraper_url() -> ApiResponse<String> {
     // Get the StorableString, access the inner String with .0, then clone it
     let storable_string = CONFIG_SCRAPER_URL.with(|cell| cell.borrow().get().clone());
     ApiResponse::success(storable_string.0) // Return the inner String
+}
+
+#[query]
+pub fn list_product_verifications_by_org_id(org_id: Principal) -> Vec<ProductVerificationDetail> {
+    // Check for read product permission within the organization
+    let authorization_result =
+        authorize_for_organization(api::caller(), org_id, Permission::ReadProduct);
+    if authorization_result.is_err() {
+        ic_cdk::print(format!(
+            "Authorization failed for listing verifications in org {}: {:?}",
+            org_id,
+            authorization_result.err()
+        ));
+        return vec![];
+    }
+
+    // Get product IDs for the organization
+    let products_in_org = PRODUCTS.with(|products| {
+        products
+            .borrow()
+            .iter()
+            .filter(|(_, product)| product.org_id == org_id)
+            .map(|(id, product)| (id, product.clone())) // Keep both ID and product
+            .collect::<Vec<(Principal, Product)>>()
+    });
+
+    let mut all_verification_details = Vec::new();
+
+    // Pre-fetch user emails into a HashMap to avoid multiple reads inside the loop
+    let user_emails: std::collections::HashMap<Principal, Option<String>> = USERS.with(|users_store| {
+        users_store
+            .borrow()
+            .iter()
+            .map(|(id, user)| (id, user.email.clone()))
+            .collect()
+    });
+
+    PRODUCT_VERIFICATIONS.with(|verifications_store| {
+        let store = verifications_store.borrow();
+        for (product_id, product) in products_in_org {
+            if let Some(serialized_verifications) = store.get(&product_id) {
+                let decoded_verifications = decode_product_verifications(&serialized_verifications);
+                
+                for verification in decoded_verifications {
+                    // Find the user who created the verification using the pre-fetched map
+                    let user_email = user_emails.get(&verification.created_by).cloned().flatten();
+
+                    let detail = ProductVerificationDetail {
+                        user_email,
+                        product_id: verification.product_id,
+                        product_name: product.name.clone(), // Use product name from fetched products
+                        serial_no: verification.serial_no,
+                        created_at: verification.created_at,
+                    };
+                    all_verification_details.push(detail);
+                }
+            }
+        }
+    });
+
+    // Optionally sort the results, e.g., by creation date descending
+    all_verification_details.sort_by(|a, b| b.created_at.cmp(&a.created_at));
+
+    all_verification_details
 }

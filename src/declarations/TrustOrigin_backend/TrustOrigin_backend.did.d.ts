@@ -9,60 +9,55 @@ export type ApiError = { 'InvalidInput' : { 'details' : ErrorDetails } } |
   { 'AlreadyExists' : { 'details' : ErrorDetails } } |
   { 'MalformedData' : { 'details' : ErrorDetails } } |
   { 'InternalError' : { 'details' : ErrorDetails } };
-export interface ApiResponse_OrganizationResponse {
+export interface ApiResponse {
   'metadata' : ResponseMetadata,
   'data' : [] | [OrganizationResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_OrganizationsListResponse {
-  'metadata' : ResponseMetadata,
-  'data' : [] | [OrganizationsListResponse],
-  'error' : [] | [ApiError],
-}
-export interface ApiResponse_ProductResponse {
+export interface ApiResponse_1 {
   'metadata' : ResponseMetadata,
   'data' : [] | [ProductResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_ProductVerificationEnhancedResponse {
-  'metadata' : ResponseMetadata,
-  'data' : [] | [ProductVerificationEnhancedResponse],
-  'error' : [] | [ApiError],
-}
-export interface ApiResponse_RateLimitInfo {
-  'metadata' : ResponseMetadata,
-  'data' : [] | [RateLimitInfo],
-  'error' : [] | [ApiError],
-}
-export interface ApiResponse_ResellerUniqueCodeResponse {
+export interface ApiResponse_2 {
   'metadata' : ResponseMetadata,
   'data' : [] | [ResellerUniqueCodeResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_ResellerVerificationResponse {
-  'metadata' : ResponseMetadata,
-  'data' : [] | [ResellerVerificationResponse],
-  'error' : [] | [ApiError],
-}
-export interface ApiResponse_Text {
+export interface ApiResponse_3 {
   'metadata' : ResponseMetadata,
   'data' : [] | [string],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_Unit {
+export interface ApiResponse_4 {
   'metadata' : ResponseMetadata,
-  'data' : [] | [null],
+  'data' : [] | [RateLimitInfo],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_UserResponse {
+export interface ApiResponse_5 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [OrganizationsListResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_6 {
   'metadata' : ResponseMetadata,
   'data' : [] | [UserResponse],
   'error' : [] | [ApiError],
 }
-export interface CreateOrganizationRequest {
-  'metadata' : Array<Metadata>,
-  'name' : string,
-  'description' : string,
+export interface ApiResponse_7 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [null],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_8 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ProductVerificationEnhancedResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_9 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ResellerVerificationResponse],
+  'error' : [] | [ApiError],
 }
 export interface ErrorDetails {
   'message' : string,
@@ -76,18 +71,13 @@ export interface GenerateResellerUniqueCodeRequest {
   'context' : [] | [string],
   'reseller_id' : Principal,
 }
-export interface Metadata { 'key' : string, 'value' : string }
-export interface Organization {
-  'id' : Principal,
-  'updated_at' : bigint,
-  'updated_by' : Principal,
-  'metadata' : Array<Metadata>,
-  'name' : string,
-  'description' : string,
-  'created_at' : bigint,
-  'created_by' : Principal,
-  'private_key' : string,
+export interface HttpHeader { 'value' : string, 'name' : string }
+export interface HttpResponse {
+  'status' : bigint,
+  'body' : Uint8Array | number[],
+  'headers' : Array<HttpHeader>,
 }
+export interface Metadata { 'key' : string, 'value' : string }
 export interface OrganizationInput {
   'metadata' : Array<Metadata>,
   'name' : string,
@@ -105,7 +95,7 @@ export interface OrganizationPublic {
 }
 export interface OrganizationResponse { 'organization' : OrganizationPublic }
 export type OrganizationResult = { 'error' : ApiError } |
-  { 'organization' : Organization };
+  { 'organization' : OrganizationPublic };
 export interface OrganizationsListResponse {
   'pagination' : [] | [PaginationResponse],
   'organizations' : Array<OrganizationPublic>,
@@ -172,11 +162,19 @@ export interface ProductUniqueCodeResultRecord {
 }
 export interface ProductVerification {
   'id' : Principal,
+  'status' : ProductVerificationStatus,
   'product_id' : Principal,
   'metadata' : Array<Metadata>,
   'created_at' : bigint,
   'created_by' : Principal,
   'print_version' : number,
+  'serial_no' : Principal,
+}
+export interface ProductVerificationDetail {
+  'user_email' : [] | [string],
+  'product_id' : Principal,
+  'created_at' : bigint,
+  'product_name' : string,
   'serial_no' : Principal,
 }
 export interface ProductVerificationEnhancedResponse {
@@ -185,10 +183,6 @@ export interface ProductVerificationEnhancedResponse {
   'rewards' : [] | [VerificationRewards],
   'verification' : [] | [ProductVerification],
 }
-export type ProductVerificationResult = {
-    'status' : ProductVerificationStatus
-  } |
-  { 'error' : ApiError };
 export type ProductVerificationStatus = { 'Invalid' : null } |
   { 'MultipleVerification' : null } |
   { 'FirstVerification' : null };
@@ -202,13 +196,13 @@ export interface Reseller {
   'updated_at' : bigint,
   'updated_by' : Principal,
   'ecommerce_urls' : Array<Metadata>,
+  'public_key' : string,
   'metadata' : Array<Metadata>,
   'name' : string,
   'org_id' : Principal,
   'date_joined' : bigint,
   'created_at' : bigint,
   'created_by' : Principal,
-  'reseller_id' : string,
 }
 export interface ResellerInput {
   'ecommerce_urls' : Array<Metadata>,
@@ -227,15 +221,6 @@ export interface ResellerVerificationResponse {
   'reseller' : [] | [Reseller],
   'organization' : [] | [OrganizationPublic],
 }
-export type ResellerVerificationResult = {
-    'result' : ResellerVerificationResultRecord
-  } |
-  { 'error' : ApiError };
-export interface ResellerVerificationResultRecord {
-  'status' : VerificationStatus,
-  'organization' : OrganizationPublic,
-  'registered_at' : [] | [bigint],
-}
 export type ResellerVerificationStatus = { 'ExpiredCode' : null } |
   { 'Success' : null } |
   { 'ReplayAttackDetected' : null } |
@@ -248,8 +233,12 @@ export interface ResponseMetadata {
   'version' : string,
   'timestamp' : bigint,
 }
-export type UniqueCodeResult = { 'error' : ApiError } |
-  { 'unique_code' : string };
+export type Result = { 'Ok' : Array<ProductSerialNumber> } |
+  { 'Err' : ApiError };
+export interface TransformArgs {
+  'context' : Uint8Array | number[],
+  'response' : HttpResponse,
+}
 export interface UpdateOrganizationRequest {
   'id' : Principal,
   'metadata' : Array<Metadata>,
@@ -292,8 +281,6 @@ export interface VerificationRewards {
   'is_first_verification' : boolean,
   'points' : number,
 }
-export type VerificationStatus = { 'Invalid' : null } |
-  { 'Success' : null };
 export interface VerifyProductEnhancedRequest {
   'product_id' : Principal,
   'metadata' : Array<Metadata>,
@@ -303,7 +290,7 @@ export interface VerifyProductEnhancedRequest {
   'timestamp' : [] | [bigint],
   'serial_no' : Principal,
 }
-export interface VerifyResellerRequestV2 {
+export interface VerifyResellerRequest {
   'context' : [] | [string],
   'unique_code' : string,
   'timestamp' : bigint,
@@ -311,10 +298,7 @@ export interface VerifyResellerRequestV2 {
 }
 export interface _SERVICE {
   'create_organization' : ActorMethod<[OrganizationInput], OrganizationPublic>,
-  'create_organization_v2' : ActorMethod<
-    [CreateOrganizationRequest],
-    ApiResponse_OrganizationResponse
-  >,
+  'create_organization_v2' : ActorMethod<[OrganizationInput], ApiResponse>,
   'create_product' : ActorMethod<[ProductInput], ProductResult>,
   'create_product_serial_number' : ActorMethod<
     [Principal, [] | [string]],
@@ -326,71 +310,54 @@ export interface _SERVICE {
     Array<OrganizationPublic>
   >,
   'find_resellers_by_name_or_id' : ActorMethod<[string], Array<Reseller>>,
-  'generate_product_review' : ActorMethod<[Principal], [] | [Product]>,
-  'generate_product_review_v2' : ActorMethod<
-    [Principal],
-    ApiResponse_ProductResponse
-  >,
-  'generate_reseller_unique_code' : ActorMethod<[Principal], UniqueCodeResult>,
+  'generate_product_review_v2' : ActorMethod<[Principal], ApiResponse_1>,
   'generate_reseller_unique_code_v2' : ActorMethod<
     [GenerateResellerUniqueCodeRequest],
-    ApiResponse_ResellerUniqueCodeResponse
+    ApiResponse_2
   >,
-  'get_openai_api_key' : ActorMethod<[], ApiResponse_Text>,
-  'get_organization_by_id' : ActorMethod<[Principal], OrganizationPublic>,
-  'get_organization_by_id_v2' : ActorMethod<
-    [Principal],
-    ApiResponse_OrganizationResponse
-  >,
+  'get_openai_api_key' : ActorMethod<[], ApiResponse_3>,
+  'get_organization_by_id' : ActorMethod<[Principal], OrganizationResult>,
+  'get_organization_by_id_v2' : ActorMethod<[Principal], ApiResponse>,
   'get_organization_private_key' : ActorMethod<[Principal], PrivateKeyResult>,
   'get_product_by_id' : ActorMethod<[Principal], ProductResult>,
-  'get_scraper_url' : ActorMethod<[], ApiResponse_Text>,
+  'get_scraper_url' : ActorMethod<[], ApiResponse_3>,
   'get_user_by_id' : ActorMethod<[Principal], [] | [User]>,
-  'get_verification_rate_limit' : ActorMethod<
-    [Principal],
-    ApiResponse_RateLimitInfo
-  >,
+  'get_verification_rate_limit' : ActorMethod<[Principal], ApiResponse_4>,
   'greet' : ActorMethod<[string], string>,
   'list_organizations_v2' : ActorMethod<
     [FindOrganizationsRequest],
-    ApiResponse_OrganizationsListResponse
+    ApiResponse_5
   >,
-  'list_product_serial_number' : ActorMethod<
+  'list_product_serial_numbers' : ActorMethod<
     [[] | [Principal], [] | [Principal]],
-    Array<ProductSerialNumber>
+    Result
   >,
-  'list_product_verifications' : ActorMethod<
-    [[] | [Principal], [] | [Principal], [] | [Principal]],
-    Array<ProductVerification>
-  >,
-  'list_product_verifications_by_user' : ActorMethod<
-    [Principal, [] | [Principal]],
-    Array<ProductVerification>
+  'list_product_verifications_by_org_id' : ActorMethod<
+    [Principal],
+    Array<ProductVerificationDetail>
   >,
   'list_products' : ActorMethod<[Principal], Array<Product>>,
+  'list_resellers_by_org_id' : ActorMethod<[Principal], Array<Reseller>>,
   'print_product_serial_number' : ActorMethod<
     [Principal, Principal],
     ProductUniqueCodeResult
   >,
   'register' : ActorMethod<[], User>,
   'register_as_organization' : ActorMethod<[OrganizationInput], UserResult>,
-  'register_as_reseller' : ActorMethod<[ResellerInput], UserResult>,
-  'register_as_reseller_v2' : ActorMethod<
-    [ResellerInput],
-    ApiResponse_UserResponse
-  >,
-  'set_openai_api_key' : ActorMethod<[string], ApiResponse_Unit>,
-  'set_scraper_url' : ActorMethod<[string], ApiResponse_Unit>,
+  'register_as_reseller_v2' : ActorMethod<[ResellerInput], ApiResponse_6>,
+  'set_openai_api_key' : ActorMethod<[string], ApiResponse_7>,
+  'set_scraper_url' : ActorMethod<[string], ApiResponse_7>,
   'set_self_role' : ActorMethod<[UserRole], UserResult>,
+  'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'update_organization' : ActorMethod<
     [Principal, OrganizationInput],
-    OrganizationPublic
+    OrganizationResult
   >,
   'update_organization_v2' : ActorMethod<
     [UpdateOrganizationRequest],
-    ApiResponse_OrganizationResponse
+    ApiResponse
   >,
-  'update_product' : ActorMethod<[Principal, ProductInput], Product>,
+  'update_product' : ActorMethod<[Principal, ProductInput], ProductResult>,
   'update_product_serial_number' : ActorMethod<
     [Principal, Principal, [] | [string]],
     ProductSerialNumberResult
@@ -398,22 +365,11 @@ export interface _SERVICE {
   'update_self_details' : ActorMethod<[UserDetailsInput], UserResult>,
   'update_user' : ActorMethod<[Principal, UserDetailsInput], UserResult>,
   'update_user_orgs' : ActorMethod<[Principal, Array<Principal>], UserResult>,
-  'verify_product' : ActorMethod<
-    [Principal, Principal, number, string, Array<Metadata>],
-    ProductVerificationResult
-  >,
   'verify_product_v2' : ActorMethod<
     [VerifyProductEnhancedRequest],
-    ApiResponse_ProductVerificationEnhancedResponse
+    ApiResponse_8
   >,
-  'verify_reseller' : ActorMethod<
-    [Principal, string],
-    ResellerVerificationResult
-  >,
-  'verify_reseller_v2' : ActorMethod<
-    [VerifyResellerRequestV2],
-    ApiResponse_ResellerVerificationResponse
-  >,
+  'verify_reseller_v2' : ActorMethod<[VerifyResellerRequest], ApiResponse_9>,
   'whoami' : ActorMethod<[], [] | [User]>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

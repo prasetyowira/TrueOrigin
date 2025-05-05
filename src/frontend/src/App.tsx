@@ -41,21 +41,13 @@ const ProductsPage = lazy(() => import('@/pages/brand-owners/products'));
 const AddProductPage = lazy(() => import('@/pages/brand-owners/add-product'));
 
 // Lazy load placeholders for future development
-const ResellerManagementPage = lazy(() => 
-  import('@/pages/placeholder').then(module => ({ 
-    default: () => module.default({ title: 'Reseller Dashboard' }) 
-  }))
-);
+const ResellerManagementPage = lazy(() => import('@/pages/brand-owners/resellers'));
 const AnalyticsPage = lazy(() => 
   import('@/pages/placeholder').then(module => ({ 
     default: () => module.default({ title: 'Analytics Dashboard' }) 
   }))
 );
-const UserManagementPage = lazy(() => 
-  import('@/pages/placeholder').then(module => ({ 
-    default: () => module.default({ title: 'User Dashboard' }) 
-  }))
-);
+const UserManagementPage = lazy(() => import('@/pages/brand-owners/users'));
 
 // Layout wrapper component for brand owner routes
 const BrandOwnerLayoutWrapper = () => (
