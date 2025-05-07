@@ -1,21 +1,59 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useGetMyResellerCertification, FEResellerCertificationPageContext } from '@/hooks/useQueries/authQueries'; // Import type too
-import { LoadingSpinner } from '@/components/LoadingSpinner'; // Assuming this exists
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useGetMyResellerCertification } from '@/hooks/useQueries/authQueries';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ExternalLink } from 'lucide-react';
-// Import DidMetadata directly from declarations
-import { Metadata as DidMetadata } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { Button } from '@/components/ui/button';
+import { useReactToPrint } from 'react-to-print';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { QRCodeSVG } from 'qrcode.react';
+
+// Assets imported directly from assets folder
+import certificateLogo from '@/assets/certificate-logo.png';
+import certificateQrPlaceholder from '@/assets/certificate-qr-placeholder.png';
+import certificateBackground from '@/assets/certificate-background.png';
+import certificateBgSvg from '@/assets/certificate-bg.svg';
 
 const ResellerCertificationPage: React.FC = () => {
-  const { user } = useAuth(); // user is DidUserPublic | null
+  const { user } = useAuth();
+  const certificateRef = useRef<HTMLDivElement>(null);
   const {
-    data: certificationData, // This is FEResellerCertificationPageContext | undefined
+    data: certificationData,
     isLoading,
     error 
-  } = useGetMyResellerCertification(); 
+  } = useGetMyResellerCertification();
+
+  const handlePrint = useReactToPrint({
+    contentRef: certificateRef,
+    documentTitle: 'Reseller_Certification',
+  });
+
+  const handleDownloadPDF = async () => {
+    if (!certificateRef.current) return;
+
+    const element = certificateRef.current;
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      logging: false,
+      useCORS: true,
+      backgroundColor: "#ffffff"
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
+    
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save('Reseller_Certification.pdf');
+  };
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-screen"><LoadingSpinner size="lg" /></div>;
@@ -48,103 +86,127 @@ const ResellerCertificationPage: React.FC = () => {
 
   // Now certificationData and its nested properties are known to be defined
   const { 
-    reseller_profile: reseller, // reseller is DidResellerPublic
-    associated_organization: organization, // DidOrganizationPublic
+    reseller_profile: reseller,
+    associated_organization: organization,
     certification_code,
     certification_timestamp,
-    user_details // user_details is DidUserPublic
+    user_details
   } = certificationData;
 
-  const formattedTimestamp = certification_timestamp 
-    ? new Date(Number(certification_timestamp) / 1000000).toLocaleString() 
-    : 'N/A';
-
-  // Accessing optional fields from DidUserPublic requires unwrap or checking length
-  const displayEmail = user_details.email && user_details.email.length > 0 ? user_details.email[0] : 'N/A';
-  const resellerContactEmail = reseller.contact_email && reseller.contact_email.length > 0 ? reseller.contact_email[0] : 'N/A';
-  const resellerContactPhone = reseller.contact_phone && reseller.contact_phone.length > 0 ? reseller.contact_phone[0] : 'N/A';
+  const formattedTimestamp = (() => {
+    if (!certification_timestamp) return 'N/A';
+    const date = new Date(Number(certification_timestamp) / 1000000);
+    const day = date.getDate();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+  })();
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-4">Reseller Certification</h1>
-      <p className="text-gray-600 mb-8">This page confirms your official certification status as a reseller for {organization.name}.</p>
-
-      <Card className="mb-8 bg-gradient-to-r from-cyan-50 to-blue-50 border-cyan-200 shadow-xl">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl text-cyan-700">Official Certification</CardTitle>
-            <Badge variant="default" className="bg-cyan-600 text-white">Verified Reseller</Badge>
-          </div>
-          <CardDescription className="text-cyan-600">
-            For <span className="font-semibold">{organization.name}</span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-600 font-medium">Certification Code:</span>
-              <span className="font-mono text-cyan-700 bg-cyan-100 px-2 py-1 rounded-md">{certification_code}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600 font-medium">Date Issued:</span>
-              <span className="text-gray-700">{formattedTimestamp}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid md:grid-cols-2 gap-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Reseller Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p><strong>Name:</strong> {reseller.name}</p>
-            {displayEmail !== 'N/A' && <p><strong>Account Email:</strong> {displayEmail}</p>}
-            {resellerContactEmail !== 'N/A' && <p><strong>Contact Email:</strong> {resellerContactEmail}</p>}
-            {resellerContactPhone !== 'N/A' && <p><strong>Contact Phone:</strong> {resellerContactPhone}</p>}
-            <p><strong>User ID:</strong> <span className="font-mono text-xs">{reseller.user_id.toText()}</span></p>
-            <p><strong>Reseller ID:</strong> <span className="font-mono text-xs">{reseller.id.toText()}</span></p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Associated Brand</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p><strong>Brand Name:</strong> {organization.name}</p>
-            <p><strong>Description:</strong> {organization.description}</p>
-            <p><strong>Brand ID:</strong> <span className="font-mono text-xs">{organization.id.toText()}</span></p>
-          </CardContent>
-        </Card>
+    <div className="container mx-auto px-4 py-8 bg-white">
+      <div className="text-center mb-8">
+        <h1 className="text-xl font-extrabold text-gray-900 mb-2 font-manrope">Reseller Certification</h1>
+        <p className="text-2xl font-normal text-gray-900 font-lexend">Download Your Certification</p>
       </div>
-
-      {/* reseller.ecommerce_urls is Array<DidMetadata> */}
-      {reseller.ecommerce_urls && reseller.ecommerce_urls.length > 0 && (
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Registered E-commerce Stores</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc pl-5 space-y-2">
-              {reseller.ecommerce_urls.map((urlMeta: DidMetadata) => ( 
-                <li key={urlMeta.key}>
-                  <span className="font-semibold capitalize">{urlMeta.key.replace(/_/g, ' ')}: </span>
-                  <a 
-                    href={urlMeta.value.startsWith('http') ? urlMeta.value : `https://${urlMeta.value}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-cyan-600 hover:text-cyan-700 hover:underline inline-flex items-center"
-                  >
-                    {urlMeta.value} <ExternalLink className="h-3 w-3 ml-1" />
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+      
+      <div className="flex flex-col items-center mb-8">
+        {/* Certificate container with the same size as certificateBackground */}
+        <div 
+          ref={certificateRef} 
+          className="w-full max-w-4xl bg-white rounded-[30px] overflow-hidden shadow-lg border border-gray-200 relative"
+          style={{ aspectRatio: '16/9' }}
+        >
+          {/* 60:40 split container */}
+          <div className="flex h-full">
+            {/* Left section (60%) - Content in top-bottom order */}
+            <div className="w-3/5 flex flex-col items-center justify-center p-8 space-y-6">
+              {/* QR Code */}
+              <div className="bg-white p-4 rounded-lg border border-gray-200">
+                <QRCodeSVG 
+                  value={reseller.public_key}
+                  size={128}
+                  bgColor={"#FFFFFF"}
+                  fgColor={"#000000"}
+                  level={"H"}
+                  includeMargin={false}
+                  className="w-32 h-32"
+                />
+              </div>
+              
+              {/* Reseller name */}
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold font-lexend">{reseller.name}</h2>
+              </div>
+              
+              {/* Brand name */}
+              <div className="text-center">
+                <p className="text-xl font-normal font-lexend">{organization.name}</p>
+              </div>
+              
+              {/* Timestamp */}
+              <div className="text-center">
+                <p className="text-base font-light">{formattedTimestamp}</p>
+              </div>
+              
+              {/* Logo */}
+              <div className="mt-auto">
+                <img src={certificateLogo} alt="TrueOrigin Logo" className="h-12 w-auto" />
+              </div>
+            </div>
+            
+            {/* Right section (40%) - Certificate SVG background */}
+            <div className="w-2/5 flex justify-end h-full">
+              <img 
+                src={certificateBgSvg} 
+                alt="Certificate Background" 
+                className="h-full object-cover object-right"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Download button - outside certificate, centered below */}
+      <div className="flex justify-center">
+        <Button 
+          onClick={handleDownloadPDF} 
+          className="bg-[#212EFF] text-white hover:bg-blue-700 px-8 py-3 rounded-[10px] border border-[#313131] min-w-[200px]"
+        >
+          <span className="text-lg font-semibold font-manrope">Download</span>
+        </Button>
+      </div>
+      
+      {/* Additional details section */}
+      <div className="mt-12 max-w-4xl mx-auto">
+        <h3 className="text-xl font-semibold mb-4 text-gray-900">Certification Details</h3>
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 uppercase">Certification Code</h4>
+                <p className="mt-1 text-gray-800 font-mono">{certification_code}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 uppercase">Certification Date</h4>
+                <p className="mt-1 text-gray-800">{formattedTimestamp}</p>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 uppercase">Reseller ID</h4>
+                <p className="mt-1 text-gray-800 font-mono text-sm truncate">{reseller.id.toText()}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-500 uppercase">Brand Owner</h4>
+                <p className="mt-1 text-gray-800">{organization.name}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
