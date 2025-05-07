@@ -38,6 +38,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Pagination } from '@/components/Pagination';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { logger } from '@/utils/logger'; // Import logger
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'; // Import download icon
+import { QRCodeSVG } from 'qrcode.react';
+import ReactDOMServer from 'react-dom/server';
+
+// Import assets for the certificate
+import certificateLogo from '@/assets/product-certificate-logo.svg';
+import certificateBgSvg from '@/assets/product-certificate-bg.svg';
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -45,7 +52,8 @@ const ITEMS_PER_PAGE = 10;
 const ProductsPage: React.FC = () => {
   const { actor, brandOwnerDetails, isLoading: authLoading, isAuthenticated } = useAuth();
   const orgId = brandOwnerDetails?.active_organization?.id; // This is Principal | undefined
-
+  const orgName = brandOwnerDetails?.active_organization?.name || 'Brand Owner';
+  
   // State for filters
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [productIdFilter, setProductIdFilter] = useState<string>('');
@@ -147,6 +155,318 @@ const ProductsPage: React.FC = () => {
   // Handle loading state (auth loading or products loading)
   // Consider a more specific loading state if needed
   const isLoading = authLoading || productsLoading;
+
+  // Function to download certificate
+  const downloadCertificate = (product: Product) => {
+    // Open a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      logger.error('Could not open print window. Please check if popup blockers are enabled');
+      return;
+    }
+    
+    // Generate QR code as SVG string
+    const qrCodeSvg = ReactDOMServer.renderToString(
+      <QRCodeSVG 
+        value={product.public_key || 'No Public Key'} 
+        size={150}
+        bgColor="#FFFFFF"
+        fgColor="#000000"
+        level="H"
+      />
+    );
+    
+    // Truncate product key for display
+    const truncatedKey = product.public_key ? 
+      `KEY: ${product.public_key.substring(0, 5)}...${product.public_key.substring(product.public_key.length - 5)}` : 
+      'KEY: N/A';
+    
+    // Format date like in ProductCertificate component
+    const date = new Date();
+    const day = date.getDate();
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}`;
+    
+    // Prepare the certificate HTML that matches ProductCertificate.tsx exactly
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${product.name} Certificate</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+            
+            @media print {
+              @page {
+                size: landscape;
+                margin: 0;
+              }
+              body {
+                margin: 0;
+                padding: 0;
+              }
+            }
+            
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            
+            body {
+              font-family: 'Manrope', sans-serif;
+              background-color: #f5f5f5;
+              padding: 20px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            
+            .certificate-wrapper {
+              width: 800px;
+              height: 600px;
+              background-color: white;
+              padding: 32px;
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .certificate-container {
+              width: 100%;
+              height: 100%;
+              border: 4px solid black;
+              border-radius: 12px;
+              display: flex;
+              overflow: hidden;
+            }
+            
+            .left-section {
+              width: 60%;
+              background-color: #594748;
+              color: white;
+              padding: 24px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: space-between;
+            }
+            
+            .qr-container {
+              background-color: white;
+              padding: 16px;
+              border-radius: 8px;
+            }
+            
+            .qr-inner {
+              width: 150px;
+              height: 150px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+            }
+            
+            .product-details {
+              text-align: center;
+              width: 100%;
+            }
+            
+            .product-name {
+              font-size: 24px;
+              font-weight: 700;
+              margin-bottom: 8px;
+            }
+            
+            .product-category {
+              font-size: 18px;
+              margin-bottom: 4px;
+            }
+            
+            .product-key {
+              font-size: 14px;
+              color: #e0e0e0;
+              margin-bottom: 16px;
+            }
+            
+            .verification-date {
+              font-size: 12px;
+              color: #cccccc;
+            }
+            
+            .branding {
+              text-align: center;
+            }
+            
+            .protected-by {
+              font-size: 20px;
+              font-weight: 700;
+              margin-bottom: 8px;
+            }
+            
+            .company-name {
+              font-size: 24px;
+              font-weight: 800;
+            }
+            
+            .right-section {
+              width: 40%;
+              position: relative;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+            }
+            
+            .right-overlay {
+              position: absolute;
+              inset: 0;
+              background-color: #594748;
+              opacity: 0.7;
+            }
+            
+            .watermark {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              pointer-events: none;
+              z-index: 1;
+            }
+            
+            .watermark-inner {
+              transform: rotate(-45deg);
+              color: white;
+              opacity: 0.1;
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .watermark-row {
+              display: flex;
+            }
+            
+            .genuine-text {
+              font-size: 24px;
+              font-weight: 700;
+              padding: 0 16px;
+            }
+            
+            .brand-name {
+              position: absolute;
+              bottom: 32px;
+              right: 32px;
+              color: white;
+              font-size: 20px;
+              font-weight: 700;
+              text-align: right;
+              z-index: 2;
+            }
+            
+            .print-controls {
+              margin-top: 24px;
+              display: flex;
+              justify-content: center;
+              gap: 16px;
+            }
+            
+            @media print {
+              .print-controls {
+                display: none;
+              }
+            }
+            
+            .print-button {
+              padding: 12px 24px;
+              background-color: #594748;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+              font-weight: 700;
+              font-size: 16px;
+            }
+            
+            .print-button:hover {
+              background-color: #6e585a;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="certificate-wrapper">
+            <div class="certificate-container">
+              <!-- Left Section (60%) -->
+              <div class="left-section">
+                <!-- QR Code -->
+                <div class="qr-container">
+                  <div class="qr-inner">
+                    ${qrCodeSvg}
+                  </div>
+                </div>
+                
+                <!-- Product Details -->
+                <div class="product-details">
+                  <div class="product-name">${product.name}</div>
+                  <div class="product-category">${product.category}</div>
+                  <div class="product-key">${truncatedKey}</div>
+                  <div class="verification-date">Verified on ${formattedDate}</div>
+                </div>
+                
+                <!-- Branding -->
+                <div class="branding">
+                  <div class="protected-by">Protected by</div>
+                  <div class="company-name">TrueOrigin</div>
+                </div>
+              </div>
+              
+              <!-- Right Section (40%) -->
+              <div class="right-section">
+                <!-- Background overlay -->
+                <div class="right-overlay"></div>
+                
+                <!-- Watermarks -->
+                <div class="watermark">
+                  <div class="watermark-inner">
+                    ${Array(8).fill(0).map(() => `
+                      <div class="watermark-row">
+                        ${Array(4).fill(0).map(() => `<span class="genuine-text">Genuine</span>`).join('')}
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+                
+                <!-- Brand Name -->
+                <div class="brand-name">${orgName}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="print-controls">
+            <button class="print-button" onclick="window.print()">Print Certificate</button>
+            <button class="print-button" onclick="window.close()">Close</button>
+          </div>
+          
+          <script>
+            // Auto-print when loaded
+            window.onload = function() {
+              // Small delay to ensure rendering is complete
+              setTimeout(() => {
+                window.print();
+              }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    logger.info(`Certificate preview opened for product: ${product.id.toText()}`);
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -254,29 +574,48 @@ const ProductsPage: React.FC = () => {
               <TableRow>
                 <TableHead className="w-[20%]">Product Name</TableHead>
                 <TableHead className="w-[15%]">Category</TableHead>
-                <TableHead className="w-[25%]">Description</TableHead>
-                <TableHead className="w-[20%]">Product ID</TableHead>
+                <TableHead className="w-[20%]">Description</TableHead>
+                <TableHead className="w-[15%]">Product ID</TableHead>
                 <TableHead className="w-[20%]">ECDSA Public Key</TableHead>
+                <TableHead className="w-[10%] text-right">Actions</TableHead> 
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center">
+                  <TableCell colSpan={6} className="h-48 text-center">
                     <LoadingSpinner />
                   </TableCell>
                 </TableRow>
               ) : productsError ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center text-red-600">
+                  <TableCell colSpan={6} className="h-48 text-center text-red-600">
                     Error loading products: {productsError.message}
                   </TableCell>
                 </TableRow>
               ) : paginatedProducts.length > 0 ? (
-                paginatedProducts.map((product) => (<TableRow key={product.id.toText()}><TableCell className="font-medium">{product.name}</TableCell><TableCell>{product.category}</TableCell><TableCell className="max-w-xs truncate text-sm text-gray-600">{product.description}</TableCell><TableCell className="font-mono text-xs">{product.id.toText()}</TableCell><TableCell className="truncate max-w-xs font-mono text-xs">{product.public_key || 'N/A'}</TableCell></TableRow>))
+                paginatedProducts.map((product) => (
+                  <TableRow key={product.id.toText()}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell className="max-w-xs truncate text-sm text-gray-600">{product.description}</TableCell>
+                    <TableCell className="font-mono text-xs">{product.id.toText()}</TableCell>
+                    <TableCell className="truncate max-w-xs font-mono text-xs">{product.public_key || 'N/A'}</TableCell>
+                    <TableCell className="text-right">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadCertificate(product)}
+                        title="Download Product Certificate"
+                      >
+                        <ArrowDownTrayIcon className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-48 text-center text-gray-500">
+                  <TableCell colSpan={6} className="h-48 text-center text-gray-500">
                     {products && products.length === 0 
                       ? "No products found for this organization. Add products to get started."
                       : "No products match your current filters."} 

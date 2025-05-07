@@ -1,6 +1,12 @@
+/*
+ * @module pages/brand-owners/analytics
+ * @requires TrustOrigin_backend - Backend canister
+ * @exports {FC} BrandOwnerAnalytics - Brand Owner Analytics page component
+ */
+
 import React from 'react';
 
-const BrandOwnerDashboard: React.FC = () => {
+const BrandOwnerAnalytics: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Brand Owner Dashboard</h1>
@@ -31,4 +37,4 @@ const BrandOwnerDashboard: React.FC = () => {
   );
 };
 
-export default BrandOwnerDashboard; 
+export default BrandOwnerAnalytics; 

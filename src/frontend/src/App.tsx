@@ -43,15 +43,10 @@ const ResellerCertificationPage = lazy(() => import('@/pages/reseller/certificat
 
 // Lazy load placeholders for future development
 const ResellerManagementPage = lazy(() => import('@/pages/brand-owners/resellers'));
-const AnalyticsPage = lazy(() => 
-  import('@/pages/placeholder').then(module => ({ 
-    default: () => module.default({ title: 'Brand Owner Analytics' }) 
-  }))
-);
 const UserManagementPage = lazy(() => import('@/pages/brand-owners/users'));
 
 // Brand Owner Pages
-const BrandOwnerDashboard = lazy(() => import('@/pages/brand-owners/dashboard'));
+const BrandOwnerAnalytics = lazy(() => import('@/pages/brand-owners/analytics'));
 
 // Reseller Pages
 const ResellerDashboard = lazy(() => import('@/pages/reseller/dashboard'));
@@ -125,13 +120,12 @@ function App() {
               
               {/* Brand Owner routes - Protection applied inside wrapper */}
               <Route path="/brand-owners" element={<BrandOwnerLayoutWrapper />}>
-                <Route index element={<BrandOwnerDashboard />} />
-                <Route path="dashboard" element={<BrandOwnerDashboard />} />
+                <Route index element={<BrandOwnerAnalytics />} />
+                <Route path="analytics" element={<BrandOwnerAnalytics />} />
                 <Route path="products" element={<ProductsPage />} /> 
                 <Route path="add-product" element={<AddProductPage />} /> 
                 <Route path="resellers" element={<ResellerManagementPage />} /> 
                 <Route path="users" element={<UserManagementPage />} /> 
-                <Route path="analytics" element={<AnalyticsPage />} /> 
               </Route>
               
               {/* Reseller routes - Protection applied inside wrapper */}

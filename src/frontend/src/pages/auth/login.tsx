@@ -313,7 +313,7 @@ const LoginPage = () => {
                     navigatedOrModalOpened = true;
                 } else {
                     setLoadingText('Redirecting to Brand Owner dashboard...');
-                    navigate('/brand-owners/dashboard');
+                    navigate('/brand-owners/analytics');
                     navigatedOrModalOpened = true;
                 }
             } else if (authenticatedRole === FEUserRole.Reseller) {
