@@ -223,6 +223,7 @@ export const useGetMyResellerCertification = () => {
     queryKey,
     queryFn: async () => {
       const response = await actor.get_my_reseller_certification(); 
+      logger.info('useGetMyResellerCertification response:', response);
       return handleQueryResponse(response, queryKey, transformResellerCertificationPageContext);
     },
     enabled: 

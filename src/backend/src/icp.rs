@@ -2740,12 +2740,33 @@ pub fn complete_reseller_profile(request: CompleteResellerProfileRequest) -> Api
         return ApiResponse::error(ApiError::unauthorized("Only Resellers can complete this profile."));
     }
 
-    if ORGANIZATIONS.with(|orgs| orgs.borrow().get(&request.target_organization_id)).is_none() {
+    if ORGANIZATIONS.with(|orgs| orgs.borrow().get(&request.target_organization_id.clone())).is_none() {
         return ApiResponse::error(ApiError::not_found("Target organization not found."));
     }
 
-    let existing_reseller_opt = get_reseller_by_user_id(caller);
+    let org_opt = ORGANIZATIONS.with(|orgs| orgs.borrow().get(&request.target_organization_id)).unwrap();
+    let private_key_bytes = match hex::decode(&org_opt.private_key) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to decode private key for org {}: {}", org_opt.id, e));
+            return ApiResponse::error(ApiError::internal_error(
+                "Failed to process organization secret key",
+            ));
+        }
+    };
 
+    let private_key = match SecretKey::from_slice(&private_key_bytes) { // Note: Using SecretKey, assuming this is correct for Reseller key generation
+        Ok(key) => key,
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to create secret key from slice for org {}: {}", org_opt.id, e));
+            return ApiResponse::error(ApiError::internal_error(
+                "Malformed secret key for organization",
+            ));
+        }
+    };
+    let public_key = private_key.public_key();
+    let public_key_hex = hex::encode(public_key.to_encoded_point(false).as_bytes());
+    let existing_reseller_opt = get_reseller_by_user_id(caller);
     let reseller_id = existing_reseller_opt.as_ref().map_or_else(
         || generate_unique_principal(Principal::anonymous()), 
         |r| r.id
@@ -2770,7 +2791,7 @@ pub fn complete_reseller_profile(request: CompleteResellerProfileRequest) -> Api
         updated_by: caller,
         date_joined: existing_reseller_opt.as_ref().map_or(api::time(), |r| r.date_joined),
         metadata: existing_reseller_opt.as_ref().map_or(Vec::new(), |r| r.metadata.clone()), 
-        public_key: existing_reseller_opt.as_ref().map_or(String::new(), |r| r.public_key.clone()),
+        public_key: public_key_hex,
         created_at: existing_reseller_opt.as_ref().map_or(api::time(), |r| r.created_at),
         updated_at: api::time(), 
     };
@@ -2826,6 +2847,7 @@ pub fn get_my_reseller_certification() -> ApiResponse<ResellerCertificationPageC
         user_id: reseller_record.user_id,
         organization_id: reseller_record.org_id,
         name: reseller_record.name.clone(),
+        public_key: reseller_record.public_key.clone(),
         contact_email: reseller_record.contact_email.clone(),
         contact_phone: reseller_record.contact_phone.clone(),
         ecommerce_urls: reseller_record.ecommerce_urls.clone(),

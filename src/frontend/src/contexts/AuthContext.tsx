@@ -47,8 +47,9 @@ export interface AuthContextType {
   loginWithII: () => Promise<void>;
   logout: () => Promise<void>;
   refetchAuthContext: () => Promise<void>;
-  actor: ActorSubclass<TrustOriginService>; // Expose the actor for direct use if needed
-  getActorWithCurrentIdentity: () => Promise<ActorSubclass<TrustOriginService>>; // Function to get actor with current identity
+  actor: ActorSubclass<TrustOriginService>;
+  userPrincipal: Principal | null;
+  getActorWithCurrentIdentity: () => Promise<ActorSubclass<TrustOriginService>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,22 +58,22 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
   const [currentSelectedRolePreAuth, setCurrentSelectedRolePreAuth] = useState<FEUserRole | null>(null);
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [currentActor, setCurrentActor] = useState<ActorSubclass<TrustOriginService> | null>(null);
-  const [isAuthContextLoading, setIsAuthContextLoading] = useState(true);
   const [userPrincipal, setUserPrincipal] = useState<Principal | null>(null);
+  const [isAuthContextLoading, setIsAuthContextLoading] = useState(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const initializeAuth = async () => {
-      logger.debug("AuthContext: Initializing...");
+      logger.debug("AuthContext: Initializing authentication state...");
       setIsAuthContextLoading(true);
       try {
         const client = await AuthClient.create();
         setAuthClient(client);
-        const authenticated = await client.isAuthenticated();
-        logger.debug(`AuthContext: II authenticated: ${authenticated}`);
+        const authenticatedViaII = await client.isAuthenticated();
+        logger.debug(`AuthContext: Internet Identity authenticated: ${authenticatedViaII}`);
 
-        if (authenticated) {
+        if (authenticatedViaII) {
           const identity = client.getIdentity();
           const principal = identity.getPrincipal();
           setUserPrincipal(principal);
@@ -80,26 +81,26 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
           const newActor = await getAuthenticatedActor(client);
           setCurrentActor(newActor);
         } else {
-          logger.debug("AuthContext: Setting ACTOR with ANONYMOUS identity.");
           setUserPrincipal(null);
+          logger.debug("AuthContext: Setting ACTOR with ANONYMOUS identity.");
           const newActor = await getAnonymousActor();
           setCurrentActor(newActor);
         }
       } catch (err) {
-        logger.error("AuthContext: Error during auth initialization:", err);
+        logger.error("AuthContext: Error during initial authentication setup:", err);
+        setUserPrincipal(null);
         try {
+          logger.debug("AuthContext: Falling back to ANONYMOUS actor due to initialization error.");
           const newActor = await getAnonymousActor();
           setCurrentActor(newActor);
         } catch (anonErr) {
-          logger.error("AuthContext: Failed to set anonymous actor after init error:", anonErr);
+          logger.error("AuthContext: CRITICAL - Failed to set anonymous actor after init error:", anonErr);
         }
-        setUserPrincipal(null);
       } finally {
         setIsAuthContextLoading(false);
-        logger.debug("AuthContext: Initialization complete.");
+        logger.debug("AuthContext: Authentication initialization complete.");
       }
     };
-
     initializeAuth();
   }, []);
 
@@ -115,7 +116,7 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
 
   const loginWithII = useCallback(async () => {
     if (!authClient) {
-      logger.error("AuthContext: AuthClient not initialized.");
+      logger.error("AuthContext: AuthClient not initialized for login.");
       initializeSessionMutation.reset();
       return;
     }
@@ -124,64 +125,44 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
       initializeSessionMutation.reset();
       return;
     }
-    if (!currentActor) {
-        logger.error("AuthContext: Actor not initialized before loginWithII attempt.");
-        initializeSessionMutation.reset();
-        return;
-    }
 
     try {
       const dfxNetwork = process.env.DFX_NETWORK;
       const iiCanisterIdFromEnv = process.env.CANISTER_ID_INTERNET_IDENTITY;
-      
-      logger.debug("[AuthContext] Preparing login options:", { dfxNetwork, iiCanisterIdFromEnv });
-
-      if (!dfxNetwork) {
-        logger.error("[AuthContext] DFX_NETWORK environment variable is not set. Cannot determine identity provider.");
-        initializeSessionMutation.reset();
-        return;
-      }
-
-      const internetIdentityCanisterId = iiCanisterIdFromEnv || 'bd3sg-teaaa-aaaaa-qaaba-cai';
-      if (!iiCanisterIdFromEnv) {
-        logger.warn(`[AuthContext] CANISTER_ID_INTERNET_IDENTITY not set, using default local II: ${internetIdentityCanisterId}`);
-      }
-
       const identityProviderUrl = dfxNetwork === 'ic'
           ? 'https://identity.ic0.app/#authorize'
-          : `http://${internetIdentityCanisterId}.localhost:4943/`;
+          : `http://${iiCanisterIdFromEnv || 'bd3sg-teaaa-aaaaa-qaaba-cai'}.localhost:4943/`;
       
-      logger.debug("[AuthContext] Using identityProviderUrl:", identityProviderUrl);
+      logger.debug("[AuthContext] Attempting II login with provider:", identityProviderUrl);
 
-      const loginOptions: any = {
+      await authClient.login({
         identityProvider: identityProviderUrl,
         onSuccess: async () => {
           logger.info("AuthContext: Internet Identity login successful.");
-          if (authClient) {
-            const identity = authClient.getIdentity();
-            const principal = identity.getPrincipal();
-            setUserPrincipal(principal);
-            const newActor = await getAuthenticatedActor(authClient); 
-            setCurrentActor(newActor);
-            logger.debug("AuthContext: Actor updated with authenticated identity after login:", principal.toText());
+          const identity = authClient.getIdentity();
+          const principal = identity.getPrincipal();
+          setUserPrincipal(principal);
+          const newActor = await getAuthenticatedActor(authClient);
+          setCurrentActor(newActor);
+          logger.debug("AuthContext: Actor updated with authenticated identity after login:", principal.toText());
+          
+          try {
             await initializeSessionMutation.mutateAsync({ selected_role: currentSelectedRolePreAuth });
             await refetchAuthContextQuery(); 
             logger.info("AuthContext: Backend session initialized/refreshed after login.");
-          } else {
-            logger.error("AuthContext: authClient missing after II login success.");
-            initializeSessionMutation.reset();
+          } catch (initError) {
+            logger.error("AuthContext: Backend session initialization failed after login.", initError);
           }
         },
         onError: (errorStr?: string) => {
           logger.error("AuthContext: Internet Identity login error.", errorStr);
           setUserPrincipal(null);
-          getAnonymousActor().then(setCurrentActor).catch(err => logger.error("Failed to set anon actor after II error", err));
+          getAnonymousActor().then(setCurrentActor).catch(err => logger.error("Failed to set anon actor after II login error", err));
           initializeSessionMutation.reset();
         },
-      };
-      await authClient.login(loginOptions);
+      });
     } catch (error) {
-      logger.error('AuthContext: authClient.login method itself threw an error', error);
+      logger.error('AuthContext: authClient.login method itself threw an error.', error);
       setUserPrincipal(null);
       getAnonymousActor().then(setCurrentActor).catch(err => logger.error("Failed to set anon actor after login method error", err));
       initializeSessionMutation.reset();
@@ -194,50 +175,47 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
       return;
     }
     try {
-      await logoutMutation.mutateAsync(); 
+      await logoutMutation.mutateAsync();
       if (await authClient.isAuthenticated()) { 
         await authClient.logout();
         logger.info("AuthContext: Logged out from Internet Identity.");
       }
-      setCurrentSelectedRolePreAuth(null);
-      setUserPrincipal(null);
-      const anonymousActor = await getAnonymousActor();
-      setCurrentActor(anonymousActor);
-      logger.debug("AuthContext: Actor set to anonymous after logout.");
-      await refetchAuthContextQuery();
-      navigate('/auth/login');
     } catch (error) {
-      logger.error("AuthContext: Logout failed", error);
+      logger.error("AuthContext: Error during backend or II logout:", error);
+    } finally {
       setCurrentSelectedRolePreAuth(null);
       setUserPrincipal(null);
       try {
         const anonymousActor = await getAnonymousActor();
         setCurrentActor(anonymousActor);
+        logger.debug("AuthContext: Actor set to anonymous after logout.");
       } catch (anonErr) {
-        logger.error("AuthContext: Failed to set anonymous actor after logout error:", anonErr);
+        logger.error("AuthContext: Failed to set anonymous actor after logout:", anonErr);
       }
+      await refetchAuthContextQuery(); 
+      navigate('/auth/login');
     }
   }, [authClient, logoutMutation, navigate, refetchAuthContextQuery]);
 
   const refetchAuthContext = useCallback(async () => {
     if (!isAuthContextLoading && currentActor) {
-        logger.debug("AuthContext: Refetching auth context with current actor.");
+        logger.debug("AuthContext: Explicitly refetching auth context with current actor.");
         await refetchAuthContextQuery();
     } else {
-        logger.warn("AuthContext: Skipping refetch, context still loading or actor not set.");
+        logger.warn("AuthContext: Skipping explicit refetch, context still loading or actor not set.");
     }
   }, [isAuthContextLoading, currentActor, refetchAuthContextQuery]);
   
   const getActorWithCurrentIdentity = useCallback(async (): Promise<ActorSubclass<TrustOriginService>> => {
-    if (authClient && await authClient.isAuthenticated()) {
-        logger.debug("AuthContext (getActorWithCurrentIdentity): Returning AUTHENTICATED actor.");
-        return getAuthenticatedActor(authClient);
+    if (userPrincipal && authClient && await authClient.isAuthenticated()) {
+        logger.debug("AuthContext (getActorWithCurrentIdentity): Returning AUTHENTICATED actor for principal:", userPrincipal.toText());
+        return getAuthenticatedActor(authClient); 
     }
     logger.debug("AuthContext (getActorWithCurrentIdentity): Returning ANONYMOUS actor.");
     return getAnonymousActor();
-  }, [authClient]);
+  }, [authClient, userPrincipal]);
 
-  const isAuthenticated = !!authContextData?.is_registered && !!userPrincipal;
+  const isAuthenticated = !!userPrincipal && !!authContextData?.is_registered;
   const isLoading = isAuthContextLoading || isLoadingAuthQuery || initializeSessionMutation.isPending || logoutMutation.isPending;
   const authError = authQueryError || initializeSessionMutation.error || logoutMutation.error;
 
@@ -249,17 +227,24 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
     user: authContextData?.user || null,
     role: authContextData?.role || null,
     isRegistered: authContextData?.is_registered || false,
-    brandOwnerDetails: authContextData?.brand_owner_details || null,
-    resellerDetails: authContextData?.reseller_details || null,
+    brandOwnerDetails: authContextData?.brand_owner_details || undefined,
+    resellerDetails: authContextData?.reseller_details || undefined,
     currentSelectedRolePreAuth,
     setCurrentSelectedRolePreAuth,
     loginWithII,
     logout,
     refetchAuthContext,
     actor: currentActor!,
+    userPrincipal,
     getActorWithCurrentIdentity,
   };
 
+  if (!currentActor && isAuthContextLoading) {
+    logger.debug("AuthContext: Initial actor not yet set, isAuthContextLoading is true. Not rendering children.");
+    return null; 
+  }
+  
+  logger.debug("AuthContext: Provider rendering children. isAuthContextLoading:", isAuthContextLoading, "Actor Set:", !!currentActor);
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 

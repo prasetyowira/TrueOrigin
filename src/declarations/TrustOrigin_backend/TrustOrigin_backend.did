@@ -304,6 +304,7 @@ type ResellerPublic = record {
   id : principal;
   updated_at : nat64;
   ecommerce_urls : vec Metadata;
+  public_key : text;
   additional_metadata : opt vec Metadata;
   name : text;
   contact_email : opt text;
@@ -365,6 +366,7 @@ type User = record {
   detail_meta : vec Metadata;
   last_name : opt text;
   phone_no : opt text;
+  session_keys : vec principal;
 };
 type UserDetailsInput = record {
   email : text;

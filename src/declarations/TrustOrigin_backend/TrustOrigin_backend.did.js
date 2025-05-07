@@ -161,6 +161,7 @@ export const idlFactory = ({ IDL }) => {
     'detail_meta' : IDL.Vec(Metadata),
     'last_name' : IDL.Opt(IDL.Text),
     'phone_no' : IDL.Opt(IDL.Text),
+    'session_keys' : IDL.Vec(IDL.Principal),
   });
   const UserResult = IDL.Variant({
     'none' : IDL.Null,
@@ -222,6 +223,7 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Principal,
     'updated_at' : IDL.Nat64,
     'ecommerce_urls' : IDL.Vec(Metadata),
+    'public_key' : IDL.Text,
     'additional_metadata' : IDL.Opt(IDL.Vec(Metadata)),
     'name' : IDL.Text,
     'contact_email' : IDL.Opt(IDL.Text),

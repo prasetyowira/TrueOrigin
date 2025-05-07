@@ -312,6 +312,7 @@ export interface ResellerPublic {
   'id' : Principal,
   'updated_at' : bigint,
   'ecommerce_urls' : Array<Metadata>,
+  'public_key' : string,
   'additional_metadata' : [] | [Array<Metadata>],
   'name' : string,
   'contact_email' : [] | [string],
@@ -375,6 +376,7 @@ export interface User {
   'detail_meta' : Array<Metadata>,
   'last_name' : [] | [string],
   'phone_no' : [] | [string],
+  'session_keys' : Array<Principal>,
 }
 export interface UserDetailsInput {
   'email' : string,
