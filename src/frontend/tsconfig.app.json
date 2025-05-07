@@ -21,6 +21,9 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
+      "@declarations/*": [
+        "./../declarations/*"
+      ],
       "@/*": [
         "./src/*"
       ]

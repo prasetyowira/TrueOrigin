@@ -87,7 +87,7 @@ impl fmt::Debug for Organization {
     }
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Debug, Clone)]
 pub struct OrganizationPublic {
     pub id: Principal,
     pub name: String,
@@ -278,11 +278,13 @@ pub struct User {
     pub is_principal: bool,
     pub is_enabled: bool,
     pub org_ids: Vec<Principal>,
+    pub active_org_id: Option<Principal>,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub phone_no: Option<String>,
     pub email: Option<String>,
     pub detail_meta: Vec<Metadata>,
+    pub session_keys: Vec<Principal>,
     pub created_at: u64,
     pub created_by: Principal,
     pub updated_at: u64,
@@ -296,6 +298,7 @@ impl Default for User {
             id: api::caller(),
             user_role: None,
             org_ids: Vec::new(),
+            active_org_id: None,
             is_principal: false,
             is_enabled: true,
             first_name: None,
@@ -303,10 +306,11 @@ impl Default for User {
             phone_no: None,
             email: None,
             detail_meta: Vec::new(),
+            session_keys: Vec::new(),
             created_at: api::time(),
-            created_by: api::caller(), // Default value for Principal
+            created_by: api::caller(),
             updated_at: api::time(),
-            updated_by: api::caller(), // Default value for Principal
+            updated_by: api::caller(),
         }
     }
 }
@@ -319,6 +323,7 @@ impl fmt::Debug for User {
         .field("org_ids", &self.org_ids.iter()
                                                     .map(|item| item.to_string())
                                                     .collect::<Vec<String>>().join(","))
+        .field("active_org_id", &self.active_org_id)
         .field("is_principal", &self.is_principal)
         .field("is_enabled", &self.is_enabled)
         .field("first_name", &self.first_name)
@@ -326,6 +331,9 @@ impl fmt::Debug for User {
         .field("phone_no", &self.phone_no)
         .field("email", &self.email)
         .field("detail_meta", &self.detail_meta)
+        .field("session_keys", &self.session_keys.iter()
+                                                    .map(|item| item.to_string())
+                                                    .collect::<Vec<String>>().join(","))
         .field("created_at", &self.created_at)
         .field("created_by", &self.created_by)
         .field("updated_at", &self.updated_at)
@@ -366,11 +374,18 @@ pub struct ProductReview {
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct Reseller {
     pub id: Principal,
+    pub user_id: Principal,
     pub org_id: Principal,
     pub name: String,
+    pub contact_email: Option<String>,
+    pub contact_phone: Option<String>,
+    pub ecommerce_urls: Vec<Metadata>,
+    pub additional_metadata: Option<Vec<Metadata>>,
+    pub is_verified: bool,
+    pub certification_code: Option<String>,
+    pub certification_timestamp: Option<u64>,
     pub date_joined: u64,
     pub metadata: Vec<Metadata>,
-    pub ecommerce_urls: Vec<Metadata>,
     pub public_key: String,
     pub created_at: u64,
     pub created_by: Principal,
@@ -383,16 +398,23 @@ impl Default for Reseller {
     fn default() -> Self {
         Reseller {
             id: Principal::anonymous(),
+            user_id: Principal::anonymous(),
             org_id: Principal::anonymous(),
             name: String::new(),
+            contact_email: None,
+            contact_phone: None,
+            ecommerce_urls: Vec::new(),
+            additional_metadata: None,
+            is_verified: false,
+            certification_code: None,
+            certification_timestamp: None,
             date_joined: api::time(),
             metadata: Vec::new(),
-            ecommerce_urls: Vec::new(),
             public_key: String::new(),
             created_at: api::time(),
-            created_by: api::caller(), // Default value for Principal
+            created_by: api::caller(),
             updated_at: api::time(),
-            updated_by: api::caller(), // Default value for Principal
+            updated_by: api::caller(),
         }
     }
 }
@@ -473,4 +495,118 @@ pub enum ProductUniqueCodeResult {
     #[serde(rename = "error")]
     Error(ApiError),
 }
+
+// ====== API Plan Models ======
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct UserPublic {
+    pub id: Principal,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: Option<String>,
+    pub created_at: u64,
+}
+impl_storable_for_candid_type!(UserPublic);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, Default)]
+pub struct BrandOwnerContextDetails {
+    pub has_organizations: bool,
+    pub organizations: Option<Vec<OrganizationPublic>>,
+    pub active_organization: Option<OrganizationPublic>,
+}
+impl_storable_for_candid_type!(BrandOwnerContextDetails);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, Default)]
+pub struct ResellerContextDetails {
+    pub is_profile_complete_and_verified: bool,
+    pub associated_organization: Option<OrganizationPublic>,
+    pub certification_code: Option<String>,
+    pub certification_timestamp: Option<u64>,
+}
+impl_storable_for_candid_type!(ResellerContextDetails);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug, Default)]
+pub struct AuthContextResponse {
+    pub user: Option<UserPublic>,
+    pub is_registered: bool,
+    pub role: Option<UserRole>,
+    pub brand_owner_details: Option<BrandOwnerContextDetails>,
+    pub reseller_details: Option<ResellerContextDetails>,
+}
+impl_storable_for_candid_type!(AuthContextResponse);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct LogoutResponse {
+    pub message: String,
+    pub redirect_url: Option<String>,
+}
+impl_storable_for_candid_type!(LogoutResponse);
+
+// Structs for Phase 2: Brand Owner Flow
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct CreateOrganizationWithOwnerContextRequest {
+    pub name: String,
+    pub description: String,
+    pub metadata: Vec<Metadata>, // e.g., industry, logo URL
+}
+impl_storable_for_candid_type!(CreateOrganizationWithOwnerContextRequest);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct OrganizationContextResponse {
+    pub organization: OrganizationPublic,
+    pub user_auth_context: AuthContextResponse,
+}
+impl_storable_for_candid_type!(OrganizationContextResponse);
+
+// Structs for Phase 3: Reseller Flow
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct ResellerPublic { // Sanitized Reseller details
+    pub id: Principal, // This is the Reseller record's ID
+    pub user_id: Principal, // Link to the User principal
+    pub organization_id: Principal,
+    pub name: String,
+    pub contact_email: Option<String>,
+    pub contact_phone: Option<String>,
+    pub ecommerce_urls: Vec<Metadata>,
+    pub additional_metadata: Option<Vec<Metadata>>,
+    pub is_verified: bool, 
+    pub certification_code: Option<String>,
+    pub certification_timestamp: Option<u64>,
+    pub created_at: u64,
+    pub updated_at: u64,
+}
+impl_storable_for_candid_type!(ResellerPublic);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct CompleteResellerProfileRequest {
+    pub target_organization_id: Principal,
+    pub reseller_name: String,
+    pub contact_email: Option<String>,
+    pub contact_phone: Option<String>,
+    pub ecommerce_urls: Vec<Metadata>,
+    pub additional_metadata: Option<Vec<Metadata>>,
+}
+impl_storable_for_candid_type!(CompleteResellerProfileRequest);
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct ResellerCertificationPageContext {
+    pub reseller_profile: ResellerPublic,
+    pub associated_organization: OrganizationPublic,
+    pub certification_code: String, // Assuming it will always be present if this context is fetched
+    pub certification_timestamp: u64, // Assuming it will always be present
+    pub user_details: UserPublic,
+}
+impl_storable_for_candid_type!(ResellerCertificationPageContext);
+
+// Structs for Phase 4: Profile and Navigation
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct NavigationContextResponse {
+    pub user_display_name: String,
+    pub user_avatar_id: Option<String>, // Or URL
+    pub current_organization_name: Option<String>, // Active org for BrandOwner, associated for Reseller
+}
+impl_storable_for_candid_type!(NavigationContextResponse);
 

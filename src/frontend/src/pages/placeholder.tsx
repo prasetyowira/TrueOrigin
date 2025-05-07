@@ -21,51 +21,31 @@
  */
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Construction } from "lucide-react";
 
-/**
- * Props for the PlaceholderPage component
- */
-type PlaceholderPageProps = {
-  /** The title to display in the placeholder */
+interface PlaceholderPageProps {
   title: string;
-  /** Optional description to display */
-  description?: string;
-};
+  message?: string;
+}
 
-/**
- * A generic placeholder component for pages that are not yet implemented
- * 
- * @param title - The title to display in the placeholder
- * @param description - Optional description to display
- * @returns Placeholder UI element
- */
 const PlaceholderPage: React.FC<PlaceholderPageProps> = ({ 
   title,
-  description = "This feature is currently in development and will be available soon."
+  message = "This page is under construction. Please check back later!"
 }) => {
   return (
-    <div className="container py-10">
-      <Card className="w-full max-w-3xl mx-auto">
-        <CardHeader className="text-center">
-          <div className="w-full flex justify-center mb-4">
-            <Construction size={48} className="text-amber-500" />
-          </div>
-          <CardTitle className="text-2xl">{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="mb-6 text-gray-600">
-            Our team is working hard to bring you this feature. 
-            Please check back later for updates.
-          </p>
-          <Button variant="outline" onClick={() => window.history.back()}>
-            Go Back
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="container mx-auto px-4 py-8">
+      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+        <h1 className="text-4xl font-bold text-gray-400 mb-4">🚧</h1>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-3">{title}</h2>
+        <p className="text-gray-500">
+          {message}
+        </p>
+        <button 
+          onClick={() => window.history.back()}
+          className="mt-6 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-6 rounded-lg transition-colors"
+        >
+          Go Back
+        </button>
+      </div>
     </div>
   );
 };

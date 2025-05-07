@@ -1,108 +1,71 @@
 /**
  * @file Protected route component for authentication-based access control
  * @fileoverview This component handles protecting routes based on authentication
- * status and user roles, redirecting unauthorized users to the login page.
+ * status and user roles, redirecting users as needed.
  * 
  * Functions:
- * - ProtectedRoute: Main component to protect routes based on authentication
- * 
- * Constants:
- * - ROLES: UserRole - Available user roles in the system
+ * - ProtectedRoute: Main component to protect routes
  * 
  * Flow:
- * 1. Check if user is authenticated
- * 2. If not authenticated, redirect to login
- * 3. If authenticated but roles are required, check user role
- * 4. If role check passes, render the protected children
- * 5. If role check fails, redirect to unauthorized page
- * 
- * Error Handling:
- * - Unauthenticated: Redirect to login page
- * - Unauthorized roles: Redirect to unauthorized page
+ * 1. Check auth context loading state.
+ * 2. If loading, show spinner.
+ * 3. If not authenticated, redirect to login.
+ * 4. If authenticated and `roles` prop is provided, check if user has one of the required roles.
+ * 5. If user does not have a required role, redirect to unauthorized page.
+ * 6. If authenticated and authorized (or no specific roles required), render children.
  * 
  * @module components/ProtectedRoute
- * @requires react-router-dom - For navigation and routing
- * @requires contexts/useAuthContext - For authentication state
- * @exports {FC} ProtectedRoute - Protected route component
  */
 
-import { ReactNode } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthContext } from '../contexts/useAuthContext';
-import type { UserRole } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { useAuth } from '../contexts/AuthContext'; // Updated to use new useAuth hook
+import { FEUserRole } from '@/hooks/useQueries/authQueries'; // Import FEUserRole from where it's defined (e.g., authQueries.ts)
+import { logger } from '@/utils/logger';
 
-interface ProtectedRouteProps {
-  children: ReactNode;
-  requiredRoles?: UserRole[];
+export interface ProtectedRouteProps {
+  children: React.ReactNode;
+  roles?: FEUserRole[]; // Use FEUserRole
 }
 
-// Available roles in the system
-const ROLES = {
-  ADMIN: { Admin: null } as UserRole,
-  BRAND_OWNER: { BrandOwner: null } as UserRole,
-  RESELLER: { Reseller: null } as UserRole,
-};
-
-/**
- * Loading indicator component
- */
-const LoadingIndicator = () => (
-  <div className="flex h-screen items-center justify-center">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
-  </div>
-);
-
-/**
- * Protected route component that enforces authentication
- * 
- * Checks if user is authenticated and has required roles before
- * rendering the protected content, otherwise redirects to login.
- * 
- * @param {ReactNode} children - The components to render if authorized
- * @param {UserRole[]} requiredRoles - Optional array of roles required to access the route
- * @returns {JSX.Element} The protected component or redirect
- * @example
- * // Basic usage - require authentication only
- * <ProtectedRoute>
- *   <Dashboard />
- * </ProtectedRoute>
- * 
- * // With role requirements
- * <ProtectedRoute requiredRoles={[ROLES.ADMIN]}>
- *   <AdminPanel />
- * </ProtectedRoute>
- */
-const ProtectedRoute = ({ children, requiredRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, hasRole, profile } = useAuthContext();
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles }) => {
+  const { isAuthenticated, isLoading, role: currentUserRole } = useAuth(); // role is now FEUserRole | null
   const location = useLocation();
 
-  // If still loading, show a loading indicator
   if (isLoading) {
-    return <LoadingIndicator />;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+      </div>
+    );
   }
 
-  // If authentication is explicitly false (not undefined), redirect to login
-  if (isAuthenticated === false) {
+  if (!isAuthenticated) {
+    logger.debug('[ProtectedRoute] Not authenticated, redirecting to login from:', location.pathname);
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // If no profile is set up yet but authenticated, redirect to role selection
-  if (isAuthenticated && profile && !profile.user_role?.length) {
-    return <Navigate to="/auth/choose-role" replace />;
-  }
-
-  // If roles are required, check if user has at least one of them
-  if (requiredRoles && requiredRoles.length > 0 && profile) {
-    const hasRequiredRole = requiredRoles.some(role => hasRole(role));
-    
-    if (!hasRequiredRole) {
-      // User is authenticated but doesn't have the required role
-      return <Navigate to="/unauthorized" replace />;
+  if (roles && roles.length > 0) {
+    if (!currentUserRole) {
+      logger.warn('[ProtectedRoute] User is authenticated but has no role. Required roles:', roles, 'Path:', location.pathname);
+      return <Navigate to="/unauthorized" state={{ from: location }} replace />;
     }
+    // currentUserRole is FEUserRole, roles is FEUserRole[]
+    const hasRequiredRole = roles.includes(currentUserRole);
+
+    if (!hasRequiredRole) {
+      logger.warn(
+        `[ProtectedRoute] User role '${currentUserRole}' not authorized for path: ${location.pathname}. Required: ${roles.join(', ')}.`
+      );
+      return <Navigate to="/unauthorized" state={{ from: location }} replace />;
+    }
+    logger.debug(`[ProtectedRoute] User role '${currentUserRole}' authorized for path: ${location.pathname}`);
+  } else {
+    // If no specific roles are required by the route, just being authenticated is enough.
+    logger.debug('[ProtectedRoute] Authenticated user accessing route with no specific role requirements:', location.pathname);
   }
 
-  // User is authenticated and has required roles (if any)
   return <>{children}</>;
 };
 
-export { ProtectedRoute, ROLES }; 
+export default ProtectedRoute; 

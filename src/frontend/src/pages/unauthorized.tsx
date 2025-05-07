@@ -21,8 +21,9 @@
  * @exports {FC} UnauthorizedPage - Unauthorized page component
  */
 
-import { useNavigate } from 'react-router-dom';
-import { useAuthContext } from '../contexts/useAuthContext';
+import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Unauthorized page displayed when a user lacks permission
@@ -31,17 +32,32 @@ import { useAuthContext } from '../contexts/useAuthContext';
  * @example
  * <UnauthorizedPage />
  */
-const UnauthorizedPage = () => {
+const UnauthorizedPage: React.FC = () => {
   const navigate = useNavigate();
-  const { profile } = useAuthContext();
+  const location = useLocation();
+  const { user, role } = useAuth();
 
   const goBack = () => {
-    navigate(-1);
+    const from = (location.state as { from?: Location })?.from?.pathname;
+    if (from && from !== location.pathname) {
+      navigate(from, { replace: true });
+    } else {
+      navigate(-1);
+    }
   };
 
   const goToDashboard = () => {
-    navigate('/dashboard');
+    if (role) {
+      if (role.toString() === 'BrandOwner') navigate('/brand-owners');
+      else if (role.toString() === 'Reseller') navigate('/reseller');
+      else if (role.toString() === 'Admin') navigate('/admin');
+      else navigate('/');
+    } else {
+      navigate('/');
+    }
   };
+
+  const userName = user?.first_name && user.first_name.length > 0 ? user.first_name[0] : null;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
@@ -55,8 +71,8 @@ const UnauthorizedPage = () => {
         <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
         
         <p className="text-gray-600 mb-6">
-          {profile ? 
-            `Sorry, ${profile.first_name?.[0] || ''}, you don't have permission to access this page.` : 
+          {userName ? 
+            `Sorry, ${userName}, you don't have permission to access this page.` : 
             'Sorry, you don\'t have permission to access this page.'}
         </p>
         
@@ -72,7 +88,7 @@ const UnauthorizedPage = () => {
             onClick={goToDashboard}
             className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2 px-4 rounded"
           >
-            Go to Dashboard
+            Go to My Dashboard
           </button>
         </div>
       </div>

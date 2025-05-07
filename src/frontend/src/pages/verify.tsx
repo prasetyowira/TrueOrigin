@@ -28,6 +28,7 @@
  * @exports {FC} VerifyPage - Product verification page component
  */
 
+import React from 'react';
 import { useState } from 'react';
 import QRCodeScanner from '../components/QRCodeScanner';
 import { productApi } from '../api/productApi';
@@ -139,7 +140,7 @@ const ProductInfo = ({ product }: { product: any }) => {
  * 
  * @returns {JSX.Element} Verification page component
  */
-const VerifyPage = () => {
+const VerifyPage: React.FC = () => {
   const [verification, setVerification] = useState<VerificationState>({
     status: null,
     isLoading: false,
@@ -196,67 +197,17 @@ const VerifyPage = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-4">
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Product Verification</h1>
-        <p className="text-gray-600">Scan a product QR code to verify its authenticity</p>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Verify Product Authenticity</h1>
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <p className="text-gray-700">
+          Product verification functionality will be implemented here. Users will be able to scan QR codes or enter codes manually.
+        </p>
+        {/* Placeholder for QR Scanner or input field */}
+        <div className="mt-6 p-8 border-2 border-dashed border-gray-300 rounded-lg text-center">
+          <p className="text-gray-500">QR Code Scanner / Code Input Area</p>
+        </div>
       </div>
-
-      {verification.isLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
-          <span className="ml-3 text-gray-700">Verifying product...</span>
-        </div>
-      )}
-
-      {verification.error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-          <p className="font-bold">Error</p>
-          <p>{verification.error}</p>
-          <button 
-            onClick={resetScanner}
-            className="mt-2 bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm"
-          >
-            Try Again
-          </button>
-        </div>
-      )}
-
-      {verification.status && (
-        <div className="mb-4">
-          <StatusBadge status={verification.status} />
-          
-          {verification.productInfo && (
-            <ProductInfo product={verification.productInfo} />
-          )}
-          
-          <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-            <button 
-              onClick={resetScanner}
-              className="bg-cyan-500 hover:bg-cyan-600 text-white py-2 px-4 rounded"
-            >
-              Scan Another Product
-            </button>
-            
-            <Link 
-              to="/"
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded text-center"
-            >
-              Return to Home
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {showScanner && !verification.isLoading && (
-        <div className="mt-4">
-          <QRCodeScanner 
-            onScan={handleScan} 
-            onError={handleScanError}
-            height="350px"
-          />
-        </div>
-      )}
     </div>
   );
 };

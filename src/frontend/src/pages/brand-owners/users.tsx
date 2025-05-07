@@ -30,23 +30,25 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
-import { ProductVerificationDetail } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
-import { useAuthContext } from '@/contexts/useAuthContext';
+// Import types directly from declarations
+import type { ProductVerificationDetail } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { Principal } from '@dfinity/principal';
+import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination } from '@/components/Pagination';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
-import { formatTimestamp, formatPrincipal } from '@/utils/formatters'; // Assuming formatters exist
+import { formatTimestamp, formatPrincipal } from '@/utils/formatters'; 
+import { unwrap as unwrapOptional } from '@/hooks/useQueries/authQueries';
+import { logger } from '@/utils/logger'; // Import logger
 
 // Constants
 const ITEMS_PER_PAGE = 10;
 
 const UserManagementPage: React.FC = () => {
-  // Get the selected organization ID from AuthContext
-  const { selectedOrgId, isLoading: authLoading } = useAuthContext();
-  const orgId = selectedOrgId;
+  const { actor, brandOwnerDetails, isLoading: authLoading, isAuthenticated } = useAuth();
+  const orgId = brandOwnerDetails?.active_organization?.id;
 
   // State for filters
   const [internetIdFilter, setInternetIdFilter] = useState<string>('');
@@ -64,47 +66,53 @@ const UserManagementPage: React.FC = () => {
     error: verificationsError,
     refetch
   } = useQuery<ProductVerificationDetail[], Error>({
-    // Use orgId in the queryKey to refetch when it changes
-    queryKey: ['productVerifications', orgId?.toString()], 
+    queryKey: ['productVerifications', orgId?.toText()], 
     queryFn: async () => {
-      if (!orgId) return []; // Don't fetch if orgId is not available
-      // Call the backend method
-      const result = await TrustOrigin_backend.list_product_verifications_by_org_id(orgId);
-      // Sort by timestamp descending (newest first)
-      return result.sort((a, b) => Number(b.created_at) - Number(a.created_at));
+      if (!actor || !orgId) {
+        logger.warn("[UserScansPage] Actor or OrgID not available, skipping verification fetch.");
+        return []; 
+      }
+      logger.debug(`[UserScansPage] Fetching verifications for org: ${orgId.toText()}`);
+      try {
+        const result: ProductVerificationDetail[] = await actor.list_product_verifications_by_org_id(orgId);
+        logger.debug(`[UserScansPage] Fetched ${result.length} verifications.`);
+        // Sort directly on the DID type array
+        return result.sort((a, b) => Number(b.created_at) - Number(a.created_at));
+      } catch (e) {
+        logger.error("[UserScansPage] Error fetching verifications:", e);
+        throw e;
+      }
     },
-    enabled: !!orgId, // Only run query if orgId is available and not loading
+    enabled: !!actor && !!orgId && isAuthenticated, 
   });
 
   // Refetch data when auth context finishes loading or orgId changes
   useEffect(() => {
-    if (!authLoading && orgId) {
-      refetch();
+    if (isAuthenticated && actor && orgId && !authLoading) {
+        logger.debug("[UserScansPage] Auth loaded, attempting to refetch verifications.");
+        refetch();
     }
-  }, [authLoading, orgId, refetch]);
+  }, [isAuthenticated, actor, orgId, authLoading, refetch]);
 
   // Apply filters to verification records
   const filteredVerifications = useMemo(() => {
     return verifications.filter(verification => {
-      // Internet Identity (created_by) filter - case insensitive search on Principal string
-      const internetIdString = verification.serial_no.toString().toLowerCase(); // Assuming creator is on serial_no for now based on DID
+      const unwrappedUserEmail = unwrapOptional(verification.user_email);
+      const userEmailForFilter = unwrappedUserEmail?.toLowerCase() || '';
       const internetIdMatch = 
         internetIdFilter === '' || 
-        internetIdString.includes(internetIdFilter.toLowerCase());
+        userEmailForFilter.includes(internetIdFilter.toLowerCase());
 
-      // Serial Number filter - case insensitive search on Principal string
-      const serialNumberString = verification.serial_no.toString().toLowerCase();
+      const serialNumberString = verification.serial_no.toText().toLowerCase();
       const serialNumberMatch = 
         serialNumberFilter === '' || 
         serialNumberString.includes(serialNumberFilter.toLowerCase());
 
-      // Product ID filter - case insensitive search on Principal string
-      const productIdString = verification.product_id.toString().toLowerCase();
+      const productIdString = verification.product_id.toText().toLowerCase();
       const productIdMatch = 
         productIdFilter === '' || 
         productIdString.includes(productIdFilter.toLowerCase());
       
-      // Product Name filter - case insensitive partial match
       const productNameMatch = 
         productNameFilter === '' || 
         verification.product_name.toLowerCase().includes(productNameFilter.toLowerCase());
@@ -139,6 +147,7 @@ const UserManagementPage: React.FC = () => {
 
   // Handle refresh button click
   const handleRefresh = () => {
+    logger.debug("[UserScansPage] Refresh button clicked.");
     refetch(); // Trigger a refetch of the data
   };
 
@@ -154,20 +163,21 @@ const UserManagementPage: React.FC = () => {
         <h2 className="text-lg font-medium">Filter Scan History</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           <div>
-            <label htmlFor="internet-id-filter" className="text-sm font-medium">Internet Identity</label>
+            <label htmlFor="internet-id-filter" className="text-sm font-medium text-gray-700">User Email</label>
             <Input 
               id="internet-id-filter" 
-              placeholder="Enter User Principal ID" 
+              placeholder="Enter User Email"
               value={internetIdFilter} 
               onChange={(e) => {
                 setInternetIdFilter(e.target.value);
                 setCurrentPage(1);
               }}
               disabled={isLoading}
+              className="mt-1"
             />
           </div>
           <div>
-            <label htmlFor="serial-number-filter" className="text-sm font-medium">Serial Number</label>
+            <label htmlFor="serial-number-filter" className="text-sm font-medium text-gray-700">Serial Number</label>
             <Input 
               id="serial-number-filter" 
               placeholder="Enter Serial Number" 
@@ -177,10 +187,11 @@ const UserManagementPage: React.FC = () => {
                 setCurrentPage(1);
               }}
               disabled={isLoading}
+              className="mt-1"
             />
           </div>
           <div>
-            <label htmlFor="product-id-filter" className="text-sm font-medium">Product ID</label>
+            <label htmlFor="product-id-filter" className="text-sm font-medium text-gray-700">Product ID</label>
             <Input 
               id="product-id-filter" 
               placeholder="Enter Product Principal ID" 
@@ -190,10 +201,11 @@ const UserManagementPage: React.FC = () => {
                 setCurrentPage(1);
               }}
               disabled={isLoading}
+              className="mt-1"
             />
           </div>
           <div>
-            <label htmlFor="product-name-filter" className="text-sm font-medium">Product Name</label>
+            <label htmlFor="product-name-filter" className="text-sm font-medium text-gray-700">Product Name</label>
             <Input 
               id="product-name-filter" 
               placeholder="Enter Product Name" 
@@ -203,6 +215,7 @@ const UserManagementPage: React.FC = () => {
                 setCurrentPage(1);
               }}
               disabled={isLoading}
+              className="mt-1"
             />
           </div>
           {/* Action Buttons */}
@@ -210,17 +223,17 @@ const UserManagementPage: React.FC = () => {
             <Button 
               variant="outline" 
               onClick={handleClearFilters} 
-              disabled={isLoading}
-              className="flex-1"
+              disabled={isLoading || (internetIdFilter === '' && serialNumberFilter === '' && productIdFilter === '' && productNameFilter === '')}
+              className="flex-1 mt-1"
             >
               Clear
             </Button>
             <Button 
               onClick={handleRefresh} 
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 mt-1"
             >
-              Refresh
+              {verificationsLoading ? <LoadingSpinner size="sm"/> : "Refresh"}
             </Button>
           </div>
         </div>
@@ -241,7 +254,7 @@ const UserManagementPage: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User Identity (ICP)</TableHead>
+                <TableHead>User Email</TableHead>
                 <TableHead>Serial Number</TableHead>
                 <TableHead>Product ID</TableHead>
                 <TableHead>Product Name</TableHead>
@@ -264,25 +277,26 @@ const UserManagementPage: React.FC = () => {
                 </TableRow>
               ) : paginatedVerifications.length > 0 ? (
                 // Map through paginated results and render table rows
-                paginatedVerifications.map((verification, index) => (
-                  // Using index as part of the key for stability if IDs aren't perfectly unique in edge cases
-                  <TableRow key={`${verification.serial_no.toString()}-${index}`}> 
-                    {/* Display formatted Principal IDs */}
-                    <TableCell className="font-mono text-xs" title={verification.serial_no.toString()}>
-                      {formatPrincipal(verification.serial_no)} {/* Assuming creator is serial_no based on DID */}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs" title={verification.serial_no.toString()}>
-                      {formatPrincipal(verification.serial_no)}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs" title={verification.product_id.toString()}>
-                      {formatPrincipal(verification.product_id)}
-                    </TableCell>
-                    {/* Display product name */}
-                    <TableCell>{verification.product_name}</TableCell>
-                    {/* Display formatted timestamp */}
-                    <TableCell>{formatTimestamp(verification.created_at)}</TableCell>
-                  </TableRow>
-                ))
+                paginatedVerifications.map((verification, index) => {
+                  const userEmailDisplay = unwrapOptional(verification.user_email) || 'Anonymous';
+                  return (
+                    <TableRow key={`${verification.serial_no.toText()}-${index}-${verification.product_id.toText()}`}> 
+                      <TableCell className="font-mono text-xs" title={userEmailDisplay}>
+                        {userEmailDisplay} 
+                      </TableCell>
+                      <TableCell className="font-mono text-xs" title={verification.serial_no.toText()}>
+                        {formatPrincipal(verification.serial_no)}
+                      </TableCell>
+                      <TableCell className="font-mono text-xs" title={verification.product_id.toText()}>
+                        {formatPrincipal(verification.product_id)}
+                      </TableCell>
+                      {/* Display product name */}
+                      <TableCell>{verification.product_name}</TableCell>
+                      {/* Display formatted timestamp */}
+                      <TableCell>{formatTimestamp(verification.created_at)}</TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">

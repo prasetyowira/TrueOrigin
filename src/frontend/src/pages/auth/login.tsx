@@ -1,11 +1,18 @@
-import { useNavigate, Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { Principal } from "@dfinity/principal";
-import { useAuthContext } from '../../contexts/useAuthContext';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Loader2 } from "lucide-react";
+
+// Hooks
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
+import { 
+    useInitializeUserSession, 
+    useCreateOrganizationForOwner, 
+    useSelectActiveOrganization, 
+    useCompleteResellerProfile, 
+    FECompleteResellerProfileRequest
+} from '@/hooks/useMutations/authMutations';
+import { useFindOrganizationsByName, FEUserRole } from '@/hooks/useQueries/authQueries';
 
 // assets
 import TrueOriginLogo from '../../assets/true-origin.png'
@@ -15,28 +22,27 @@ import CustomerIcon from '../../assets/party-3.png'
 import InternetIdentityLogo from '../../assets/InternetIdentityLogo.png'
 
 // UI Components
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
-import { OrganizationPublic } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { Principal } from '@dfinity/principal';
+import type { OrganizationPublic } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 
-// Schema for brand owner form
-const brandOwnerSchema = z.object({
-  name: z.string().min(1, "Organization name is required").max(100),
-  description: z.string().min(1, "Description is required"),
-});
+// Define types for modal form data if not already defined elsewhere
+interface BrandOwnerFormData {
+  name: string;
+  description: string;
+}
 
-// Schema for reseller form
-const resellerSchema = z.object({
-  name: z.string().min(1, "Shop name is required").max(100),
-  shopIdTokopedia: z.string().optional(),
-  shopIdShopee: z.string().optional(),
-  orgId: z.string().min(1, "Organization is required"),
-});
-
-type BrandOwnerFormValues = z.infer<typeof brandOwnerSchema>;
-type ResellerFormValues = z.infer<typeof resellerSchema>;
+interface ResellerFormData {
+  name: string;
+  shopIdShopee?: string;
+  shopIdTokopedia?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  selectedOrgId?: Principal;
+  selectedOrgName?: string; // For display purposes
+}
 
 /**
  * Role selection card component
@@ -82,311 +88,303 @@ const RoleCard = ({
 
 const LoginPage = () => {
     const navigate = useNavigate();
-    const { login, isAuthenticated, profile, signinAsBrandOwner, signinAsReseller, isLoading: isAuthContextLoading, selectOrganization } = useAuthContext();
-    const [selectedRole, setSelectedRole] = useState<'brandOwner' | 'reseller' | 'customer' | null>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [organizations, setOrganizations] = useState<OrganizationPublic[]>([]);
-    const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
-    const [orgSearchValue, setOrgSearchValue] = useState("");
-    const [registrationComplete, setRegistrationComplete] = useState(false);
-    const [multipleOrgs, setMultipleOrgs] = useState<OrganizationPublic[]>([]);
+    const { toast } = useToast();
+    const {
+        loginWithII,
+        isAuthenticated,
+        isLoading: isAuthLoading,
+        authError,
+        user,
+        role: authenticatedRole,
+        isRegistered,
+        brandOwnerDetails,
+        resellerDetails,
+        currentSelectedRolePreAuth,
+        setCurrentSelectedRolePreAuth,
+        refetchAuthContext,
+    } = useAuth();
+
+    // --- Local State Variables ---
+    const [selectedRole, setSelectedRole] = useState<FEUserRole | 'customer' | null>(null);
+    const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
     const [isOrgSelectionOpen, setIsOrgSelectionOpen] = useState(false);
-    const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
-    const [isAuthLoading, setIsAuthLoading] = useState(false);
-    
-    // Combined loading state - either local auth loading or context loading
-    const isLoading = isAuthLoading || isAuthContextLoading;
-    
-    // Log loading state changes
-    useEffect(() => {
-        console.log("[DEBUG] Loading state changed:", {
-            isAuthLoading,
-            isAuthContextLoading,
-            combinedLoading: isLoading
-        });
-    }, [isAuthLoading, isAuthContextLoading, isLoading]);
-    
-    // Add a safety timeout to clear loading state after 10 seconds
-    useEffect(() => {
-        if (isLoading) {
-            const safetyTimeout = setTimeout(() => {
-                console.log("[DEBUG] Safety timeout triggered - clearing loading state");
-                setIsAuthLoading(false);
-            }, 10000); // 10 seconds timeout
-            
-            return () => clearTimeout(safetyTimeout);
+    const [modalFormData, setModalFormData] = useState<Partial<BrandOwnerFormData & ResellerFormData>>({});
+    const [orgSearchInput, setOrgSearchInput] = useState('');
+    const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
+    const [loadingText, setLoadingText] = useState('Processing...');
+
+    // --- Mutation Hooks ---
+    const initializeSessionMutation = useInitializeUserSession();
+    const registerOrgMutation = useCreateOrganizationForOwner();
+    const selectOrgMutation = useSelectActiveOrganization();
+    const completeResellerProfileMutation = useCompleteResellerProfile();
+
+    // --- Query Hooks ---
+    const { 
+        data: foundOrgs, 
+        isLoading: isLoadingOrgs, 
+        error: orgSearchError 
+    } = useFindOrganizationsByName(orgSearchInput, orgSearchInput.length >= 3);
+
+    // --- Event Handlers ---
+    const handleRoleSelect = useCallback((roleValue: FEUserRole | 'customer') => {
+        setSelectedRole(roleValue);
+        if (roleValue === 'customer') {
+            setCurrentSelectedRolePreAuth(null);
+        } else {
+            setCurrentSelectedRolePreAuth(roleValue as FEUserRole); 
         }
-    }, [isLoading]);
-    
-    // Forms for both roles
-    const brandOwnerForm = useForm<BrandOwnerFormValues>({
-      resolver: zodResolver(brandOwnerSchema),
-      defaultValues: {
-        name: '',
-        description: '',
-      }
-    });
+        logger.debug(`Role selected: ${roleValue}`);
+    }, [setCurrentSelectedRolePreAuth]);
 
-    const resellerForm = useForm<ResellerFormValues>({
-      resolver: zodResolver(resellerSchema),
-      defaultValues: {
-        name: '',
-        shopIdTokopedia: '',
-        shopIdShopee: '',
-        orgId: '',
-      }
-    });
-
-    const handleRoleSelect = (role: 'brandOwner' | 'reseller' | 'customer') => {
-        setSelectedRole(role);
-    };
-
-    const handleAuthenticate = () => {
-        if (!selectedRole) {
-            // Show error or prompt user to select a role
-            alert('Please select a role first');
+    const handleLoginClick = useCallback(async () => {
+        if (selectedRole === 'customer') {
+            toast({ title: "Customer Flow", description: "Redirecting to verification..." });
+            navigate('/verify');
             return;
         }
-        
-        console.log("[DEBUG] Starting authentication with role:", selectedRole);
-        // Store the selected role to use after authentication
-        localStorage.setItem('selectedRole', selectedRole);
-        console.log("[DEBUG] Stored role in localStorage:", selectedRole);
-        
-        // Set loading state
-        setIsAuthLoading(true);
-        
-        // Start Internet Identity authentication
-        login();
-        console.log("[DEBUG] Called login() function");
-    };
-
-    // Function to search for organizations
-    const handleOrgSearch = async (search: string) => {
-      setOrgSearchValue(search);
-      if (search.length > 0) {
-        setIsLoadingOrgs(true);
-        try {
-          const results = await TrustOrigin_backend.find_organizations_by_name(search);
-          setOrganizations(results);
-        } catch (error) {
-          console.error('Error searching for organizations:', error);
-          setOrganizations([]);
-        } finally {
-          setIsLoadingOrgs(false);
+        if (!currentSelectedRolePreAuth) {
+            toast({ title: "Role not selected", description: "Please select a role before proceeding.", variant: "destructive" });
+            return;
         }
-      } else {
-        setOrganizations([]);
-      }
-    };
-
-    // Submit handler for brand owner form
-    const onBrandOwnerSubmit = (data: BrandOwnerFormValues) => {
-      console.log("[DEBUG] Submitting brand owner form:", data);
-      signinAsBrandOwner({
-        name: data.name,
-        description: data.description,
-        metadata: []
-      });
-      console.log("[DEBUG] Setting registrationComplete to true for brand owner");
-      setRegistrationComplete(true);
-      setIsModalOpen(false);
-    };
-
-    // Submit handler for reseller form
-    const onResellerSubmit = (data: ResellerFormValues) => {
-      console.log("[DEBUG] Submitting reseller form:", data);
-      const ecommerceUrls = [];
-      
-      if (data.shopIdShopee) {
-        ecommerceUrls.push({
-          key: 'Shopee',
-          value: data.shopIdShopee
-        });
-      }
-      
-      if (data.shopIdTokopedia) {
-        ecommerceUrls.push({
-          key: 'Tokopedia',
-          value: data.shopIdTokopedia
-        });
-      }
-
-      signinAsReseller({
-        name: data.name,
-        org_id: Principal.fromText(data.orgId),
-        ecommerce_urls: ecommerceUrls,
-        metadata: []
-      });
-      console.log("[DEBUG] Setting registrationComplete to true for reseller");
-      setRegistrationComplete(true);
-      setIsModalOpen(false);
-    };
-
-    // Function to handle organization selection
-    const handleOrgSelect = (orgId: string) => {
-        console.log("[DEBUG] Selected organization with ID:", orgId);
-        setSelectedOrgId(orgId);
-        setIsOrgSelectionOpen(false);
-        
-        // Update selected organization in auth context
+        setShowLoadingOverlay(true);
+        setLoadingText('Authenticating with Internet Identity...');
         try {
-            const principalOrgId = Principal.fromText(orgId);
-            console.log("[DEBUG] Calling selectOrganization with Principal:", principalOrgId.toString());
-            selectOrganization(principalOrgId);
-            
-            // Get user role to determine redirect path
-            const role = profile?.user_role?.[0];
-            if (role && 'BrandOwner' in role) {
-                console.log("[DEBUG] Redirecting to brand-owners/products with selected org:", orgId);
-                navigate('/brand-owners/products');
-            } else if (role && 'Reseller' in role) {
-                console.log("[DEBUG] Redirecting to reseller/dashboard with selected org:", orgId);
-                navigate('/reseller/dashboard');
-            }
+            await loginWithII();
         } catch (error) {
-            console.error("[DEBUG] Error selecting organization:", error);
+            toast({ title: "Login Failed", description: (error as Error).message || "An unknown error occurred during login.", variant: "destructive" });
+            setShowLoadingOverlay(false);
         }
+    }, [selectedRole, currentSelectedRolePreAuth, loginWithII, navigate, toast]);
+
+    const handleModalInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setModalFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // Modified useEffect to handle different org scenarios
-    useEffect(() => {
-        console.log("[DEBUG] Login page useEffect running with deps:", { 
-            isAuthenticated, 
-            hasProfile: !!profile,
-            registrationComplete,
-            modalOpen: isModalOpen,
-            orgSelectionOpen: isOrgSelectionOpen,
-            orgIds: profile?.org_ids?.length || 0,
-            userRole: profile?.user_role?.[0] ? Object.keys(profile.user_role[0])[0] : null,
-            loading: isLoading,
-            authLoading: isAuthLoading,
-            contextLoading: isAuthContextLoading
-        });
-
-        // Only proceed if authenticated and profile loaded and not in loading state
-        if (isAuthenticated && profile && !isLoading) {
-            // Get org IDs and user role
-            const orgIds = profile.org_ids || [];
-            const userRole = profile.user_role && profile.user_role.length > 0 ? profile.user_role[0] : null;
-            const isBrandOwner = userRole && 'BrandOwner' in userRole;
-            const isReseller = userRole && 'Reseller' in userRole;
-            
-            console.log("[DEBUG] Profile status:", { 
-                orgCount: orgIds.length, 
-                isBrandOwner, 
-                isReseller 
+    const onBrandOwnerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!modalFormData.name || !modalFormData.description) {
+            toast({ title: "Missing fields", description: "Organization name and description are required.", variant: "destructive" });
+            return;
+        }
+        setShowLoadingOverlay(true);
+        setLoadingText('Creating your organization...');
+        try {
+            await registerOrgMutation.mutateAsync({
+                name: modalFormData.name,
+                description: modalFormData.description,
+                metadata: [], 
             });
-            
-            // We have user data now, can turn off local loading
-            if (isAuthLoading) {
-                setIsAuthLoading(false);
+            toast({ title: "Organization Created", description: "Your organization has been successfully created." });
+            setIsProfileModalOpen(false);
+            setModalFormData({}); 
+            await refetchAuthContext(); 
+        } catch (error) {
+            toast({ title: "Organization Creation Failed", description: (error as Error).message || "Could not create organization.", variant: "destructive" });
+        } finally {
+             if (!registerOrgMutation.isSuccess) { 
+                setShowLoadingOverlay(false);
+            }
+        }
+    };
+
+    const onResellerSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!modalFormData.name || !modalFormData.selectedOrgId) {
+            toast({ 
+                title: "Missing fields", 
+                description: "Shop name and a selected brand organization are required.", 
+                variant: "destructive" 
+            });
+            return;
+        }
+
+        setShowLoadingOverlay(true);
+        setLoadingText('Completing your reseller profile...');
+
+        const request: FECompleteResellerProfileRequest = {
+            reseller_name: modalFormData.name,
+            target_organization_id: modalFormData.selectedOrgId,
+            contact_email: modalFormData.contactEmail,
+            contact_phone: modalFormData.contactPhone,
+            // Optional fields based on your FECompleteResellerProfileRequest type in authMutations.ts
+            // For now, assuming these are optional or handled if empty by backend/mutations file.
+            ecommerce_urls: modalFormData.shopIdShopee || modalFormData.shopIdTokopedia ? [
+                ...(modalFormData.shopIdShopee ? [{ key: 'shopee_shop_id', value: modalFormData.shopIdShopee }] : []),
+                ...(modalFormData.shopIdTokopedia ? [{ key: 'tokopedia_shop_id', value: modalFormData.shopIdTokopedia }] : []),
+            ] : [],
+            // contact_email: [], // Or from modalFormData if you add these fields
+            // contact_phone: [],
+            // additional_metadata: [],
+        };
+
+        try {
+            await completeResellerProfileMutation.mutateAsync(request);
+            toast({ title: "Profile Complete", description: "Your reseller profile has been successfully submitted." });
+            setIsProfileModalOpen(false);
+            setModalFormData({}); 
+            setOrgSearchInput(''); // Clear search input as well
+            await refetchAuthContext(); 
+            // The main useEffect should now handle navigation based on updated resellerDetails
+        } catch (error) {
+            toast({ 
+                title: "Profile Completion Failed", 
+                description: (error as Error).message || "Could not complete your profile.", 
+                variant: "destructive" 
+            });
+        } finally {
+            if (!completeResellerProfileMutation.isSuccess) {
+                setShowLoadingOverlay(false);
+            }
+        }
+    };
+
+    const handleOrgSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setOrgSearchInput(e.target.value);
+    };
+
+    const handleOrgSelectFromDropdown = (org: OrganizationPublic) => {
+        setModalFormData(prev => ({ ...prev, selectedOrgId: org.id, selectedOrgName: org.name }));
+        setOrgSearchInput(org.name); 
+    };
+    
+    const handleOrgSelectSubmitWrapper = async (orgId: Principal) => {
+        setShowLoadingOverlay(true);
+        setLoadingText('Selecting your active organization...');
+        try {
+            await selectOrgMutation.mutateAsync(orgId);
+            toast({ title: "Organization Selected", description: "Active organization has been set." });
+            setIsOrgSelectionOpen(false);
+            await refetchAuthContext();
+            // Main useEffect will handle navigation
+        } catch (error) {
+            toast({ 
+                title: "Failed to Select Organization", 
+                description: (error as Error).message || "Could not set active organization.", 
+                variant: "destructive" 
+            });
+        } finally {
+             if (!selectOrgMutation.isSuccess) {
+                setShowLoadingOverlay(false);
+            }
+        }
+    };
+
+    const getLoadingText = (): string => loadingText;
+
+    // --- useEffect for Post-Authentication Flow --- 
+    useEffect(() => {
+        if (isAuthLoading || !refetchAuthContext) { // Added !refetchAuthContext to prevent early run if hook not ready
+            return; 
+        }
+
+        // Consolidate loading states for the overlay
+        const anyMutationLoading = initializeSessionMutation.isPending || 
+                                 registerOrgMutation.isPending || 
+                                 selectOrgMutation.isPending || 
+                                 completeResellerProfileMutation.isPending;
+
+        if (anyMutationLoading) {
+            setShowLoadingOverlay(true);
+            if(initializeSessionMutation.isPending) setLoadingText('Initializing session...');
+            else if(registerOrgMutation.isPending) setLoadingText('Registering organization...');
+            else if(selectOrgMutation.isPending) setLoadingText('Selecting organization...');
+            else if(completeResellerProfileMutation.isPending) setLoadingText('Completing reseller profile...');
+            return; // If a mutation is loading, it controls the overlay, skip further logic in this effect cycle
+        }
+        // If no mutations are loading, and we are not II Authenticating initially, hide overlay. 
+        // Specific actions below might show it again.
+        // setShowLoadingOverlay(false); // This line might cause flickers if not handled carefully.
+
+        if (isAuthenticated && isRegistered) {
+            setShowLoadingOverlay(true); // Show loading while deciding next step
+            logger.info("LoginPage: User is authenticated and registered.", { authenticatedRole, brandOwnerDetails, resellerDetails });
+
+            let navigatedOrModalOpened = false;
+            if (authenticatedRole === FEUserRole.BrandOwner) {
+                if (!brandOwnerDetails?.has_organizations) {
+                    setLoadingText('Please complete your Brand Owner profile.');
+                    setIsProfileModalOpen(true);
+                    navigatedOrModalOpened = true;
+                } else if (brandOwnerDetails.organizations && brandOwnerDetails.organizations.length > 1 && !brandOwnerDetails.active_organization) {
+                    setLoadingText('Please select your active organization.');
+                    setIsOrgSelectionOpen(true);
+                    navigatedOrModalOpened = true;
+                } else {
+                    setLoadingText('Redirecting to Brand Owner dashboard...');
+                    navigate('/brand-owners/dashboard');
+                    navigatedOrModalOpened = true;
+                }
+            } else if (authenticatedRole === FEUserRole.Reseller) {
+                if (!resellerDetails?.is_profile_complete_and_verified) {
+                    setLoadingText('Please complete your Reseller profile.');
+                    setIsProfileModalOpen(true);
+                    navigatedOrModalOpened = true;
+                } else {
+                    setLoadingText('Redirecting to Reseller certification...');
+                    navigate('/reseller/certification');
+                    navigatedOrModalOpened = true;
+                }
+            } else if (authenticatedRole === FEUserRole.Admin) {
+                setLoadingText('Redirecting to Admin dashboard...');
+                navigate('/admin/dashboard'); 
+                navigatedOrModalOpened = true;
+            } else {
+                logger.warn("LoginPage: Authenticated but role is unclear or not handled post-login.");
+                setLoadingText('Redirecting to homepage...');
+                navigate('/');
+                navigatedOrModalOpened = true;
             }
             
-            // Handle the different scenarios based on org_ids length
-            if (orgIds.length === 0) {
-                // No organizations associated with user
-                if (!registrationComplete) {
-                    const storedRole = localStorage.getItem('selectedRole');
-                    
-                    if (storedRole === 'brandOwner' || storedRole === 'reseller') {
-                        console.log("[DEBUG] No orgs found, showing registration modal for:", storedRole);
-                        setSelectedRole(storedRole as 'brandOwner' | 'reseller');
-                        setIsModalOpen(true);
-                    } else if (storedRole === 'customer') {
-                        console.log("[DEBUG] Customer role, redirecting to dashboard");
-                        localStorage.removeItem('selectedRole');
-                        navigate('/dashboard');
-                    }
-                }
-            } else if (orgIds.length === 1) {
-                // Exactly one organization - proceed to redirect
-                if (!isModalOpen && !isOrgSelectionOpen) {
-                    console.log("[DEBUG] Single org found, redirecting");
-                    localStorage.removeItem('selectedRole');
-                    
-                    if (isBrandOwner) {
-                        console.log("[DEBUG] Redirecting to brand-owners/products");
-                        navigate('/brand-owners/products');
-                    } else if (isReseller) {
-                        console.log("[DEBUG] Redirecting to reseller/dashboard");
-                        navigate('/reseller/dashboard');
-                    } else {
-                        console.log("[DEBUG] Redirecting to dashboard (default)");
-                        navigate('/dashboard');
-                    }
-                }
-            } else if (orgIds.length > 1 && !isOrgSelectionOpen && !isModalOpen) {
-                // Multiple organizations - need to show selection dialog
-                console.log("[DEBUG] Multiple orgs found, fetching org details");
-                
-                // Fetch organization details for the selection dialog
-                const fetchOrgs = async () => {
-                    try {
-                        const orgPromises = orgIds.map(id => 
-                            TrustOrigin_backend.get_organization_by_id_v2(id)
-                                .then(res => res.data?.[0]?.organization || null)
-                        );
-                        
-                        const orgs = (await Promise.all(orgPromises)).filter(org => org !== null) as OrganizationPublic[];
-                        console.log("[DEBUG] Fetched organizations:", orgs);
-                        
-                        if (orgs.length > 0) {
-                            setMultipleOrgs(orgs);
-                            setIsOrgSelectionOpen(true);
-                        } else {
-                            console.log("[DEBUG] No valid organizations found, showing registration");
-                            setIsModalOpen(true);
-                        }
-                    } catch (error) {
-                        console.error("[DEBUG] Error fetching organizations:", error);
-                    }
-                };
-                
-                fetchOrgs();
+            // If no navigation or modal action taken from the above, ensure overlay is hidden.
+            // This is important if an already registered user lands here, and conditions don't match.
+            if (!navigatedOrModalOpened) {
+                setShowLoadingOverlay(false);
             }
+
+        } else if (isAuthenticated && !isRegistered && currentSelectedRolePreAuth) {
+            logger.info("LoginPage: User is II Authenticated but not registered in backend or role session not initialized.");
+            if (currentSelectedRolePreAuth && (currentSelectedRolePreAuth === FEUserRole.BrandOwner || currentSelectedRolePreAuth === FEUserRole.Reseller)){
+                setLoadingText(`Finalizing ${currentSelectedRolePreAuth} setup...`);
+                setIsProfileModalOpen(true); 
+                // setShowLoadingOverlay(false); // Modal covers screen
+            } else {
+                toast({ title: "Almost there!", description: "Please select your role to complete setup." });
+                setShowLoadingOverlay(false); // No action taken, hide overlay
+            }
+        } else if (!isAuthLoading && !isAuthenticated && !anyMutationLoading) {
+            // Not loading from auth, not authenticated, and no mutation running.
+            setShowLoadingOverlay(false);
         }
         
-        // Handle redirect after registration completed
-        if (registrationComplete && profile && profile.user_role && profile.user_role.length > 0) {
-            console.log("[DEBUG] Registration complete, redirecting with profile");
-            
-            // Clear the stored role
-            localStorage.removeItem('selectedRole');
-            
-            const role = profile.user_role[0];
-            if (role && 'BrandOwner' in role) {
-                console.log("[DEBUG] Redirecting to brand-owners/products after registration");
-                navigate('/brand-owners/products');
-            } else if (role && 'Reseller' in role) {
-                console.log("[DEBUG] Redirecting to reseller/dashboard after registration");
-                navigate('/reseller/dashboard');
-            } else {
-                console.log("[DEBUG] Redirecting to dashboard (default) after registration");
-                navigate('/dashboard');
-            }
-        }
-    }, [isAuthenticated, profile, registrationComplete, navigate, isModalOpen, isOrgSelectionOpen, isAuthLoading, isAuthContextLoading]);
+    }, [
+        isAuthenticated, 
+        isRegistered, 
+        authenticatedRole, 
+        brandOwnerDetails, 
+        resellerDetails, 
+        navigate, 
+        isAuthLoading, 
+        currentSelectedRolePreAuth, 
+        toast,
+        refetchAuthContext, // Added dependency
+        initializeSessionMutation.isPending, 
+        registerOrgMutation.isPending, 
+        selectOrgMutation.isPending, 
+        completeResellerProfileMutation.isPending
+        // Removed isProfileModalOpen, isOrgSelectionOpen as they can cause loops if also set inside this effect.
+        // Let other effects or user actions handle their closing if needed outside this primary flow-control effect.
+    ]);
 
+    // --- JSX ---    
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* Loading Overlay */}
-            {isLoading && (
+            {showLoadingOverlay && (
                 <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center flex-col">
                     <Loader2 className="h-12 w-12 text-cyan-600 animate-spin mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900">Authenticating...</h3>
-                    <p className="text-sm text-gray-500 mt-2">Please wait while we complete your authentication</p>
-                    
-                    {/* Add a button to manually dismiss the loading screen if needed */}
-                    <button 
-                        className="mt-8 px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
-                        onClick={() => {
-                            console.log("[DEBUG] Loading screen manually dismissed");
-                            setIsAuthLoading(false);
-                        }}
-                    >
-                        Dismiss
-                    </button>
+                    <h3 className="text-lg font-medium text-gray-900">{getLoadingText()}</h3>
+                    <p className="text-sm text-gray-500 mt-2">Please wait...</p>
                 </div>
             )}
 
@@ -403,21 +401,21 @@ const LoginPage = () => {
                             <div className="flex flex-col md:flex-row gap-4 mb-8">
                                 <RoleCard
                                     title="Brand Owner"
-                                    description="Safeguard Genuine Products by creating a digital identity using ECDSA key generation."
+                                    description="Manage products, track authenticity, and oversee resellers."
                                     icon={BrandOwnerIcon}
-                                    isSelected={selectedRole === 'brandOwner'}
-                                    onSelect={() => handleRoleSelect('brandOwner')}
+                                    isSelected={selectedRole === FEUserRole.BrandOwner}
+                                    onSelect={() => handleRoleSelect(FEUserRole.BrandOwner)}
                                 />
                                 <RoleCard
                                     title="Reseller"
-                                    description="Get Authorized and Safely resell products from Brand Owners."
+                                    description="Register, get certified, and manage product inventory."
                                     icon={ResellerIcon}
-                                    isSelected={selectedRole === 'reseller'}
-                                    onSelect={() => handleRoleSelect('reseller')}
+                                    isSelected={selectedRole === FEUserRole.Reseller}
+                                    onSelect={() => handleRoleSelect(FEUserRole.Reseller)}
                                 />
                                 <RoleCard
                                     title="Customer"
-                                    description="Validate QR Code and Get the Incentives"
+                                    description="Verify product authenticity and access details."
                                     icon={CustomerIcon}
                                     isSelected={selectedRole === 'customer'}
                                     onSelect={() => handleRoleSelect('customer')}
@@ -426,181 +424,225 @@ const LoginPage = () => {
                         </div>
                         
                         <div className="flex flex-col items-center">
-                            <button
-                                onClick={handleAuthenticate}
-                                disabled={!selectedRole}
-                                className={`flex items-center justify-center px-8 py-3 rounded-xl shadow-md w-full max-w-md transition-all duration-300 ${
-                                    selectedRole 
-                                    ? 'bg-cyan-600 hover:bg-cyan-700 text-white' 
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                }`}
+                            <Button
+                                onClick={handleLoginClick}
+                                disabled={!selectedRole || isAuthLoading || showLoadingOverlay}
+                                className={`w-full max-w-md ${!selectedRole ? 'cursor-not-allowed' : ''}`}
+                                size="lg"
                             >
-                                <span className="mr-3">Authenticate with Internet Identity</span>
-                                <img src={InternetIdentityLogo} alt="Internet Identity" className="h-6" />
-                            </button>
+                                {isAuthLoading || showLoadingOverlay ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <img src={InternetIdentityLogo} alt="" className="h-6 mr-3" />
+                                )}
+                                Authenticate with Internet Identity
+                            </Button>
                             
                             <div className="mt-4 text-sm text-gray-600">
                                 <Link to="/privacy" className="hover:text-cyan-600">Privacy Policy and Terms of Service</Link>
                             </div>
+                            {authError && <p className="mt-4 text-sm text-red-600">Error: {authError.message}</p>}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Profile Completion Modal */}
             <Dialog 
-                open={isModalOpen} 
-                onOpenChange={setIsModalOpen}
+                open={isProfileModalOpen} 
+                onOpenChange={setIsProfileModalOpen}
             >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>
-                            {selectedRole === 'brandOwner' ? 'Complete Brand Owner Profile' : 'Complete Reseller Profile'}
+                            {selectedRole === FEUserRole.BrandOwner ? 'Complete Brand Owner Profile' : 'Complete Reseller Profile'}
                         </DialogTitle>
+                        <DialogDescription>
+                            Please fill in the required details to complete your profile setup.
+                        </DialogDescription>
                     </DialogHeader>
                     
-                    {selectedRole === 'brandOwner' ? (
-                        <form onSubmit={brandOwnerForm.handleSubmit(onBrandOwnerSubmit)}>
+                    {selectedRole === FEUserRole.BrandOwner ? (
+                        <form onSubmit={onBrandOwnerSubmit}>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="brand-name" className="text-sm font-medium">Organization Name</label>
+                                    <label htmlFor="name" className="text-sm font-medium">Organization Name</label>
                                     <Input 
-                                        id="brand-name"
+                                        id="name"
                                         placeholder="Enter your organization name" 
-                                        {...brandOwnerForm.register('name')}
+                                        name="name"
+                                        value={modalFormData.name || ''}
+                                        onChange={handleModalInputChange}
+                                        required
+                                        disabled={registerOrgMutation.isPending}
                                     />
-                                    {brandOwnerForm.formState.errors.name && (
-                                        <p className="text-sm text-red-500">{brandOwnerForm.formState.errors.name.message}</p>
-                                    )}
                                 </div>
                                 
                                 <div className="space-y-2">
-                                    <label htmlFor="brand-description" className="text-sm font-medium">Description</label>
+                                    <label htmlFor="description" className="text-sm font-medium">Description</label>
                                     <Input 
-                                        id="brand-description"
+                                        id="description"
                                         placeholder="Enter a short description" 
-                                        {...brandOwnerForm.register('description')}
+                                        name="description"
+                                        value={modalFormData.description || ''}
+                                        onChange={handleModalInputChange}
+                                        required
+                                        disabled={registerOrgMutation.isPending}
                                     />
-                                    {brandOwnerForm.formState.errors.description && (
-                                        <p className="text-sm text-red-500">{brandOwnerForm.formState.errors.description.message}</p>
-                                    )}
                                 </div>
                             </div>
                             
                             <DialogFooter>
-                                <Button type="submit">Complete Profile</Button>
+                                <Button type="submit" disabled={registerOrgMutation.isPending}>
+                                    {registerOrgMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Complete Profile
+                                </Button>
                             </DialogFooter>
                         </form>
-                    ) : (
-                        <form onSubmit={resellerForm.handleSubmit(onResellerSubmit)}>
+                    ) : selectedRole === FEUserRole.Reseller ? (
+                        <form onSubmit={onResellerSubmit}>
                             <div className="space-y-4 py-4">
                                 <div className="space-y-2">
-                                    <label htmlFor="reseller-name" className="text-sm font-medium">Shop Name</label>
+                                    <label htmlFor="name" className="text-sm font-medium">Shop Name</label>
                                     <Input 
-                                        id="reseller-name"
+                                        id="name"
                                         placeholder="Enter your shop name" 
-                                        {...resellerForm.register('name')}
+                                        name="name"
+                                        value={modalFormData.name || ''}
+                                        onChange={handleModalInputChange}
+                                        required
+                                        disabled={completeResellerProfileMutation.isPending}
                                     />
-                                    {resellerForm.formState.errors.name && (
-                                        <p className="text-sm text-red-500">{resellerForm.formState.errors.name.message}</p>
-                                    )}
                                 </div>
                                 
                                 <div className="space-y-2">
-                                    <label htmlFor="shopee-id" className="text-sm font-medium">Shop ID at Shopee</label>
+                                    <label htmlFor="shopIdShopee" className="text-sm font-medium">Shop ID at Shopee</label>
                                     <Input 
-                                        id="shopee-id"
+                                        id="shopIdShopee"
                                         placeholder="Enter your Shopee shop ID (optional)" 
-                                        {...resellerForm.register('shopIdShopee')}
+                                        name="shopIdShopee"
+                                        value={modalFormData.shopIdShopee || ''}
+                                        onChange={handleModalInputChange}
+                                        disabled={completeResellerProfileMutation.isPending}
                                     />
                                 </div>
                                 
                                 <div className="space-y-2">
-                                    <label htmlFor="tokopedia-id" className="text-sm font-medium">Shop ID at Tokopedia</label>
+                                    <label htmlFor="shopIdTokopedia" className="text-sm font-medium">Shop ID at Tokopedia</label>
                                     <Input 
-                                        id="tokopedia-id"
+                                        id="shopIdTokopedia"
                                         placeholder="Enter your Tokopedia shop ID (optional)" 
-                                        {...resellerForm.register('shopIdTokopedia')}
+                                        name="shopIdTokopedia"
+                                        value={modalFormData.shopIdTokopedia || ''}
+                                        onChange={handleModalInputChange}
+                                        disabled={completeResellerProfileMutation.isPending}
                                     />
                                 </div>
                                 
                                 <div className="space-y-2">
-                                    <label htmlFor="org-dropdown" className="text-sm font-medium">Brand Organization</label>
+                                    <label htmlFor="contactEmail" className="text-sm font-medium">Contact Email</label>
+                                    <Input 
+                                        id="contactEmail"
+                                        type="email"
+                                        placeholder="Enter contact email (optional)" 
+                                        name="contactEmail"
+                                        value={modalFormData.contactEmail || ''}
+                                        onChange={handleModalInputChange}
+                                        disabled={completeResellerProfileMutation.isPending}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label htmlFor="contactPhone" className="text-sm font-medium">Contact Phone</label>
+                                    <Input 
+                                        id="contactPhone"
+                                        type="tel"
+                                        placeholder="Enter contact phone (optional)" 
+                                        name="contactPhone"
+                                        value={modalFormData.contactPhone || ''}
+                                        onChange={handleModalInputChange}
+                                        disabled={completeResellerProfileMutation.isPending}
+                                    />
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <label htmlFor="org-search" className="text-sm font-medium">Brand Organization</label>
                                     <div className="relative">
                                         <Input 
                                             id="org-search"
-                                            placeholder="Search for an organization" 
-                                            value={orgSearchValue}
-                                            onChange={(e) => handleOrgSearch(e.target.value)}
+                                            placeholder="Search for brand organization..." 
+                                            value={orgSearchInput}
+                                            onChange={handleOrgSearchChange}
+                                            required
+                                            disabled={completeResellerProfileMutation.isPending}
                                         />
                                         
-                                        {organizations.length > 0 && (
+                                        {(isLoadingOrgs || (orgSearchInput.length >= 3 && (foundOrgs || orgSearchError))) && (
                                             <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-auto">
                                                 {isLoadingOrgs ? (
-                                                    <div className="px-4 py-2 text-sm text-gray-500">Loading...</div>
-                                                ) : (
-                                                    organizations.map((org) => (
+                                                    <div className="px-4 py-2 text-sm text-gray-500 flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading...</div>
+                                                ) : orgSearchError ? (
+                                                    <div className="px-4 py-2 text-sm text-red-600">Error: {orgSearchError.message}</div>
+                                                ) : foundOrgs && foundOrgs.length > 0 ? (
+                                                    foundOrgs.map((org: OrganizationPublic) => (
                                                         <div 
-                                                            key={org.id.toString()} 
+                                                            key={org.id.toText()}
                                                             className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
-                                                            onClick={() => {
-                                                                resellerForm.setValue('orgId', org.id.toString());
-                                                                setOrgSearchValue(org.name);
-                                                                setOrganizations([]);
-                                                            }}
+                                                            onClick={() => handleOrgSelectFromDropdown(org)}
                                                         >
-                                                            {org.name}
+                                                            {org.name} ({org.id.toText().substring(0, 5)}...)
                                                         </div>
                                                     ))
-                                                )}
+                                                ) : orgSearchInput.length >= 3 ? (
+                                                     <div className="px-4 py-2 text-sm text-gray-500">No organizations found.</div>
+                                                ) : null}
                                             </div>
                                         )}
                                     </div>
-                                    <input type="hidden" {...resellerForm.register('orgId')} />
-                                    {resellerForm.formState.errors.orgId && (
-                                        <p className="text-sm text-red-500">{resellerForm.formState.errors.orgId.message}</p>
+                                    {modalFormData.selectedOrgName && (
+                                        <p className="text-xs text-gray-600 mt-1">Selected Brand: {modalFormData.selectedOrgName}</p>
                                     )}
                                 </div>
                             </div>
                             
                             <DialogFooter>
-                                <Button type="submit">Complete Profile</Button>
+                                <Button type="submit" disabled={!modalFormData.selectedOrgId || completeResellerProfileMutation.isPending}>
+                                    {completeResellerProfileMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Complete Profile
+                                </Button>
                             </DialogFooter>
                         </form>
-                    )}
+                    ) : null }
                 </DialogContent>
             </Dialog>
 
-            {/* Organization Selection Dialog */}
             <Dialog
                 open={isOrgSelectionOpen}
                 onOpenChange={setIsOrgSelectionOpen}
             >
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>
-                            Select Organization
-                        </DialogTitle>
+                        <DialogTitle>Select Organization</DialogTitle>
+                        <DialogDescription>
+                           You belong to multiple organizations. Select the one you want to work with in this session.
+                        </DialogDescription>
                     </DialogHeader>
                     
                     <div className="space-y-4 py-4">
                         <p className="text-sm text-gray-500">
-                            You have multiple organizations. Please select which one you'd like to access.
+                            You belong to multiple organizations. Select one to access.
                         </p>
                         
                         <div className="space-y-2 max-h-60 overflow-auto">
-                            {multipleOrgs.map((org) => (
-                                <div 
-                                    key={org.id.toString()}
-                                    onClick={() => handleOrgSelect(org.id.toString())}
+                            {brandOwnerDetails?.organizations?.map((org) => (
+                                <div
+                                    key={org.id.toText()}
+                                    onClick={() => handleOrgSelectSubmitWrapper(org.id)}
                                     className="flex items-center p-3 rounded-md cursor-pointer hover:bg-gray-100 transition-colors border border-gray-200"
                                 >
-                                    <div className="w-8 h-8 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center mr-3">
-                                        {org.name.charAt(0).toUpperCase()}
+                                    <div className="w-8 h-8 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center mr-3 font-mono text-xs">
+                                        {org.name.substring(0, 1).toUpperCase()}{org.id.toText().substring(0, 3)} 
                                     </div>
                                     <div>
                                         <h3 className="font-medium">{org.name}</h3>
-                                        <p className="text-xs text-gray-500">{org.id.toString().slice(0, 10)}...</p>
+                                        <p className="text-xs text-gray-500 font-mono">ID: {org.id.toText()}</p>
                                     </div>
                                 </div>
                             ))}
@@ -608,17 +650,14 @@ const LoginPage = () => {
                     </div>
                     
                     <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsOrgSelectionOpen(false)}
-                        >
-                            Cancel
-                        </Button>
+                        <Button variant="outline" onClick={() => setIsOrgSelectionOpen(false)}>Cancel</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
     );
 };
+
+import { logger } from '@/utils/logger';
 
 export default LoginPage;

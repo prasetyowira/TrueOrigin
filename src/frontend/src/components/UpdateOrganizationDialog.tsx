@@ -20,12 +20,16 @@
  * @exports {FC} UpdateOrganizationDialog - Update organization dialog component
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { useGetOrganization, useUpdateOrganization } from '@/hooks';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUpdateOrganization, FEUpdateOrganizationRequest } from '@/hooks/useMutations/organizationMutations';
+import type { OrganizationPublic as DidOrganizationPublic, Metadata as DidMetadata } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 import {
   Dialog,
@@ -36,6 +40,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // Form validation schema
@@ -45,7 +50,7 @@ const updateOrganizationSchema = z.object({
 });
 
 // Form values type
-type UpdateOrganizationFormValues = z.infer<typeof updateOrganizationSchema>;
+type UpdateOrganizationFormValues = Pick<FEUpdateOrganizationRequest, 'name' | 'description'>;
 
 interface UpdateOrganizationDialogProps {
   open: boolean;
@@ -63,35 +68,57 @@ const UpdateOrganizationDialog: React.FC<UpdateOrganizationDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  // Get organization details
-  const { data: organization, isLoading: isLoadingOrg } = useGetOrganization();
-  
-  // Initialize form with react-hook-form and zod validation
+  const { brandOwnerDetails, isLoading: authLoading } = useAuth();
+  const activeOrganization = brandOwnerDetails?.active_organization;
+  const { toast } = useToast();
+
   const form = useForm<UpdateOrganizationFormValues>({
     resolver: zodResolver(updateOrganizationSchema),
     defaultValues: {
-      name: organization?.name || '',
-      description: organization?.description || '',
+      name: '',
+      description: '',
     },
-    // Update form values when organization data is loaded
-    values: organization ? {
-      name: organization.name,
-      description: organization.description,
-    } : undefined,
   });
-  
-  // Get update organization mutation
+
+  useEffect(() => {
+    if (activeOrganization) {
+      form.reset({
+        name: activeOrganization.name,
+        description: activeOrganization.description,
+      });
+    }
+  }, [activeOrganization, form.reset]);
+
   const { mutate: updateOrganization, isPending } = useUpdateOrganization();
   
-  // Form submission handler
   const onSubmit = (data: UpdateOrganizationFormValues) => {
-    updateOrganization(data, {
-      onSuccess: () => {
-        onOpenChange(false); // Close dialog on success
+    if (!activeOrganization) {
+      logger.error("[UpdateOrgDialog] No active organization to update.");
+      toast({ title: "Error", description: "No active organization selected.", variant: "destructive" });
+      return;
+    }
+    logger.debug("[UpdateOrgDialog] Submitting organization update:", data);
+
+    const requestPayload: FEUpdateOrganizationRequest = {
+      id: activeOrganization.id,
+      name: data.name,
+      description: data.description,
+      metadata: activeOrganization.metadata || [],
+    };
+
+    updateOrganization(requestPayload, {
+      onSuccess: (updatedOrg) => {
+        toast({ title: "Success", description: `Organization "${updatedOrg.name}" updated.` });
+        onOpenChange(false); 
       },
+      onError: (error) => {
+        toast({ title: "Update Failed", description: error.message, variant: "destructive" });
+      }
     });
   };
   
+  const isLoading = authLoading || !activeOrganization;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -99,48 +126,48 @@ const UpdateOrganizationDialog: React.FC<UpdateOrganizationDialogProps> = ({
           <DialogTitle>Update Organization</DialogTitle>
         </DialogHeader>
         
-        {isLoadingOrg ? (
-          <div className="flex justify-center py-6">
+        {isLoading ? (
+          <div className="flex justify-center py-6 h-40">
             <LoadingSpinner />
           </div>
-        ) : (
+        ) : activeOrganization ? (
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 py-4">
-              {organization && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-500">Organization ID</label>
-                  <div className="text-sm text-gray-900 bg-gray-100 p-2 rounded break-all">
-                    {organization.id.toString()}
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-gray-500">Organization ID</label>
+                <div className="text-sm text-gray-900 bg-gray-100 p-2 rounded break-all font-mono">
+                  {activeOrganization.id.toText()}
                 </div>
-              )}
+              </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label htmlFor="name" className="text-sm font-medium">Organization Name</label>
                 <Input 
                   id="name"
                   placeholder="Enter organization name" 
                   {...form.register('name')}
+                  className="bg-gray-50"
                 />
                 {form.formState.errors.name && (
-                  <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.name.message}</p>
                 )}
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label htmlFor="description" className="text-sm font-medium">Description</label>
-                <Input 
+                <Textarea
                   id="description"
                   placeholder="Enter organization description" 
                   {...form.register('description')}
+                  className="bg-gray-50 min-h-[80px]"
                 />
                 {form.formState.errors.description && (
-                  <p className="text-sm text-red-500">{form.formState.errors.description.message}</p>
+                  <p className="text-xs text-red-500 mt-1">{form.formState.errors.description.message}</p>
                 )}
               </div>
             </div>
             
-            <DialogFooter>
+            <DialogFooter className="mt-6">
               <Button
                 type="button"
                 variant="outline"
@@ -151,7 +178,7 @@ const UpdateOrganizationDialog: React.FC<UpdateOrganizationDialogProps> = ({
               </Button>
               <Button 
                 type="submit" 
-                disabled={isPending}
+                disabled={isPending || !form.formState.isDirty}
               >
                 {isPending ? (
                   <>
@@ -164,6 +191,10 @@ const UpdateOrganizationDialog: React.FC<UpdateOrganizationDialogProps> = ({
               </Button>
             </DialogFooter>
           </form>
+        ) : (
+          <div className="py-6 text-center text-gray-600">
+            <p>No active organization selected to update.</p>
+          </div>
         )}
       </DialogContent>
     </Dialog>

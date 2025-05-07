@@ -366,3 +366,10 @@ pub struct ProductVerificationDetail {
     pub serial_no: Principal,
     pub created_at: u64,
 }
+
+// ===== Reset API Structures =====
+
+#[derive(CandidType, Serialize, Deserialize)]
+pub struct ResetStorageResponse {
+    pub message: String,
+}

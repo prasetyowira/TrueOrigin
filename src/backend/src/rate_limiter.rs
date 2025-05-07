@@ -85,21 +85,21 @@ pub fn check_rate_limit(user_id: Principal, product_id: Principal) -> Result<Rat
     let current_time = api::time();
 
     RATE_LIMITS.with(|rate_limits| {
-        let mut rate_limits_mut = rate_limits.borrow_mut();
+        let rate_limits_ref = rate_limits.borrow();
         
-        // Get or create rate limit entry
-        let entry = match rate_limits_mut.get(&key) {
+        let entry = match rate_limits_ref.get(&key) {
             Some(mut entry) => {
-                // Check if window has expired and reset if needed
                 if current_time > entry.window_start + WINDOW_DURATION_SECONDS {
-                    // Reset the window
-                    entry.window_start = current_time;
-                    entry.attempts = 0;
+                    RateLimitEntry {
+                        attempts: 0,
+                        window_start: current_time,
+                        ..entry.clone()
+                    }
+                } else {
+                    entry.clone()
                 }
-                entry
             },
             None => {
-                // Create new entry
                 RateLimitEntry {
                     principal_id: user_id,
                     product_id,
@@ -118,7 +118,6 @@ pub fn check_rate_limit(user_id: Principal, product_id: Principal) -> Result<Rat
 
         let reset_time = entry.window_start + WINDOW_DURATION_SECONDS;
 
-        // Return info without updating the rate limit
         Ok(RateLimitInfo {
             remaining_attempts,
             reset_time,
@@ -214,4 +213,16 @@ pub fn reset_rate_limit(user_id: Principal, product_id: Principal) {
         let mut rate_limits_mut = rate_limits.borrow_mut();
         rate_limits_mut.remove(&key);
     });
+}
+
+// Reset ALL rate limits (use with caution)
+pub fn reset_rate_limits() {
+    RATE_LIMITS.with(|rate_limits| {
+        let mut rate_limits_mut = rate_limits.borrow_mut();
+        let keys: Vec<_> = rate_limits_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            rate_limits_mut.remove(&key);
+        }
+    });
+    ic_cdk::print("ℹ️ All rate limits have been reset.");
 } 

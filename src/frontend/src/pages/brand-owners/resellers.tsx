@@ -23,24 +23,28 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
-import { TrustOrigin_backend } from '../../../../declarations/TrustOrigin_backend';
-import { Reseller } from '../../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
-import { useAuthContext } from '@/contexts/useAuthContext';
+import { useQuery } from '@tanstack/react-query';
+// Import types directly from declarations
+import type { Reseller, Metadata as DidMetadata } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import { Principal } from '@dfinity/principal'; // Corrected import
+// Use the new useAuth hook
+import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Assuming Select might be needed for status filter later
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Pagination } from '@/components/Pagination';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { format } from 'date-fns';
+import { unwrap as unwrapOptional } from '@/hooks/useQueries/authQueries'; 
+import { logger } from '@/utils/logger'; // Ensure logger is imported
 
 // Constants
 const ITEMS_PER_PAGE = 10;
 
 const ResellerManagementPage: React.FC = () => {
-  const { selectedOrgId, isLoading: authLoading } = useAuthContext();
-  const orgId = selectedOrgId;
+  const { actor, brandOwnerDetails, isLoading: authLoading, isAuthenticated } = useAuth();
+  const orgId = brandOwnerDetails?.active_organization?.id;
 
   // State for filters
   const [nameFilter, setNameFilter] = useState<string>('');
@@ -56,27 +60,33 @@ const ResellerManagementPage: React.FC = () => {
     isLoading: resellersLoading, 
     error: resellersError,
     refetch
-  }: UseQueryResult<Reseller[], Error> = useQuery<Reseller[], Error, Reseller[], readonly unknown[]>({
-    queryKey: ['resellers', orgId?.toString()],
+  } = useQuery<Reseller[], Error>({
+    queryKey: ['resellers', orgId?.toText()],
     queryFn: async (): Promise<Reseller[]> => {
-      if (!orgId) return [];
-      const result = await TrustOrigin_backend.list_resellers_by_org_id(orgId);
-      // Keep date_joined as bigint, handle potential undefined values
-      return result.map(reseller => ({
-        ...reseller,
-        date_joined: reseller.date_joined ?? BigInt(0), // Provide a BigInt fallback or handle appropriately
-        public_key: reseller.public_key ?? 'N/A' // Ensure public_key has a fallback
-      }));
+      if (!actor || !orgId) {
+        logger.warn("[ResellersPage] Actor or OrgID not available, skipping reseller fetch.");
+        return [];
+      }
+      logger.debug(`[ResellersPage] Fetching resellers for org: ${orgId.toText()}`);
+      try {
+        const result: Reseller[] = await actor.list_resellers_by_org_id(orgId);
+        logger.debug(`[ResellersPage] Fetched ${result.length} resellers.`);
+        return result.sort((a,b) => a.name.localeCompare(b.name)); 
+      } catch (e) {
+        logger.error("[ResellersPage] Error fetching resellers:", e);
+        throw e;
+      }
     },
-    enabled: !!orgId, // Only run query if orgId is available
+    enabled: !!actor && !!orgId && isAuthenticated,
   });
 
   // Retry fetching resellers when auth loads or orgId changes
   useEffect(() => {
-    if (!authLoading && orgId) {
+    if (isAuthenticated && actor && orgId && !authLoading) {
+      logger.debug("[ResellersPage] Auth loaded, attempting to refetch resellers.");
       refetch();
     }
-  }, [authLoading, orgId, refetch]);
+  }, [isAuthenticated, actor, orgId, authLoading, refetch]);
 
   // Apply filters to resellers (client-side)
   const filteredResellers = useMemo(() => {
@@ -87,7 +97,7 @@ const ResellerManagementPage: React.FC = () => {
         nameFilter === '' || 
         reseller.name.toLowerCase().includes(nameFilter.toLowerCase());
       
-      const resellerIdString = reseller.id.toString().toLowerCase();
+      const resellerIdString = reseller.id.toText().toLowerCase();
       const resellerIdMatch = 
         resellerIdFilter === '' || 
         resellerIdString.includes(resellerIdFilter.toLowerCase());
@@ -124,6 +134,7 @@ const ResellerManagementPage: React.FC = () => {
 
   // Handle refresh button click
   const handleRefresh = () => {
+    logger.debug("[ResellersPage] Refresh button clicked.");
     refetch();
   };
 
@@ -131,17 +142,18 @@ const ResellerManagementPage: React.FC = () => {
   const isLoading = authLoading || resellersLoading;
 
   // Function to safely format date from bigint
-  const formatDate = (timestamp: bigint): string => {
+  const formatDate = (timestampOpt: [] | [bigint] | bigint | undefined): string => {
+    // First, unwrap if it's the Candid opt array form `[] | [bigint]`
+    let timestamp = Array.isArray(timestampOpt) ? unwrapOptional(timestampOpt) : timestampOpt;
+    
     if (timestamp === undefined || timestamp === null) return 'N/A';
     try {
-      // Convert BigInt to Number for Date constructor
       const numericTimestamp = Number(timestamp);
-      // Assuming timestamp is in nanoseconds, convert to milliseconds
+      // Timestamps from backend (date_joined, certification_timestamp) are Nat64 (bigint)
+      // They represent nanoseconds. Convert to milliseconds for Date constructor.
       const date = new Date(numericTimestamp / 1_000_000); 
-      if (isNaN(date.getTime())) { // Check if date is valid
-        return 'Invalid Date';
-      }
-      return format(date, 'PPpp'); // Example format: Sep 18, 2023, 3:30:00 PM
+      if (isNaN(date.getTime())) return 'Invalid Date';
+      return format(date, 'PPpp'); 
     } catch (error) {
       console.error("Error formatting date:", error);
       return 'Invalid Date';
@@ -153,20 +165,21 @@ const ResellerManagementPage: React.FC = () => {
       <h1 className="text-2xl font-semibold">Reseller Management</h1>
 
       {/* Filters Section */}
-      <div className="space-y-4 p-4 border rounded-lg">
+      <div className="space-y-4 p-4 border rounded-lg bg-white shadow-sm">
         <h2 className="text-lg font-medium">Filter Resellers</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           <div>
-            <label className="text-sm font-medium">Date Joined</label>
+            <label className="text-sm font-medium text-gray-700">Date Joined</label>
             <Input 
               placeholder="Select Date" 
               disabled 
               title="Date filter not implemented yet"
+              className="mt-1"
             />
           </div>
           <div>
             {/* Placeholder for Status/Certification Filter */}
-            <label htmlFor="status-filter" className="text-sm font-medium">Certification Status</label>
+            <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">Certification Status</label>
              <Select 
               value={statusFilter} 
               onValueChange={(value) => {
@@ -175,7 +188,7 @@ const ResellerManagementPage: React.FC = () => {
               }}
               disabled // Disable until implemented
             >
-              <SelectTrigger id="status-filter">
+              <SelectTrigger id="status-filter" > 
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
@@ -185,7 +198,7 @@ const ResellerManagementPage: React.FC = () => {
             </Select>
           </div>
           <div>
-            <label htmlFor="reseller-id-filter" className="text-sm font-medium">Reseller ID</label>
+            <label htmlFor="reseller-id-filter" className="text-sm font-medium text-gray-700">Reseller ID</label>
             <Input 
               id="reseller-id-filter" 
               placeholder="Enter Reseller ID" 
@@ -194,10 +207,12 @@ const ResellerManagementPage: React.FC = () => {
                 setResellerIdFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              disabled={isLoading}
+              className="mt-1"
             />
           </div>
            <div>
-            <label htmlFor="reseller-name-filter" className="text-sm font-medium">Reseller Name</label>
+            <label htmlFor="reseller-name-filter" className="text-sm font-medium text-gray-700">Reseller Name</label>
             <Input 
               id="reseller-name-filter" 
               placeholder="Enter Name" 
@@ -206,23 +221,25 @@ const ResellerManagementPage: React.FC = () => {
                 setNameFilter(e.target.value);
                 setCurrentPage(1);
               }}
+              disabled={isLoading}
+              className="mt-1"
             />
           </div>
           <div className="flex gap-2">
             <Button 
               variant="outline" 
               onClick={handleClearFilters} 
-              disabled={isLoading}
-              className="flex-1"
+              disabled={isLoading || (nameFilter === '' && resellerIdFilter === '' && statusFilter === 'all')}
+              className="flex-1 mt-1"
             >
               Clear
             </Button>
             <Button 
               onClick={handleRefresh} 
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 mt-1"
             >
-              Refresh
+              {resellersLoading ? <LoadingSpinner size="sm"/> : "Refresh"}
             </Button>
           </div>
         </div>
@@ -239,22 +256,22 @@ const ResellerManagementPage: React.FC = () => {
           )}
         </div>
         
-        <div className="border rounded-lg overflow-hidden">
+        <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Reseller Name</TableHead>
-                <TableHead>Certification</TableHead> {/* Placeholder Column */}
+                <TableHead>Certification Code</TableHead> 
                 <TableHead>Reseller ID</TableHead>
                 <TableHead>Date Joined</TableHead>
-                <TableHead>ECDSA Public Key</TableHead>
+                <TableHead>Contact Email</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    <LoadingSpinner />
+                    <LoadingSpinner /> 
                   </TableCell>
                 </TableRow>
               ) : resellersError ? (
@@ -264,21 +281,20 @@ const ResellerManagementPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : paginatedResellers.length > 0 ? (
-                paginatedResellers.map((reseller: Reseller) => ( // Explicitly type reseller
-                  <TableRow key={reseller.id.toString()}>
+                paginatedResellers.map((reseller: Reseller) => ( 
+                  <TableRow key={reseller.id.toText()}>
                     <TableCell>{reseller.name}</TableCell>
                     <TableCell>
-                      {/* Placeholder for certification status */}
-                      <span className="text-gray-400 italic">N/A</span> 
+                      {unwrapOptional(reseller.certification_code) || 'N/A'} 
                     </TableCell> 
                     <TableCell className="font-mono text-xs">
-                      {reseller.id.toString()}
+                      {reseller.id.toText()}
                     </TableCell>
                     <TableCell>
                       {formatDate(reseller.date_joined)}
                     </TableCell>
-                    <TableCell className="truncate max-w-xs font-mono text-xs">
-                      {reseller.public_key}
+                    <TableCell className="truncate max-w-xs">
+                      {unwrapOptional(reseller.contact_email) || 'N/A'}
                     </TableCell>
                   </TableRow>
                 ))

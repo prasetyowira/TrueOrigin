@@ -11,7 +11,7 @@ use k256::{
 };
 use crate::auth::{authorize_for_organization, ensure_admin, Permission};
 use crate::error::ApiError;
-use crate::models::{Metadata, Organization, OrganizationInput, OrganizationPublic, OrganizationResult, PrivateKeyResult, Product, ProductInput, ProductResult, ProductSerialNumber, ProductSerialNumberResult, ProductUniqueCodeResult, ProductUniqueCodeResultRecord, ProductVerification, ProductVerificationResult, ProductVerificationStatus, Reseller, ResellerInput, ResellerVerificationResult, UniqueCodeResult, User, UserDetailsInput, UserResult, UserRole};
+use crate::models::{Metadata, Organization, OrganizationInput, OrganizationPublic, OrganizationResult, PrivateKeyResult, Product, ProductInput, ProductResult, ProductSerialNumber, ProductSerialNumberResult, ProductUniqueCodeResult, ProductUniqueCodeResultRecord, ProductVerification, ProductVerificationResult, ProductVerificationStatus, Reseller, ResellerInput, ResellerVerificationResult, UniqueCodeResult, User, UserDetailsInput, UserResult, UserRole, UserPublic, AuthContextResponse, BrandOwnerContextDetails, ResellerContextDetails, LogoutResponse, CreateOrganizationWithOwnerContextRequest, OrganizationContextResponse, CompleteResellerProfileRequest, ResellerCertificationPageContext, ResellerPublic, NavigationContextResponse};
 use crate::utils::generate_unique_principal;
 use crate::{
     global_state::{
@@ -41,7 +41,7 @@ use crate::api::{
     VerifyProductEnhancedRequest, ProductVerificationEnhancedResponse, RateLimitInfo,
     GenerateResellerUniqueCodeRequest, ResellerUniqueCodeResponse, VerifyResellerRequest,
     ResellerVerificationResponse, ResellerVerificationStatus, UserResponse, ProductResponse,
-    ProductVerificationDetail,
+    ProductVerificationDetail, ResetStorageResponse,
 };
 use crate::rate_limiter;
 use crate::rewards;
@@ -86,8 +86,29 @@ pub fn get_organization_by_id_v2(id: Principal) -> ApiResponse<OrganizationRespo
     // If user exists and has a role, check permissions
     if let Some(user) = user_opt {
         if let Some(role) = &user.user_role {
-            // Check if user belongs to this organization or is an admin
-            if !user.org_ids.contains(&id) && !matches!(role, UserRole::Admin) {
+            // For users with BrandOwner role, automatically allow access even if the org isn't in their org_ids yet
+            // This fixes the chicken-and-egg problem where users need to see the org but don't have it in their list yet
+            if matches!(role, UserRole::BrandOwner) {
+                // Log this situation for debugging
+                ic_cdk::print(format!("ℹ️ [get_organization_by_id_v2] BrandOwner accessing org {}", id));
+                
+                // Continue with the function to get the organization
+            }
+            else if matches!(role, UserRole::Reseller) {
+                // Log this situation for debugging
+                ic_cdk::print(format!("ℹ️ [get_organization_by_id_v2] Reseller accessing org {}", id));
+
+                // Continue with the function to get the organization
+            }
+            // If user is Admin, they can see any organization
+            else if matches!(role, UserRole::Admin) {
+                // Log this situation for debugging
+                ic_cdk::print(format!("ℹ️ [get_organization_by_id_v2] Admin accessing org {}", id));
+                
+                // Continue with the function to get the organization
+            }
+            // For other roles, check if user belongs to this organization or is an admin
+            else if !user.org_ids.contains(&id) {
                 return ApiResponse::error(ApiError::unauthorized(
                     "User does not have access to this organization",
                 ));
@@ -191,38 +212,16 @@ pub fn get_organization_private_key(org_id: Principal) -> PrivateKeyResult {
 #[query]
 pub fn find_organizations_by_name(name: String) -> Vec<OrganizationPublic> {
     let filter = name.trim().to_lowercase();
-    let caller = ic_cdk::caller();
-
-    // Get user to check role and permissions
-    let user_opt = USERS.with(|users| users.borrow().get(&caller));
 
     ORGANIZATIONS.with(|orgs| {
         let orgs_borrow = orgs.borrow();
 
-        // If user is admin, they can see all organizations
-        if let Some(user) = &user_opt {
-            if let Some(role) = &user.user_role {
-                if matches!(role, UserRole::Admin) {
-                    return orgs_borrow
-                        .iter()
-                        .filter(|(_, org)| org.name.to_lowercase().contains(&filter))
-                        .map(|(_, org)| OrganizationPublic::from(org.clone()))
-                        .collect();
-                }
-            }
-
-            // For non-admin users, only show organizations they belong to
-            return orgs_borrow
-                .iter()
-                .filter(|(org_id, org)| {
-                    org.name.to_lowercase().contains(&filter) && user.org_ids.contains(org_id)
-                })
-                .map(|(_, org)| OrganizationPublic::from(org.clone()))
-                .collect();
-        }
-
-        // If no user found or no role, return empty list
-        vec![]
+        // Directly filter all organizations by name
+        orgs_borrow
+            .iter()
+            .filter(|(_, org)| org.name.to_lowercase().contains(&filter))
+            .map(|(_, org)| OrganizationPublic::from(org.clone()))
+            .collect()
     })
 }
 
@@ -392,20 +391,30 @@ pub fn register() -> User {
     USERS.with(|users| {
         let mut users_mut = users.borrow_mut();
         let caller = api::caller();
+        ic_cdk::print(format!("ℹ️ [Register] Called by: {}", caller));
 
-        // Return an existing user if found
+        // If user already exists, return their current state
         if let Some(existing_user) = users_mut.get(&caller) {
+            ic_cdk::print(format!("ℹ️ [Register] Found existing user: {}", caller));
             return existing_user.clone();
         }
 
-        // Create a new user
+        // If user does not exist, create a new one with default values
+        ic_cdk::print(format!("ℹ️ [Register] Creating NEW user: {}", caller));
         let user = User {
             id: caller,
-            is_principal: users_mut.is_empty(),
+            // is_principal logic is likely unnecessary and removed for simplicity
+            // Ensure user_role and org_ids are empty by relying on Default::default()
             ..Default::default()
         };
 
         users_mut.insert(caller, user.clone());
+        
+        // --- Diagnostic Read --- 
+        let inserted_user = users_mut.get(&caller);
+        ic_cdk::print(format!("ℹ️ [Register] Diagnostic read after insert for {}: {:?}", caller, inserted_user.is_some()));
+        // --- End Diagnostic --- 
+        
         user
     })
 }
@@ -427,9 +436,17 @@ pub fn whoami() -> Option<User> {
     USERS.with(|users| {
         let users_ref = users.borrow();
         let caller = api::caller();
+        // Log the caller principal received by whoami
+        ic_cdk::print(format!("ℹ️ [whoami] Called by: {}", caller));
         match users_ref.get(&caller) {
-            Some(user) => Some(user.clone()),
-            None => None,
+            Some(user) => {
+                 ic_cdk::print(format!("ℹ️ [whoami] Found user: {}", caller));
+                 Some(user.clone())
+            },
+            None => {
+                 ic_cdk::print(format!("ℹ️ [whoami] User not found: {}", caller));
+                 None
+            }
         }
     })
 }
@@ -463,7 +480,6 @@ pub fn update_self_details(input: UserDetailsInput) -> UserResult {
     })
 }
 
-// DEBUG ONLY
 #[update]
 pub fn set_self_role(role: UserRole) -> UserResult {
     let caller = api::caller();
@@ -500,8 +516,38 @@ pub fn set_self_role(role: UserRole) -> UserResult {
                 }
             }
 
+            // Check if user has requested organization ID in their metadata
+            let mut org_ids = user.org_ids.clone();
+            let has_requested_org = user.detail_meta.iter()
+                .find(|meta| meta.key == "selectedOrgId")
+                .map(|meta| meta.value.clone());
+
+            // If role is BrandOwner and user has a selectedOrgId, add it to org_ids
+            if matches!(role, UserRole::BrandOwner) && has_requested_org.is_some() {
+                let org_id_str = has_requested_org.unwrap();
+                match Principal::from_text(&org_id_str) {
+                    Ok(org_id) => {
+                        ic_cdk::print(format!("ℹ️ [set_self_role] Adding organization {} to user {}", org_id, caller));
+                        
+                        // Check if org exists
+                        let org_exists = ORGANIZATIONS.with(|orgs| orgs.borrow().get(&org_id).is_some());
+                        
+                        if org_exists && !org_ids.contains(&org_id) {
+                            org_ids.push(org_id);
+                            ic_cdk::print(format!("ℹ️ [set_self_role] Successfully added org {} to BrandOwner {}", org_id, caller));
+                        } else if !org_exists {
+                            ic_cdk::print(format!("⚠️ [set_self_role] Organization {} not found for user {}", org_id, caller));
+                        }
+                    },
+                    Err(e) => {
+                        ic_cdk::print(format!("❌ ERROR: Invalid organization ID format: {}, error: {}", org_id_str, e));
+                    }
+                }
+            }
+
             let updated_user = User {
                 user_role: Some(role),
+                org_ids,  // Use potentially updated org_ids
                 updated_at: api::time(),
                 updated_by: caller,
                 ..user.clone()
@@ -1765,16 +1811,17 @@ pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<P
 
     // Check for serial number
     let mut has_serial_numbers = false;
-    let mut product_sn_opt = None;
+    let mut product_sn_opt: Option<ProductSerialNumber> = None; // Explicitly type it
 
     PRODUCT_SERIAL_NUMBERS.with(|serial_numbers| {
         if let Some(serialized_sn_vec) = serial_numbers.borrow().get(&request.product_id) {
             has_serial_numbers = true;
             let product_sn_vec = decode_product_serial_numbers(&serialized_sn_vec);
+            // The fix is to do the assignment here, .cloned() will create an owned Option<ProductSerialNumber>
             product_sn_opt = product_sn_vec
                 .iter()
                 .find(|p_sn| p_sn.serial_no == request.serial_no)
-                .cloned();
+                .cloned(); // Use .cloned() here to get Option<ProductSerialNumber>
         }
     });
 
@@ -2221,6 +2268,8 @@ pub fn list_product_verifications_by_org_id(org_id: Principal) -> Vec<ProductVer
                 
                 for verification in decoded_verifications {
                     // Find the user who created the verification using the pre-fetched map
+                    // .cloned() on Option<&V> (where V=Option<String>) gives Option<Option<String>>
+                    // .flatten() on Option<Option<String>> gives Option<String>
                     let user_email = user_emails.get(&verification.created_by).cloned().flatten();
 
                     let detail = ProductVerificationDetail {
@@ -2241,3 +2290,617 @@ pub fn list_product_verifications_by_org_id(org_id: Principal) -> Vec<ProductVer
 
     all_verification_details
 }
+
+#[update]
+pub fn reset_all_stable_storage() -> ApiResponse<ResetStorageResponse> {
+    ic_cdk::print("🚨 WARNING: Resetting all stable storage initiated.");
+
+    // Clear StableBTreeMaps by iterating and removing
+    ORGANIZATIONS.with(|orgs| {
+        let mut orgs_mut = orgs.borrow_mut();
+        let keys: Vec<_> = orgs_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            orgs_mut.remove(&key);
+        }
+    });
+    PRODUCTS.with(|prods| {
+        let mut prods_mut = prods.borrow_mut();
+        let keys: Vec<_> = prods_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            prods_mut.remove(&key);
+        }
+    });
+    USERS.with(|users| {
+        let mut users_mut = users.borrow_mut();
+        let keys: Vec<_> = users_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            users_mut.remove(&key);
+        }
+    });
+    RESELLERS.with(|resellers| {
+        let mut resellers_mut = resellers.borrow_mut();
+        let keys: Vec<_> = resellers_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            resellers_mut.remove(&key);
+        }
+    });
+    PRODUCT_SERIAL_NUMBERS.with(|sns| {
+        let mut sns_mut = sns.borrow_mut();
+        let keys: Vec<_> = sns_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            sns_mut.remove(&key);
+        }
+    });
+    PRODUCT_VERIFICATIONS.with(|vers| {
+        let mut vers_mut = vers.borrow_mut();
+        let keys: Vec<_> = vers_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            vers_mut.remove(&key);
+        }
+    });
+
+    // Clear StableCells by setting them to default
+    match CONFIG_OPENAI_API_KEY.with(|cell| cell.borrow_mut().set(StorableString::default())) {
+        Ok(_) => ic_cdk::print("Cleared OpenAI API Key config."),
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to reset OpenAI API Key config: {:?}", e));
+            return ApiResponse::error(ApiError::internal_error("Failed to reset OpenAI key config"));
+        }
+    }
+    match CONFIG_SCRAPER_URL.with(|cell| cell.borrow_mut().set(StorableString::default())) {
+        Ok(_) => ic_cdk::print("Cleared Scraper URL config."),
+        Err(e) => {
+            ic_cdk::print(format!("❌ ERROR: Failed to reset Scraper URL config: {:?}", e));
+            return ApiResponse::error(ApiError::internal_error("Failed to reset scraper URL config"));
+        }
+    }
+
+    // Consider clearing rate limiter and rewards storage if they use stable memory too
+    rate_limiter::reset_rate_limits();
+    rewards::reset_rewards_storage();
+
+    ic_cdk::print("✅ All stable storage reset successfully.");
+
+    ApiResponse::success(ResetStorageResponse {
+        message: "All stable storage has been successfully reset.".to_string(),
+    })
+}
+
+#[query]
+pub fn check_reseller_verification(org_id: Principal) -> ApiResponse<bool> {
+    let caller = api::caller(); 
+    
+    // Fetch the user based on the caller's principal
+    match USERS.with(|users| users.borrow().get(&caller).clone()) {
+        Some(user) => {
+            // Check if the user has the Reseller role
+            if let Some(UserRole::Reseller) = user.user_role {
+                // Check if the user is associated with the provided organization ID
+                if user.org_ids.contains(&org_id) {
+                    // Reseller role and associated with the correct org
+                    ApiResponse::success(true) 
+                } else {
+                    // Reseller role, but not associated with this org
+                    ic_cdk::print(format!("ℹ️ User {} is a Reseller but not associated with org {}", caller, org_id));
+                    ApiResponse::success(false)
+                }
+            } else {
+                // User exists but is not a Reseller
+                ic_cdk::print(format!("ℹ️ User {} is not a Reseller.", caller));
+                ApiResponse::success(false)
+            }
+        }
+        None => {
+            // User not found
+            ic_cdk::print(format!("ℹ️ User {} not found.", caller));
+            // Return false to align with previous behaviour on user not found.
+            // Alternatively, return an error:
+            // ApiResponse::error(ApiError::not_found("User not found"))
+            ApiResponse::success(false)
+        }
+    }
+}
+
+// ====== Phase 1: Core Authentication & Context ======
+
+#[query]
+pub fn get_available_roles() -> ApiResponse<Vec<UserRole>> {
+    ApiResponse::success(vec![UserRole::BrandOwner, UserRole::Reseller])
+}
+
+#[update]
+pub fn initialize_user_session(selected_role: Option<UserRole>) -> ApiResponse<AuthContextResponse> {
+    let session_principal = api::caller(); 
+    let user_principal_key = session_principal;
+
+    ic_cdk::print(format!("ℹ️ [initialize_user_session] Called by session_principal: {} with role: {:?}", session_principal, selected_role));
+
+    // Corrected AGAIN: Use .clone() on Option<&User> to get Option<User>
+    let user_record_opt = USERS.with(|users| users.borrow().get(&user_principal_key).clone());
+
+    let mut final_user_state: User = match user_record_opt {
+        Some(mut user) => { // User exists
+            ic_cdk::print(format!("ℹ️ [initialize_user_session] Existing user {} found: {:?}", user_principal_key, user));
+            // Assign role if missing
+            if user.user_role.is_none() {
+                if let Some(role) = selected_role {
+                    user.user_role = Some(role);
+                    ic_cdk::print(format!("ℹ️ [initialize_user_session] Assigned role {:?} to existing user {}", role, user.id));
+                } else {
+                    // Role is mandatory if user has no role yet
+                    ic_cdk::print(format!("⚠️ [initialize_user_session] Role selection required for user {} to complete registration.", user_principal_key));
+                    return ApiResponse::error(ApiError::invalid_input(
+                        "Role selection is required to complete your registration.",
+                    ));
+                }
+            } else if let Some(new_role) = selected_role {
+                 // Check for role change attempt
+                 if user.user_role != Some(new_role) {
+                     ic_cdk::print(format!("⚠️ [initialize_user_session] User {} attempted to change role from {:?} to {:?}", user.id, user.user_role, new_role));
+                     return ApiResponse::error(ApiError::unauthorized(
+                         "User role has already been set and cannot be changed.",
+                     ));
+                 }
+            }
+
+            // ALWAYS add the current session_principal to session_keys if not already present
+            if !user.session_keys.contains(&session_principal) {
+                ic_cdk::print(format!("ℹ️ [initialize_user_session] Adding session key {} for user {}", session_principal, user.id));
+                user.session_keys.push(session_principal);
+                user.updated_at = api::time();
+                user.updated_by = session_principal;
+                // Save the updated user record
+                USERS.with(|users| users.borrow_mut().insert(user.id, user.clone()));
+            } else {
+                 ic_cdk::print(format!("ℹ️ [initialize_user_session] Session key {} already exists for user {}", session_principal, user.id));
+            }
+            user // Return potentially modified user
+        }
+        None => { // New user
+            ic_cdk::print(format!("ℹ️ [initialize_user_session] New user: {}. Creating record.", user_principal_key));
+            match selected_role {
+                Some(role) => {
+                    // Create user with the calling principal as ID and also add it as the first session key
+                    let new_user = User {
+                        id: user_principal_key, // User ID is the principal that called this
+                        user_role: Some(role),
+                        session_keys: vec![session_principal], // Always add the session key used for creation
+                        created_by: user_principal_key, // Created by the root identity (same as caller here)
+                        updated_by: session_principal, // Updated by the session identity during this call
+                        ..Default::default()
+                    };
+                    USERS.with(|users| users.borrow_mut().insert(user_principal_key, new_user.clone()));
+                    ic_cdk::print(format!("ℹ️ [initialize_user_session] Created new user {} with role {:?} and initial session key {}", user_principal_key, role, session_principal));
+                    new_user
+                }
+                None => {
+                    ic_cdk::print(format!("⚠️ [initialize_user_session] Role selection required for new user {}", user_principal_key));
+                    return ApiResponse::error(ApiError::invalid_input(
+                        "Role selection is required for new users.",
+                    ));
+                }
+            }
+        }
+    };
+
+    // Construct AuthContextResponse using the final helper
+    let auth_context = build_auth_context_response(&final_user_state);
+    ApiResponse::success(auth_context)
+}
+
+// Final version of build_auth_context_response incorporating all phases
+fn build_auth_context_response(user: &User) -> AuthContextResponse {
+    let user_public = UserPublic {
+        id: user.id,
+        first_name: user.first_name.clone(),
+        last_name: user.last_name.clone(),
+        email: user.email.clone(),
+        created_at: user.created_at,
+    };
+
+    let mut brand_owner_details: Option<BrandOwnerContextDetails> = None;
+    if user.user_role == Some(UserRole::BrandOwner) {
+        let mut org_public_list = Vec::new();
+        let mut active_org_public: Option<OrganizationPublic> = None;
+        ORGANIZATIONS.with(|orgs_map| {
+            let orgs_ref = orgs_map.borrow();
+            for org_id_principal in &user.org_ids {
+                if let Some(org_record) = orgs_ref.get(org_id_principal) {
+                    org_public_list.push(OrganizationPublic::from(org_record.clone()));
+                }
+            }
+            if let Some(active_org_id_principal) = user.active_org_id {
+                if let Some(active_org_record) = orgs_ref.get(&active_org_id_principal) {
+                    active_org_public = Some(OrganizationPublic::from(active_org_record.clone()));
+                }
+            }
+        });
+        brand_owner_details = Some(BrandOwnerContextDetails {
+            has_organizations: !org_public_list.is_empty(),
+            organizations: if org_public_list.is_empty() { None } else { Some(org_public_list) },
+            active_organization: active_org_public,
+        });
+    }
+
+    let mut reseller_details_ctx: Option<ResellerContextDetails> = None;
+    if user.user_role == Some(UserRole::Reseller) {
+        if let Some(reseller_record) = get_reseller_by_user_id(user.id) { // Assuming get_reseller_by_user_id exists
+            let associated_org_public = ORGANIZATIONS.with(|orgs_map| {
+                orgs_map.borrow().get(&reseller_record.org_id).map(|org| OrganizationPublic::from(org.clone()))
+            });
+
+            reseller_details_ctx = Some(ResellerContextDetails {
+                is_profile_complete_and_verified: reseller_record.is_verified,
+                associated_organization: associated_org_public,
+                certification_code: reseller_record.certification_code.clone(),
+                certification_timestamp: reseller_record.certification_timestamp,
+            });
+        } else {
+            reseller_details_ctx = Some(ResellerContextDetails {
+                is_profile_complete_and_verified: false,
+                associated_organization: None,
+                certification_code: None,
+                certification_timestamp: None,
+            });
+        }
+    }
+
+    AuthContextResponse {
+        user: Some(user_public),
+        is_registered: true,
+        role: user.user_role,
+        brand_owner_details,
+        reseller_details: reseller_details_ctx,
+    }
+}
+
+// Final version of get_auth_context
+#[query]
+pub fn get_auth_context() -> ApiResponse<AuthContextResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [get_auth_context] Called by: {}", caller));
+
+    match USERS.with(|users| users.borrow().get(&caller).clone()) { // Cloned here
+        Some(user) => {
+            ic_cdk::print(format!("ℹ️ [get_auth_context] Found user: {:?}", user));
+            let auth_context = build_auth_context_response(&user);
+            ApiResponse::success(auth_context)
+        }
+        None => {
+            ic_cdk::print(format!("ℹ️ [get_auth_context] User not found: {}. Returning not registered.", caller));
+            ApiResponse::success(AuthContextResponse {
+                user: None,
+                is_registered: false,
+                role: None,
+                brand_owner_details: None,
+                reseller_details: None,
+            })
+        }
+    }
+}
+
+#[update]
+pub fn logout_user() -> ApiResponse<LogoutResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [logout_user] User {} attempting to log out.", caller));
+    ApiResponse::success(LogoutResponse {
+        message: "Successfully logged out.".to_string(),
+        redirect_url: None, 
+    })
+}
+
+// ====== Phase 2: Brand Owner Flow ======
+
+#[update]
+pub fn create_organization_for_owner(request: CreateOrganizationWithOwnerContextRequest) -> ApiResponse<OrganizationContextResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [create_organization_for_owner] Called by: {} with request: {:?}", caller, request));
+
+    let user_opt = USERS.with(|users| users.borrow().get(&caller).clone()); // Cloned here
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User not registered."));
+    }
+    let mut user = user_opt.unwrap();
+
+    if user.user_role != Some(UserRole::BrandOwner) {
+        return ApiResponse::error(ApiError::unauthorized("Only Brand Owners can create organizations."));
+    }
+
+    let org_id = generate_unique_principal(Principal::anonymous());
+    let mut rng = StdRng::from_entropy(); 
+    let signing_key = SigningKey::random(&mut rng);
+
+    let new_organization = Organization {
+        id: org_id,
+        name: request.name,
+        description: request.description,
+        private_key: hex::encode(&signing_key.to_bytes()),
+        metadata: request.metadata,
+        created_at: api::time(),
+        created_by: caller,
+        updated_at: api::time(),
+        updated_by: caller,
+    };
+
+    ORGANIZATIONS.with(|orgs| {
+        orgs.borrow_mut().insert(org_id, new_organization.clone());
+    });
+    ic_cdk::print(format!("ℹ️ [create_organization_for_owner] Organization {} created.", org_id));
+
+    if !user.org_ids.contains(&org_id) {
+        user.org_ids.push(org_id);
+    }
+    user.active_org_id = Some(org_id);
+    user.updated_at = api::time();
+    user.updated_by = caller;
+
+    USERS.with(|users| {
+        users.borrow_mut().insert(caller, user.clone());
+    });
+    ic_cdk::print(format!("ℹ️ [create_organization_for_owner] User {} updated with new org {} and active org set.", caller, org_id));
+
+    let org_public = OrganizationPublic::from(new_organization);
+    let updated_auth_context = build_auth_context_response(&user); 
+
+    ApiResponse::success(OrganizationContextResponse {
+        organization: org_public,
+        user_auth_context: updated_auth_context,
+    })
+}
+
+#[update]
+pub fn select_active_organization(org_id: Principal) -> ApiResponse<AuthContextResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [select_active_organization] Called by: {} to select org: {}", caller, org_id));
+
+    let user_opt = USERS.with(|users| users.borrow().get(&caller).clone()); // Cloned here
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User not registered."));
+    }
+    let mut user = user_opt.unwrap();
+
+    if user.user_role != Some(UserRole::BrandOwner) {
+        return ApiResponse::error(ApiError::unauthorized("Only Brand Owners can select an active organization."));
+    }
+
+    if !user.org_ids.contains(&org_id) {
+        return ApiResponse::error(ApiError::unauthorized("User is not associated with this organization."));
+    }
+    
+    if ORGANIZATIONS.with(|orgs| orgs.borrow().get(&org_id)).is_none() {
+        return ApiResponse::error(ApiError::not_found("Organization not found."));
+    }
+
+    user.active_org_id = Some(org_id);
+    user.updated_at = api::time();
+    user.updated_by = caller;
+
+    USERS.with(|users| {
+        users.borrow_mut().insert(caller, user.clone());
+    });
+    ic_cdk::print(format!("ℹ️ [select_active_organization] User {} set active org to {}.", caller, org_id));
+
+    let updated_auth_context = build_auth_context_response(&user); 
+    ApiResponse::success(updated_auth_context)
+}
+
+#[query]
+pub fn get_my_organizations() -> ApiResponse<Vec<OrganizationPublic>> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [get_my_organizations] Called by: {}", caller));
+
+    let user_opt = USERS.with(|users| users.borrow().get(&caller).clone()); // Cloned here
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User not registered."));
+    }
+    let user = user_opt.unwrap();
+
+    if user.user_role != Some(UserRole::BrandOwner) {
+        return ApiResponse::error(ApiError::unauthorized("Only Brand Owners can list their organizations."));
+    }
+
+    let mut org_public_list = Vec::new();
+    ORGANIZATIONS.with(|orgs_map| {
+        let orgs_ref = orgs_map.borrow();
+        for org_id_principal in &user.org_ids {
+            if let Some(org_record) = orgs_ref.get(org_id_principal) {
+                org_public_list.push(OrganizationPublic::from(org_record.clone()));
+            }
+        }
+    });
+
+    ApiResponse::success(org_public_list)
+}
+
+// ====== Phase 3: Reseller Flow ======
+
+// Helper to get Reseller record by user_id
+fn get_reseller_by_user_id(user_id_principal: Principal) -> Option<Reseller> {
+    RESELLERS.with(|resellers_map| {
+        resellers_map
+            .borrow()
+            .iter()
+            .find(|(_, reseller_val)| reseller_val.user_id == user_id_principal)
+            .map(|(_, reseller_val)| reseller_val.clone())
+    })
+}
+
+#[update]
+pub fn complete_reseller_profile(request: CompleteResellerProfileRequest) -> ApiResponse<AuthContextResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [complete_reseller_profile] Called by: {} with request: {:?}", caller, request));
+
+    let user_opt = USERS.with(|users| users.borrow().get(&caller).clone()); // Cloned here
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User not registered."));
+    }
+    let mut user = user_opt.unwrap();
+
+    if user.user_role != Some(UserRole::Reseller) {
+        return ApiResponse::error(ApiError::unauthorized("Only Resellers can complete this profile."));
+    }
+
+    if ORGANIZATIONS.with(|orgs| orgs.borrow().get(&request.target_organization_id)).is_none() {
+        return ApiResponse::error(ApiError::not_found("Target organization not found."));
+    }
+
+    let existing_reseller_opt = get_reseller_by_user_id(caller);
+
+    let reseller_id = existing_reseller_opt.as_ref().map_or_else(
+        || generate_unique_principal(Principal::anonymous()), 
+        |r| r.id
+    );
+    
+    let cert_code = format!("CERT-{}-{}", request.target_organization_id.to_string().chars().take(5).collect::<String>(), reseller_id.to_string().chars().take(5).collect::<String>());
+    let cert_timestamp = api::time();
+
+    let reseller_record = Reseller {
+        id: reseller_id,
+        user_id: caller,
+        org_id: request.target_organization_id,
+        name: request.reseller_name,
+        contact_email: request.contact_email,
+        contact_phone: request.contact_phone,
+        ecommerce_urls: request.ecommerce_urls,
+        additional_metadata: request.additional_metadata,
+        is_verified: true, 
+        certification_code: Some(cert_code),
+        certification_timestamp: Some(cert_timestamp),
+        created_by: caller,
+        updated_by: caller,
+        date_joined: existing_reseller_opt.as_ref().map_or(api::time(), |r| r.date_joined),
+        metadata: existing_reseller_opt.as_ref().map_or(Vec::new(), |r| r.metadata.clone()), 
+        public_key: existing_reseller_opt.as_ref().map_or(String::new(), |r| r.public_key.clone()),
+        created_at: existing_reseller_opt.as_ref().map_or(api::time(), |r| r.created_at),
+        updated_at: api::time(), 
+    };
+
+    RESELLERS.with(|resellers| {
+        resellers.borrow_mut().insert(reseller_id, reseller_record.clone());
+    });
+    ic_cdk::print(format!("ℹ️ [complete_reseller_profile] Reseller record {} for user {} processed.", reseller_id, caller));
+
+    user.org_ids = vec![request.target_organization_id];
+    user.updated_at = api::time();
+    user.updated_by = caller;
+    USERS.with(|users| {
+        users.borrow_mut().insert(caller, user.clone());
+    });
+    ic_cdk::print(format!("ℹ️ [complete_reseller_profile] User {} updated with org_id {}.", caller, request.target_organization_id));
+
+    let updated_auth_context = build_auth_context_response(&user); 
+    ApiResponse::success(updated_auth_context)
+}
+
+#[query]
+pub fn get_my_reseller_certification() -> ApiResponse<ResellerCertificationPageContext> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [get_my_reseller_certification] Called by: {}", caller));
+
+    let user_opt = USERS.with(|users| users.borrow().get(&caller).clone()); // Cloned here
+    if user_opt.is_none() {
+        return ApiResponse::error(ApiError::unauthorized("User not registered."));
+    }
+    let user = user_opt.unwrap();
+
+    if user.user_role != Some(UserRole::Reseller) {
+        return ApiResponse::error(ApiError::unauthorized("Only Resellers can access certification details."));
+    }
+
+    let reseller_record_opt = get_reseller_by_user_id(caller);
+    if reseller_record_opt.is_none() || !reseller_record_opt.as_ref().unwrap().is_verified {
+        return ApiResponse::error(ApiError::unauthorized("Reseller profile is not complete or verified."));
+    }
+    let reseller_record = reseller_record_opt.unwrap(); 
+
+    let associated_org_public_opt = ORGANIZATIONS.with(|orgs_map| {
+        orgs_map.borrow().get(&reseller_record.org_id).map(|org| OrganizationPublic::from(org.clone()))
+    });
+    if associated_org_public_opt.is_none() {
+        return ApiResponse::error(ApiError::internal_error("Associated organization not found for reseller."));
+    }
+    let associated_organization = associated_org_public_opt.unwrap();
+
+    let reseller_public = ResellerPublic {
+        id: reseller_record.id,
+        user_id: reseller_record.user_id,
+        organization_id: reseller_record.org_id,
+        name: reseller_record.name.clone(),
+        contact_email: reseller_record.contact_email.clone(),
+        contact_phone: reseller_record.contact_phone.clone(),
+        ecommerce_urls: reseller_record.ecommerce_urls.clone(),
+        additional_metadata: reseller_record.additional_metadata.clone(),
+        is_verified: reseller_record.is_verified,
+        certification_code: reseller_record.certification_code.clone(),
+        certification_timestamp: reseller_record.certification_timestamp,
+        created_at: reseller_record.created_at,
+        updated_at: reseller_record.updated_at,
+    };
+
+    let user_details_public = UserPublic {
+        id: user.id,
+        first_name: user.first_name.clone(),
+        last_name: user.last_name.clone(),
+        email: user.email.clone(),
+        created_at: user.created_at,
+    };
+    
+    if reseller_public.certification_code.is_none() || reseller_public.certification_timestamp.is_none() {
+        ic_cdk::print(format!("❌ ERROR [get_my_reseller_certification] Missing cert code or timestamp for verified reseller {}", reseller_public.id));
+        return ApiResponse::error(ApiError::internal_error("Certification details missing for verified reseller."));
+    }
+
+    ApiResponse::success(ResellerCertificationPageContext {
+        reseller_profile: reseller_public.clone(),
+        associated_organization,
+        certification_code: reseller_public.certification_code.unwrap(), 
+        certification_timestamp: reseller_public.certification_timestamp.unwrap(), 
+        user_details: user_details_public,
+    })
+}
+
+// ====== Phase 4: Profile and Navigation ======
+
+#[query]
+pub fn get_navigation_context() -> ApiResponse<NavigationContextResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [get_navigation_context] Called by: {}", caller));
+
+    match USERS.with(|users| users.borrow().get(&caller).clone()) { // Cloned here
+        Some(user) => {
+            let display_name = user.first_name.as_ref().map_or_else(
+                || user.email.as_ref().map_or_else(|| user.id.to_string(), |e| e.clone()),
+                |f_name| f_name.clone()
+            );
+
+            let mut current_org_name: Option<String> = None;
+
+            if user.user_role == Some(UserRole::BrandOwner) {
+                if let Some(active_org_id) = user.active_org_id {
+                    current_org_name = ORGANIZATIONS.with(|orgs| 
+                        orgs.borrow().get(&active_org_id).map(|org| org.name.clone())
+                    );
+                }
+            } else if user.user_role == Some(UserRole::Reseller) {
+                if let Some(reseller_record) = get_reseller_by_user_id(user.id) {
+                    current_org_name = ORGANIZATIONS.with(|orgs| 
+                        orgs.borrow().get(&reseller_record.org_id).map(|org| org.name.clone())
+                    );
+                }
+            }
+
+            ApiResponse::success(NavigationContextResponse {
+                user_display_name: display_name,
+                user_avatar_id: None, 
+                current_organization_name: current_org_name,
+            })
+        }
+        None => {
+            ic_cdk::print(format!("ℹ️ [get_navigation_context] User {} not found.", caller));
+            ApiResponse::error(ApiError::unauthorized("User not authenticated.")) 
+        }
+    }
+}
+
+// Make sure to export the new types if they are in a different module and used by Candid.
+// However, these are directly in models.rs which is part of the crate.

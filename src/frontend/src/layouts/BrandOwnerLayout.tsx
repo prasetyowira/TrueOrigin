@@ -1,41 +1,50 @@
 /**
  * @file Brand Owner Layout Component
- * @fileoverview Provides a consistent layout for all brand owner pages with a sidebar navigation and content area
+ * @fileoverview Provides a consistent layout for all brand owner pages with a sidebar navigation and content area.
+ * Fetches and displays user and organization information.
  * 
  * Functions:
  * - BrandOwnerLayout: Main layout component for brand owner pages
  * 
  * Constants:
- * - brandOwnerMenuItems: Navigation items for the sidebar
+ * - brandOwnerMenuItems: Navigation items for the sidebar (Dynamically generated based on pathname)
  * 
  * Flow:
- * 1. Render sidebar with navigation options
- * 2. Render main content area that displays children components
- * 3. Handle sidebar collapse/expand functionality
+ * 1. Get authentication context (user profile, selected org ID)
+ * 2. Fetch organization details based on selected org ID
+ * 3. Determine user avatar from profile metadata
+ * 4. Render sidebar with navigation and user info
+ * 5. Render header with current page title and organization info
+ * 6. Render main content area using <Outlet />
+ * 7. Handle sidebar collapse/expand state
  * 
  * Error Handling:
- * - None specific to layout
+ * - Displays loading states for auth and organization data
+ * - Handles missing organization or profile data gracefully
  * 
  * @module layouts/BrandOwnerLayout
+ * @requires react-router-dom - For navigation and routing context
  * @requires components/Sidebar - For navigation sidebar
+ * @requires contexts/useAuthContext - For authentication state and user profile
+ * @requires hooks/useQueries/useGetOrganization - For fetching organization details
  * @exports {FC} BrandOwnerLayout - Main layout component
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import Sidebar from '../components/Sidebar';
-import SidebarToggle from '../components/SidebarToggle';
-import { useAuthContext } from '../contexts/useAuthContext';
-import { useGetOrganization } from '../hooks';
+import Sidebar, { MenuItem } from '@/components/Sidebar';
+import SidebarToggle from '@/components/SidebarToggle';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { 
   ProductsIcon, 
   ProductAddIcon,
   AnalyticsIcon,
   ResellerIcon,
   UsersIcon 
-} from '../components/icons';
-import defaultAvatar from '../assets/default-avatar.jpg';
-import { LoadingSpinner } from '../components/LoadingSpinner';
+} from '@/components/icons';
+// Import hooks
+import defaultAvatar from '@/assets/default-avatar.jpg';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Define IconProps type matching what's in the icons file
 type IconProps = {
@@ -46,38 +55,53 @@ type IconProps = {
  * Props for the BrandOwnerLayout component
  */
 type BrandOwnerLayoutProps = {
-  children?: React.ReactNode;
+  // Explicitly accept children, even though Outlet is used internally
+  children: React.ReactNode; 
 };
 
 /**
  * Main layout component for brand owner dashboard
- * Provides sidebar navigation and content area
+ * Provides sidebar navigation and content area, fetching user and org info.
  */
-const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
+const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, isLoading } = useAuthContext(); 
+  const { user, isLoading: isAuthLoading, brandOwnerDetails, role } = useAuth();
+  const organization = brandOwnerDetails?.active_organization;
+
   const [collapsed, setCollapsed] = useState(false);
-  
-  // Fetch organization data
-  const { data: organization, isLoading: isLoadingOrg } = useGetOrganization();
 
   const handleMenuToggle = () => {
     setCollapsed(!collapsed);
   };
 
-  // Get principal ID from profile for display, handle loading state
-  const principalId = isLoading ? 'Loading...' : (profile?.id?.toText() || 'Anonymous');
+  const principalIdForDisplay = useMemo(() => {
+    if (isAuthLoading && !user) return 'Loading...';
+    return user?.id?.toText() ?? 'N/A';
+  }, [user, isAuthLoading]);
+
+  const userDisplayName = useMemo(() => {
+    if (isAuthLoading && !user) return 'Loading...';
+    if (!user) return 'Brand Owner'; // Default display name
+    const firstName = user.first_name && user.first_name.length > 0 ? user.first_name[0] : null;
+    const lastName = user.last_name && user.last_name.length > 0 ? user.last_name[0] : null;
+    const email = user.email && user.email.length > 0 ? user.email[0] : null;
+
+    if (firstName && lastName) return `${firstName} ${lastName}`;
+    if (firstName) return firstName;
+    if (email) return email;
+    return user.id?.toText() || 'Brand Owner';
+  }, [user, isAuthLoading]);
 
   const handleNavigate = (path: string) => {
     navigate(path);
   };
 
-  const menuItems = [
+  const menuItems: MenuItem[] = useMemo(() => [
     {
       label: 'Products',
       icon: ProductsIcon as React.ComponentType<IconProps>,
-      active: location.pathname === '/brand-owners/products',
+      active: location.pathname.startsWith('/brand-owners/products') || location.pathname === '/brand-owners',
       onClickEvent: () => handleNavigate('/brand-owners/products'),
     },
     {
@@ -89,34 +113,27 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
     {
       label: 'Reseller Management',
       icon: ResellerIcon as React.ComponentType<IconProps>,
-      active: location.pathname === '/brand-owners/resellers',
+      active: location.pathname.startsWith('/brand-owners/resellers'),
       onClickEvent: () => handleNavigate('/brand-owners/resellers'),
     },
     {
       label: 'User Management',
       icon: UsersIcon as React.ComponentType<IconProps>,
-      active: location.pathname === '/brand-owners/users',
+      active: location.pathname.startsWith('/brand-owners/users'),
       onClickEvent: () => handleNavigate('/brand-owners/users'),
     },
     {
-      label: 'Analytic',
+      label: 'Analytics', // Corrected label spelling
       icon: AnalyticsIcon as React.ComponentType<IconProps>,
-      active: location.pathname === '/brand-owners/analytics',
+      active: location.pathname.startsWith('/brand-owners/analytics'),
       onClickEvent: () => handleNavigate('/brand-owners/analytics'),
     },
-  ];
+  ], [location.pathname, navigate]);
 
-  // Get metadata from the profile to check for avatar
-  const getAvatarFromMeta = () => {
-    if (isLoading || !profile?.detail_meta) return '';
-    
-    const avatarMeta = profile.detail_meta.find(item => item.key === 'avatar');
-    return avatarMeta ? avatarMeta.value : defaultAvatar;
-  };
+  const userAvatar = useMemo(() => {
+    return defaultAvatar;
+  }, [user]);
 
-  const userAvatar = getAvatarFromMeta() || defaultAvatar;
-
-  // Restore sidebar state from localStorage on component mount
   useEffect(() => {
     const savedState = localStorage.getItem('sidebarCollapsed');
     if (savedState !== null) {
@@ -124,25 +141,27 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
     }
   }, []);
 
-  // Save sidebar state to localStorage when it changes
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', String(collapsed));
   }, [collapsed]);
 
-  // Format organization ID for display (shortened version)
-  const formatOrgId = (id: string) => {
-    if (id.length > 10) {
-      return `${id.slice(0, 5)}...${id.slice(-5)}`;
-    }
-    return id;
+  const formatOrgId = (idText: string | undefined) => {
+    if (!idText) return 'N/A';
+    return idText.length > 10 ? `${idText.slice(0, 5)}...${idText.slice(-5)}` : idText;
   };
+
+  const currentPageTitle = menuItems.find(item => item.active)?.label || 'Dashboard';
+
+  if (isAuthLoading && !user) { 
+    return <div className="flex h-screen items-center justify-center"><LoadingSpinner size="lg"/></div>;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar 
         menuItems={menuItems} 
         userAvatar={userAvatar} 
-        principalId={principalId}
+        principalId={userDisplayName}
         collapsed={collapsed}
       />
       <div className="flex flex-col flex-1 overflow-hidden">
@@ -151,18 +170,15 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
             <div className="flex items-center">
               <SidebarToggle collapsed={collapsed} onClick={handleMenuToggle} />
               <div className="ml-4">
-                <h1 className="text-xl font-semibold">
-                  {menuItems.find(item => item.active)?.label || 'Dashboard'}
-                </h1>
+                <h1 className="text-xl font-semibold">{currentPageTitle}</h1>
               </div>
             </div>
             
-            {/* Organization Info */}
             <div className="flex items-center">
-              {isLoadingOrg ? (
+              {isAuthLoading && !organization ? (
                 <div className="flex items-center text-sm text-gray-500">
-                  <LoadingSpinner size="sm" className="mr-2" />
-                  <span>Loading organization...</span>
+                   <LoadingSpinner size="sm" className="mr-2" />
+                  <span>Loading org...</span>
                 </div>
               ) : organization ? (
                 <div className="flex flex-col items-end">
@@ -172,18 +188,21 @@ const BrandOwnerLayout: React.FC<BrandOwnerLayoutProps> = () => {
                   </div>
                   <div className="flex items-center">
                     <span className="text-xs text-gray-500 mr-1">ID:</span>
-                    <span className="text-xs text-gray-500" title={organization.id.toString()}>
-                      {formatOrgId(organization.id.toString())}
+                    <span className="text-xs text-gray-500" title={organization.id.toText()}>
+                      {formatOrgId(organization.id.toText())}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">No organization found</div>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm text-amber-600">No active organization</span>
+                  {role && <span className="text-xs text-gray-500">Role: {role}</span>}
+                </div>
               )}
             </div>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
           <Outlet />
         </main>
       </div>

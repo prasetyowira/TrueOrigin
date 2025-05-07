@@ -1,4 +1,3 @@
-export { default as useAuth } from './useAuth';
-export * from './use-toast';
-export * from './useMutations';
-export * from './useQueries'; 
+export * from '@/hooks/use-toast';
+export * from '@/hooks/useMutations/authMutations';
+export * from '@/hooks/useQueries/authQueries'; 

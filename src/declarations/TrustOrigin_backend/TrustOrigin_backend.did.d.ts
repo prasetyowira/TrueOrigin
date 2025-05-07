@@ -11,53 +11,118 @@ export type ApiError = { 'InvalidInput' : { 'details' : ErrorDetails } } |
   { 'InternalError' : { 'details' : ErrorDetails } };
 export interface ApiResponse {
   'metadata' : ResponseMetadata,
-  'data' : [] | [OrganizationResponse],
+  'data' : [] | [boolean],
   'error' : [] | [ApiError],
 }
 export interface ApiResponse_1 {
   'metadata' : ResponseMetadata,
-  'data' : [] | [ProductResponse],
+  'data' : [] | [AuthContextResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_2 {
-  'metadata' : ResponseMetadata,
-  'data' : [] | [ResellerUniqueCodeResponse],
-  'error' : [] | [ApiError],
-}
-export interface ApiResponse_3 {
+export interface ApiResponse_10 {
   'metadata' : ResponseMetadata,
   'data' : [] | [string],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_4 {
+export interface ApiResponse_11 {
   'metadata' : ResponseMetadata,
   'data' : [] | [RateLimitInfo],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_5 {
+export interface ApiResponse_12 {
   'metadata' : ResponseMetadata,
   'data' : [] | [OrganizationsListResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_6 {
+export interface ApiResponse_13 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [LogoutResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_14 {
   'metadata' : ResponseMetadata,
   'data' : [] | [UserResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_7 {
+export interface ApiResponse_15 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ResetStorageResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_16 {
   'metadata' : ResponseMetadata,
   'data' : [] | [null],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_8 {
+export interface ApiResponse_17 {
   'metadata' : ResponseMetadata,
   'data' : [] | [ProductVerificationEnhancedResponse],
   'error' : [] | [ApiError],
 }
-export interface ApiResponse_9 {
+export interface ApiResponse_18 {
   'metadata' : ResponseMetadata,
   'data' : [] | [ResellerVerificationResponse],
   'error' : [] | [ApiError],
+}
+export interface ApiResponse_2 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [OrganizationContextResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_3 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [OrganizationResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_4 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ProductResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_5 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ResellerUniqueCodeResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_6 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [Array<UserRole>],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_7 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [Array<OrganizationPublic>],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_8 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ResellerCertificationPageContext],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_9 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [NavigationContextResponse],
+  'error' : [] | [ApiError],
+}
+export interface AuthContextResponse {
+  'reseller_details' : [] | [ResellerContextDetails],
+  'role' : [] | [UserRole],
+  'user' : [] | [UserPublic],
+  'brand_owner_details' : [] | [BrandOwnerContextDetails],
+  'is_registered' : boolean,
+}
+export interface BrandOwnerContextDetails {
+  'active_organization' : [] | [OrganizationPublic],
+  'has_organizations' : boolean,
+  'organizations' : [] | [Array<OrganizationPublic>],
+}
+export interface CompleteResellerProfileRequest {
+  'ecommerce_urls' : Array<Metadata>,
+  'additional_metadata' : [] | [Array<Metadata>],
+  'contact_email' : [] | [string],
+  'contact_phone' : [] | [string],
+  'target_organization_id' : Principal,
+  'reseller_name' : string,
 }
 export interface ErrorDetails {
   'message' : string,
@@ -77,7 +142,20 @@ export interface HttpResponse {
   'body' : Uint8Array | number[],
   'headers' : Array<HttpHeader>,
 }
+export interface LogoutResponse {
+  'redirect_url' : [] | [string],
+  'message' : string,
+}
 export interface Metadata { 'key' : string, 'value' : string }
+export interface NavigationContextResponse {
+  'user_display_name' : string,
+  'user_avatar_id' : [] | [string],
+  'current_organization_name' : [] | [string],
+}
+export interface OrganizationContextResponse {
+  'user_auth_context' : AuthContextResponse,
+  'organization' : OrganizationPublic,
+}
 export interface OrganizationInput {
   'metadata' : Array<Metadata>,
   'name' : string,
@@ -198,17 +276,52 @@ export interface Reseller {
   'ecommerce_urls' : Array<Metadata>,
   'public_key' : string,
   'metadata' : Array<Metadata>,
+  'additional_metadata' : [] | [Array<Metadata>],
   'name' : string,
   'org_id' : Principal,
+  'contact_email' : [] | [string],
+  'certification_code' : [] | [string],
+  'certification_timestamp' : [] | [bigint],
   'date_joined' : bigint,
   'created_at' : bigint,
   'created_by' : Principal,
+  'user_id' : Principal,
+  'is_verified' : boolean,
+  'contact_phone' : [] | [string],
+}
+export interface ResellerCertificationPageContext {
+  'certification_code' : string,
+  'certification_timestamp' : bigint,
+  'reseller_profile' : ResellerPublic,
+  'user_details' : UserPublic,
+  'associated_organization' : OrganizationPublic,
+}
+export interface ResellerContextDetails {
+  'certification_code' : [] | [string],
+  'certification_timestamp' : [] | [bigint],
+  'associated_organization' : [] | [OrganizationPublic],
+  'is_profile_complete_and_verified' : boolean,
 }
 export interface ResellerInput {
   'ecommerce_urls' : Array<Metadata>,
   'metadata' : Array<Metadata>,
   'name' : string,
   'org_id' : Principal,
+}
+export interface ResellerPublic {
+  'id' : Principal,
+  'updated_at' : bigint,
+  'ecommerce_urls' : Array<Metadata>,
+  'additional_metadata' : [] | [Array<Metadata>],
+  'name' : string,
+  'contact_email' : [] | [string],
+  'certification_code' : [] | [string],
+  'certification_timestamp' : [] | [bigint],
+  'created_at' : bigint,
+  'user_id' : Principal,
+  'is_verified' : boolean,
+  'contact_phone' : [] | [string],
+  'organization_id' : Principal,
 }
 export interface ResellerUniqueCodeResponse {
   'context' : [] | [string],
@@ -228,6 +341,7 @@ export type ResellerVerificationStatus = { 'ExpiredCode' : null } |
   { 'OrganizationNotFound' : null } |
   { 'InternalError' : null } |
   { 'ResellerNotFound' : null };
+export interface ResetStorageResponse { 'message' : string }
 export interface ResponseMetadata {
   'request_id' : [] | [string],
   'version' : string,
@@ -256,6 +370,7 @@ export interface User {
   'created_at' : bigint,
   'created_by' : Principal,
   'email' : [] | [string],
+  'active_org_id' : [] | [Principal],
   'first_name' : [] | [string],
   'detail_meta' : Array<Metadata>,
   'last_name' : [] | [string],
@@ -267,6 +382,13 @@ export interface UserDetailsInput {
   'detail_meta' : Array<Metadata>,
   'last_name' : string,
   'phone_no' : string,
+}
+export interface UserPublic {
+  'id' : Principal,
+  'created_at' : bigint,
+  'email' : [] | [string],
+  'first_name' : [] | [string],
+  'last_name' : [] | [string],
 }
 export interface UserResponse { 'user' : User }
 export type UserResult = { 'none' : null } |
@@ -297,8 +419,17 @@ export interface VerifyResellerRequest {
   'reseller_id' : Principal,
 }
 export interface _SERVICE {
+  'check_reseller_verification' : ActorMethod<[Principal], ApiResponse>,
+  'complete_reseller_profile' : ActorMethod<
+    [CompleteResellerProfileRequest],
+    ApiResponse_1
+  >,
   'create_organization' : ActorMethod<[OrganizationInput], OrganizationPublic>,
-  'create_organization_v2' : ActorMethod<[OrganizationInput], ApiResponse>,
+  'create_organization_for_owner' : ActorMethod<
+    [OrganizationInput],
+    ApiResponse_2
+  >,
+  'create_organization_v2' : ActorMethod<[OrganizationInput], ApiResponse_3>,
   'create_product' : ActorMethod<[ProductInput], ProductResult>,
   'create_product_serial_number' : ActorMethod<
     [Principal, [] | [string]],
@@ -310,23 +441,29 @@ export interface _SERVICE {
     Array<OrganizationPublic>
   >,
   'find_resellers_by_name_or_id' : ActorMethod<[string], Array<Reseller>>,
-  'generate_product_review_v2' : ActorMethod<[Principal], ApiResponse_1>,
+  'generate_product_review_v2' : ActorMethod<[Principal], ApiResponse_4>,
   'generate_reseller_unique_code_v2' : ActorMethod<
     [GenerateResellerUniqueCodeRequest],
-    ApiResponse_2
+    ApiResponse_5
   >,
-  'get_openai_api_key' : ActorMethod<[], ApiResponse_3>,
+  'get_auth_context' : ActorMethod<[], ApiResponse_1>,
+  'get_available_roles' : ActorMethod<[], ApiResponse_6>,
+  'get_my_organizations' : ActorMethod<[], ApiResponse_7>,
+  'get_my_reseller_certification' : ActorMethod<[], ApiResponse_8>,
+  'get_navigation_context' : ActorMethod<[], ApiResponse_9>,
+  'get_openai_api_key' : ActorMethod<[], ApiResponse_10>,
   'get_organization_by_id' : ActorMethod<[Principal], OrganizationResult>,
-  'get_organization_by_id_v2' : ActorMethod<[Principal], ApiResponse>,
+  'get_organization_by_id_v2' : ActorMethod<[Principal], ApiResponse_3>,
   'get_organization_private_key' : ActorMethod<[Principal], PrivateKeyResult>,
   'get_product_by_id' : ActorMethod<[Principal], ProductResult>,
-  'get_scraper_url' : ActorMethod<[], ApiResponse_3>,
+  'get_scraper_url' : ActorMethod<[], ApiResponse_10>,
   'get_user_by_id' : ActorMethod<[Principal], [] | [User]>,
-  'get_verification_rate_limit' : ActorMethod<[Principal], ApiResponse_4>,
+  'get_verification_rate_limit' : ActorMethod<[Principal], ApiResponse_11>,
   'greet' : ActorMethod<[string], string>,
+  'initialize_user_session' : ActorMethod<[[] | [UserRole]], ApiResponse_1>,
   'list_organizations_v2' : ActorMethod<
     [FindOrganizationsRequest],
-    ApiResponse_5
+    ApiResponse_12
   >,
   'list_product_serial_numbers' : ActorMethod<
     [[] | [Principal], [] | [Principal]],
@@ -338,15 +475,18 @@ export interface _SERVICE {
   >,
   'list_products' : ActorMethod<[Principal], Array<Product>>,
   'list_resellers_by_org_id' : ActorMethod<[Principal], Array<Reseller>>,
+  'logout_user' : ActorMethod<[], ApiResponse_13>,
   'print_product_serial_number' : ActorMethod<
     [Principal, Principal],
     ProductUniqueCodeResult
   >,
   'register' : ActorMethod<[], User>,
   'register_as_organization' : ActorMethod<[OrganizationInput], UserResult>,
-  'register_as_reseller_v2' : ActorMethod<[ResellerInput], ApiResponse_6>,
-  'set_openai_api_key' : ActorMethod<[string], ApiResponse_7>,
-  'set_scraper_url' : ActorMethod<[string], ApiResponse_7>,
+  'register_as_reseller_v2' : ActorMethod<[ResellerInput], ApiResponse_14>,
+  'reset_all_stable_storage' : ActorMethod<[], ApiResponse_15>,
+  'select_active_organization' : ActorMethod<[Principal], ApiResponse_1>,
+  'set_openai_api_key' : ActorMethod<[string], ApiResponse_16>,
+  'set_scraper_url' : ActorMethod<[string], ApiResponse_16>,
   'set_self_role' : ActorMethod<[UserRole], UserResult>,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'update_organization' : ActorMethod<
@@ -355,7 +495,7 @@ export interface _SERVICE {
   >,
   'update_organization_v2' : ActorMethod<
     [UpdateOrganizationRequest],
-    ApiResponse
+    ApiResponse_3
   >,
   'update_product' : ActorMethod<[Principal, ProductInput], ProductResult>,
   'update_product_serial_number' : ActorMethod<
@@ -367,9 +507,9 @@ export interface _SERVICE {
   'update_user_orgs' : ActorMethod<[Principal, Array<Principal>], UserResult>,
   'verify_product_v2' : ActorMethod<
     [VerifyProductEnhancedRequest],
-    ApiResponse_8
+    ApiResponse_17
   >,
-  'verify_reseller_v2' : ActorMethod<[VerifyResellerRequest], ApiResponse_9>,
+  'verify_reseller_v2' : ActorMethod<[VerifyResellerRequest], ApiResponse_18>,
   'whoami' : ActorMethod<[], [] | [User]>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

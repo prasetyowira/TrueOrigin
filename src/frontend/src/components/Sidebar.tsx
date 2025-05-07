@@ -2,14 +2,15 @@ import logo from "../assets/true-origin.png"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LogOut } from 'lucide-react'; // Placeholder icon
-import { useAuthContext } from "../contexts/useAuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import UpdateOrganizationDialog from "./UpdateOrganizationDialog";
+import { FEUserRole } from "@/hooks/useQueries/authQueries";
 
 /**
  * Represents a single navigation item in the sidebar menu.
  */
-type MenuItem = {
+export type MenuItem = {
     /** The visible text label for the menu item. */
     label: string;
     /** A React component representing the icon for the menu item. */
@@ -18,6 +19,7 @@ type MenuItem = {
     active: boolean;
     /** Function to call when the menu item is clicked. Receives the item's label. */
     onClickEvent: (label: string) => void;
+    disabled?: boolean;
 }
 
 /**
@@ -52,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     collapsed = false,
     onItemClick
 }) => {
-    const { logout, profile } = useAuthContext();
+    const { logout, user, role } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
 
     const handleMenuItemClick = (item: MenuItem) => {
@@ -64,22 +66,21 @@ const Sidebar: React.FC<SidebarProps> = ({
         await logout();
     };
 
-    // Check if user is a brand owner to enable organization update
-    const isBrandOwner = profile?.user_role && 
-                        profile.user_role.length > 0 && 
-                        profile.user_role[0] && 
-                        'BrandOwner' in profile.user_role[0];
+    // Use the 'role' from useAuth()
+    const isBrandOwner = role === FEUserRole.BrandOwner;
 
-    // We don't need to check for principalId existence here since it has a default value from the parent
-    // The loading/anonymous states are already handled in BrandOwnerLayout
     const shortPrincipalId = principalId && principalId.length > 10 && principalId !== 'Loading...' && principalId !== 'Anonymous'
         ? `${principalId.slice(0, 5)}...${principalId.slice(-5)}` 
         : principalId;
 
-    // Get first letter of principalId for avatar fallback, or use a default
     const getAvatarFallback = () => {
         if (!principalId || principalId === 'Loading...' || principalId === 'Anonymous') {
             return principalId === 'Loading...' ? '...' : 'A';
+        }
+        // Display name (principalId prop is now userDisplayName from ResellerLayout)
+        const nameParts = principalId.split(' ');
+        if (nameParts.length > 1) {
+            return nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase();
         }
         return principalId.charAt(0).toUpperCase();
     };
@@ -107,8 +108,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                                       item.active
                                         ? "text-primary bg-indigo-100 font-semibold"
                                         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                                    } rounded-lg ${collapsed ? 'justify-center' : 'gap-2'} mt-2 cursor-pointer`}
-                                    onClick={() => handleMenuItemClick(item)}
+                                    } rounded-lg ${collapsed ? 'justify-center' : 'gap-2'} mt-2 cursor-pointer ${
+                                      item.disabled ? 'opacity-50 cursor-not-allowed' : ''
+                                    }`}
+                                    onClick={() => !item.disabled && handleMenuItemClick(item)}
                                     title={collapsed ? item.label : undefined}
                                 >
                                     <item.icon fillColor={item.active ? "#2C42C0" : "currentColor"} />
@@ -132,8 +135,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {!collapsed && (
                         <>
                             <div className="ml-3">
-                                <p className="text-sm font-medium text-gray-900" title={principalId}>{shortPrincipalId}</p>
-                                <p className="text-xs text-muted-foreground">Principal ID</p>
+                                <p className="text-sm font-medium text-gray-900" title={user?.id?.toText()}>{principalId}</p> {/* principalId is userDisplayName here */}
+                                <p className="text-xs text-muted-foreground">{role ? role : 'User'}</p> {/* Display role */}
                             </div>
                             <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={handleLogout}>
                                 <LogOut className="h-5 w-5" />
@@ -141,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </>
                     )}
                     {collapsed && (
-                        <Button variant="ghost" size="icon" className="mt-2 rounded-full" onClick={handleLogout}>
+                        <Button variant="ghost" size="icon" className="mt-2 rounded-full" onClick={handleLogout} title="Logout">
                             <LogOut className="h-5 w-5" />
                         </Button>
                     )}

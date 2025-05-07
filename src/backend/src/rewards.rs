@@ -107,7 +107,7 @@ pub fn record_product_verification(user_id: Principal, product_id: Principal) {
         let mut verified_products_mut = verified_products.borrow_mut();
         
         match verified_products_mut.get(&user_id) {
-            Some(mut user_verified) => {
+            Some(user_verified) => {
                 // Only add if not already verified
                 if !user_verified.verified_products.contains(&product_id) {
                     let mut updated = user_verified.clone();
@@ -232,4 +232,30 @@ pub fn get_user_rewards(user_id: Principal) -> Option<UserRewards> {
     USER_REWARDS.with(|rewards| {
         rewards.borrow().get(&user_id)
     })
+}
+
+// Reset ALL rewards-related stable storage (use with caution)
+pub fn reset_rewards_storage() {
+    USER_REWARDS.with(|rewards| {
+        let mut rewards_mut = rewards.borrow_mut();
+        let keys: Vec<_> = rewards_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            rewards_mut.remove(&key);
+        }
+    });
+    USER_VERIFIED_PRODUCTS.with(|verified| {
+        let mut verified_mut = verified.borrow_mut();
+        let keys: Vec<_> = verified_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            verified_mut.remove(&key);
+        }
+    });
+    PROMOTIONS.with(|promos| {
+        let mut promos_mut = promos.borrow_mut();
+        let keys: Vec<_> = promos_mut.iter().map(|(k, _)| k).collect();
+        for key in keys {
+            promos_mut.remove(&key);
+        }
+    });
+    ic_cdk::print("ℹ️ All rewards-related stable storage has been reset.");
 }
