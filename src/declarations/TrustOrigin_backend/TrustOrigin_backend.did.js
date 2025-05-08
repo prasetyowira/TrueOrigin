@@ -131,7 +131,6 @@ export const idlFactory = ({ IDL }) => {
     'created_at' : IDL.Nat64,
     'created_by' : IDL.Principal,
     'print_version' : IDL.Nat8,
-    'user_serial_no' : IDL.Text,
     'serial_no' : IDL.Principal,
   });
   const ProductSerialNumberResult = IDL.Variant({
@@ -467,7 +466,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'create_product' : IDL.Func([ProductInput], [ProductResult], []),
     'create_product_serial_number' : IDL.Func(
-        [IDL.Principal, IDL.Opt(IDL.Text)],
+        [IDL.Principal],
         [ProductSerialNumberResult],
         [],
       ),
@@ -591,7 +590,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'update_product_serial_number' : IDL.Func(
-        [IDL.Principal, IDL.Principal, IDL.Opt(IDL.Text)],
+        [IDL.Principal, IDL.Principal],
         [ProductSerialNumberResult],
         [],
       ),

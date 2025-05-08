@@ -210,7 +210,6 @@ pub struct ProductInput {
 pub struct ProductSerialNumber {
     pub product_id: Principal,
     pub serial_no: Principal,
-    pub user_serial_no: String,
     pub print_version: u8,
     pub metadata: Vec<Metadata>,
     pub created_at: u64,
@@ -225,7 +224,6 @@ impl Default for ProductSerialNumber {
         ProductSerialNumber { 
             product_id: Principal::anonymous(),
             serial_no: generate_unique_principal(Principal::anonymous()),
-            user_serial_no: String::new(),
             print_version: 0,
             metadata: Vec::new(),
             created_at: api::time(),

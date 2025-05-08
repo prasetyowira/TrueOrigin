@@ -46,11 +46,6 @@ const ResellerLayout: React.FC<ResellerLayoutProps> = ({ children }) => {
   const handleMenuToggle = () => {
     setCollapsed(!collapsed);
   };
-
-  const principalIdForDisplay = useMemo(() => {
-    if (isAuthLoading && !user) return 'Loading...';
-    return user?.id?.toText() ?? 'N/A';
-  }, [user, isAuthLoading]);
   
   const userDisplayName = useMemo(() => {
     if (isAuthLoading && !user) return 'Loading...';
@@ -64,8 +59,6 @@ const ResellerLayout: React.FC<ResellerLayoutProps> = ({ children }) => {
     if (email) return email;
     return user.id?.toText() || 'Reseller User';
   }, [user, isAuthLoading]);
-
-  const organizationName = resellerDetails?.associated_organization?.name || 'Associated Brand';
 
   const handleNavigate = (path: string) => {
     navigate(path);

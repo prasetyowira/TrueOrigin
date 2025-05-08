@@ -1,7 +1,7 @@
 import logo from "../assets/true-origin.png"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LogOut } from 'lucide-react'; // Placeholder icon
+import { LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import UpdateOrganizationDialog from "./UpdateOrganizationDialog";
@@ -56,6 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const { logout, user, role } = useAuth();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const handleMenuItemClick = (item: MenuItem) => {
         item.onClickEvent(item.label);
@@ -63,15 +64,18 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
 
     const handleLogout = async () => {
-        await logout();
+        try {
+            setIsLoggingOut(true);
+            await logout();
+        } catch (error) {
+            console.error("Logout failed:", error);
+        } finally {
+            setIsLoggingOut(false);
+        }
     };
 
     // Use the 'role' from useAuth()
     const isBrandOwner = role === FEUserRole.BrandOwner;
-
-    const shortPrincipalId = principalId && principalId.length > 10 && principalId !== 'Loading...' && principalId !== 'Anonymous'
-        ? `${principalId.slice(0, 5)}...${principalId.slice(-5)}` 
-        : principalId;
 
     const getAvatarFallback = () => {
         if (!principalId || principalId === 'Loading...' || principalId === 'Anonymous') {
@@ -138,14 +142,35 @@ const Sidebar: React.FC<SidebarProps> = ({
                                 <p className="text-sm font-medium text-gray-900" title={user?.id?.toText()}>{principalId}</p> {/* principalId is userDisplayName here */}
                                 <p className="text-xs text-muted-foreground">{role ? role : 'User'}</p> {/* Display role */}
                             </div>
-                            <Button variant="ghost" size="icon" className="ml-auto rounded-full" onClick={handleLogout}>
-                                <LogOut className="h-5 w-5" />
+                            <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="ml-auto rounded-full" 
+                                onClick={handleLogout} 
+                                disabled={isLoggingOut}
+                            >
+                                {isLoggingOut ? (
+                                    <Loader2 className="h-5 w-5 animate-spin" />
+                                ) : (
+                                    <LogOut className="h-5 w-5" />
+                                )}
                             </Button>
                         </>
                     )}
                     {collapsed && (
-                        <Button variant="ghost" size="icon" className="mt-2 rounded-full" onClick={handleLogout} title="Logout">
-                            <LogOut className="h-5 w-5" />
+                        <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="mt-2 rounded-full" 
+                            onClick={handleLogout} 
+                            title="Logout"
+                            disabled={isLoggingOut}
+                        >
+                            {isLoggingOut ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <LogOut className="h-5 w-5" />
+                            )}
                         </Button>
                     )}
                 </div>

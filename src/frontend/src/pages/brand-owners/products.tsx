@@ -42,9 +42,6 @@ import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'; // Import downl
 import { QRCodeSVG } from 'qrcode.react';
 import ReactDOMServer from 'react-dom/server';
 
-// Import assets for the certificate
-import certificateLogo from '@/assets/product-certificate-logo.svg';
-import certificateBgSvg from '@/assets/product-certificate-bg.svg';
 
 // Constants
 const ITEMS_PER_PAGE = 10;
@@ -164,22 +161,26 @@ const ProductsPage: React.FC = () => {
       logger.error('Could not open print window. Please check if popup blockers are enabled');
       return;
     }
+
+    // Find initial_unique_code from product metadata
+    const initialUniqueCodeMeta = product.metadata.find(meta => meta.key === 'initial_unique_code');
+    const qrCodeValue = initialUniqueCodeMeta ? initialUniqueCodeMeta.value : 'No Unique Code Available';
     
     // Generate QR code as SVG string
     const qrCodeSvg = ReactDOMServer.renderToString(
       <QRCodeSVG 
-        value={product.public_key || 'No Public Key'} 
-        size={150}
+        value={qrCodeValue} 
+        size={180}
         bgColor="#FFFFFF"
         fgColor="#000000"
         level="H"
       />
     );
     
-    // Truncate product key for display
-    const truncatedKey = product.public_key ? 
-      `KEY: ${product.public_key.substring(0, 5)}...${product.public_key.substring(product.public_key.length - 5)}` : 
-      'KEY: N/A';
+    // Truncate unique code for display, or use a placeholder
+    const displayCode = initialUniqueCodeMeta && initialUniqueCodeMeta.value
+      ? initialUniqueCodeMeta.value.substring(0, 8)
+      : 'NO-CODE';
     
     // Format date like in ProductCertificate component
     const date = new Date();
@@ -191,281 +192,301 @@ const ProductsPage: React.FC = () => {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const formattedDate = `${day}-${month}-${year} ${hours}:${minutes}`;
     
-    // Prepare the certificate HTML that matches ProductCertificate.tsx exactly
+    // Write the certificate to the new window
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${product.name} Certificate</title>
+          <title>Product Certificate</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
             
-            @media print {
-              @page {
-                size: landscape;
-                margin: 0;
-              }
-              body {
-                margin: 0;
-                padding: 0;
-              }
-            }
-            
-            * {
-              box-sizing: border-box;
-              margin: 0;
-              padding: 0;
-            }
-            
             body {
               font-family: 'Manrope', sans-serif;
-              background-color: #f5f5f5;
+              margin: 0;
               padding: 20px;
+              background-color: #f5f5f5;
               display: flex;
               justify-content: center;
               align-items: center;
               min-height: 100vh;
             }
             
-            .certificate-wrapper {
-              width: 800px;
+            .certificate-container {
+              position: relative;
+              width: 400px;
               height: 600px;
-              background-color: white;
-              padding: 32px;
-              display: flex;
-              flex-direction: column;
+              margin: 20px auto;
+              overflow: hidden;
+              background-color: #594748;
+              border-radius: 12px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             }
             
-            .certificate-container {
+            .gradient-overlay {
+              position: absolute;
+              top: 0;
+              left: 0;
               width: 100%;
               height: 100%;
-              border: 4px solid black;
-              border-radius: 12px;
+              background: linear-gradient(135deg, 
+                rgba(238, 224, 242, 0.56) 27%, 
+                rgba(241, 230, 247, 0.9) 44%, 
+                rgba(241, 232, 248, 1) 48%, 
+                rgba(241, 232, 248, 1) 54%, 
+                rgba(226, 217, 231, 0.92) 60%, 
+                rgba(167, 162, 167, 0.63) 68%, 
+                rgba(44, 31, 44, 1) 84%);
+              z-index: 1;
+            }
+            
+            .genuine-watermark {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
               display: flex;
+              flex-wrap: wrap;
+              justify-content: center;
+              align-items: center;
+              z-index: 2;
+              opacity: 0.3;
+              transform: rotate(-10deg);
               overflow: hidden;
             }
             
-            .left-section {
-              width: 60%;
-              background-color: #594748;
-              color: white;
-              padding: 24px;
+            .genuine-text {
+              color: #9E8351;
+              font-size: 11px;
+              font-weight: 600;
+              margin: 0 5px;
+              white-space: nowrap;
+              line-height: 1.8em;
+            }
+            
+            .blur-circle {
+              position: absolute;
+              border-radius: 50%;
+              z-index: 3;
+            }
+            
+            .blur-circle-1 {
+              width: 150px;
+              height: 150px;
+              background: linear-gradient(to right, #F217F1, #8C0D8B);
+              top: 10%;
+              left: 10%;
+              filter: blur(10px);
+            }
+            
+            .blur-circle-2 {
+              width: 100px;
+              height: 100px;
+              background-color: rgba(111, 66, 230, 0.37);
+              top: 20%;
+              right: 15%;
+              filter: blur(10px);
+            }
+            
+            .blur-circle-3 {
+              width: 180px;
+              height: 180px;
+              background: linear-gradient(to right, rgba(84, 130, 218, 0), rgba(84, 130, 218, 1), #2D4574);
+              bottom: 30%;
+              left: 20%;
+              filter: blur(10px);
+            }
+            
+            .blur-circle-4 {
+              width: 120px;
+              height: 120px;
+              background-color: rgba(121, 109, 72, 0.22);
+              bottom: 15%;
+              right: 20%;
+              filter: blur(30px);
+            }
+            
+            .blur-circle-5 {
+              width: 90px;
+              height: 90px;
+              background-color: rgba(72, 104, 121, 0.38);
+              top: 60%;
+              left: 30%;
+              filter: blur(30px);
+            }
+            
+            .content {
+              position: relative;
+              z-index: 5;
+              height: 100%;
               display: flex;
               flex-direction: column;
-              align-items: center;
               justify-content: space-between;
+              padding: 40px 30px;
+              box-sizing: border-box;
+            }
+            
+            .header {
+              text-align: center;
+              margin-bottom: 40px;
+            }
+            
+            .title {
+              color: #DFDFDF;
+              font-size: 20px;
+              font-weight: 800;
+              line-height: 1em;
+              margin: 0;
+              text-align: center;
             }
             
             .qr-container {
               background-color: white;
-              padding: 16px;
-              border-radius: 8px;
-            }
-            
-            .qr-inner {
-              width: 150px;
-              height: 150px;
+              border-radius: 10px;
+              width: 200px;
+              height: 200px;
+              margin: 0 auto;
               display: flex;
-              align-items: center;
               justify-content: center;
-              overflow: hidden;
+              align-items: center;
+              padding: 10px;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
             
-            .product-details {
-              text-align: center;
-              width: 100%;
-            }
-            
-            .product-name {
+            .key-text {
+              color: #000000;
               font-size: 24px;
               font-weight: 700;
-              margin-bottom: 8px;
-            }
-            
-            .product-category {
-              font-size: 18px;
-              margin-bottom: 4px;
-            }
-            
-            .product-key {
-              font-size: 14px;
-              color: #e0e0e0;
-              margin-bottom: 16px;
-            }
-            
-            .verification-date {
-              font-size: 12px;
-              color: #cccccc;
-            }
-            
-            .branding {
+              line-height: 0.83;
+              margin-top: 20px;
               text-align: center;
             }
             
-            .protected-by {
-              font-size: 20px;
-              font-weight: 700;
-              margin-bottom: 8px;
+            .footer {
+              display: flex;
+              justify-content: flex-start;
+              align-items: center;
+              margin-top: 40px;
+              gap: 15px;
             }
             
-            .company-name {
-              font-size: 24px;
+            .protected-text {
+              color: #000000;
+              font-size: 16px;
               font-weight: 800;
+              line-height: 1.25em;
             }
             
-            .right-section {
-              width: 40%;
-              position: relative;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              overflow: hidden;
+            .logo {
+              height: 30px;
+              opacity: 0.6;
+              margin-left: auto;
             }
             
-            .right-overlay {
-              position: absolute;
-              inset: 0;
-              background-color: #594748;
+            .original-logo {
+              height: 40px;
+              width: auto;
+              margin-top: -5px;
               opacity: 0.7;
             }
             
-            .watermark {
-              position: absolute;
-              inset: 0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              pointer-events: none;
-              z-index: 1;
-            }
-            
-            .watermark-inner {
-              transform: rotate(-45deg);
-              color: white;
-              opacity: 0.1;
-              display: flex;
-              flex-direction: column;
-            }
-            
-            .watermark-row {
-              display: flex;
-            }
-            
-            .genuine-text {
-              font-size: 24px;
-              font-weight: 700;
-              padding: 0 16px;
-            }
-            
-            .brand-name {
-              position: absolute;
-              bottom: 32px;
-              right: 32px;
-              color: white;
-              font-size: 20px;
-              font-weight: 700;
-              text-align: right;
-              z-index: 2;
-            }
-            
-            .print-controls {
-              margin-top: 24px;
-              display: flex;
-              justify-content: center;
-              gap: 16px;
-            }
-            
-            @media print {
-              .print-controls {
-                display: none;
-              }
-            }
-            
             .print-button {
-              padding: 12px 24px;
-              background-color: #594748;
+              position: fixed;
+              bottom: 20px;
+              right: 20px;
+              background-color: #343FF5;
               color: white;
               border: none;
-              border-radius: 4px;
+              border-radius: 8px;
+              padding: 10px 20px;
+              font-weight: 600;
               cursor: pointer;
-              font-weight: 700;
-              font-size: 16px;
+              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+              transition: all 0.2s ease;
             }
             
             .print-button:hover {
-              background-color: #6e585a;
+              background-color: #2a34c4;
+              transform: translateY(-2px);
+            }
+            
+            @media print {
+              body {
+                background: none;
+                margin: 0;
+                padding: 0;
+              }
+              
+              .certificate-container {
+                margin: 0;
+                box-shadow: none;
+                page-break-inside: avoid;
+              }
+              
+              .print-button {
+                display: none;
+              }
             }
           </style>
         </head>
         <body>
-          <div class="certificate-wrapper">
-            <div class="certificate-container">
-              <!-- Left Section (60%) -->
-              <div class="left-section">
-                <!-- QR Code -->
-                <div class="qr-container">
-                  <div class="qr-inner">
-                    ${qrCodeSvg}
-                  </div>
-                </div>
-                
-                <!-- Product Details -->
-                <div class="product-details">
-                  <div class="product-name">${product.name}</div>
-                  <div class="product-category">${product.category}</div>
-                  <div class="product-key">${truncatedKey}</div>
-                  <div class="verification-date">Verified on ${formattedDate}</div>
-                </div>
-                
-                <!-- Branding -->
-                <div class="branding">
-                  <div class="protected-by">Protected by</div>
-                  <div class="company-name">TrueOrigin</div>
-                </div>
+          <div class="certificate-container">
+            <div class="gradient-overlay"></div>
+            
+            <div class="genuine-watermark">
+              ${Array(32).fill('<span class="genuine-text">Genuine</span>').join('')}
+            </div>
+            
+            <div class="blur-circle blur-circle-1"></div>
+            <div class="blur-circle blur-circle-2"></div>
+            <div class="blur-circle blur-circle-3"></div>
+            <div class="blur-circle blur-circle-4"></div>
+            <div class="blur-circle blur-circle-5"></div>
+            
+            <div class="content">
+              <div class="header">
+                <div class="title">Secure by<br/>True Origin</div>
               </div>
               
-              <!-- Right Section (40%) -->
-              <div class="right-section">
-                <!-- Background overlay -->
-                <div class="right-overlay"></div>
-                
-                <!-- Watermarks -->
-                <div class="watermark">
-                  <div class="watermark-inner">
-                    ${Array(8).fill(0).map(() => `
-                      <div class="watermark-row">
-                        ${Array(4).fill(0).map(() => `<span class="genuine-text">Genuine</span>`).join('')}
-                      </div>
-                    `).join('')}
-                  </div>
-                </div>
-                
-                <!-- Brand Name -->
-                <div class="brand-name">${orgName}</div>
+              <div class="qr-container">
+                ${qrCodeSvg}
+              </div>
+              
+              <div class="key-text">KEY: ${displayCode}</div>
+              
+              <div class="footer">
+                <svg width="30" height="36" viewBox="0 0 45 54" fill="none" xmlns="http://www.w3.org/2000/svg" class="original-logo">
+                  <path opacity="0.58" d="M18.5232 0.627828L5.46802 5.67749C2.4593 6.83863 0 10.5111 0 13.8325V33.896C0 37.0824 2.04073 41.2679 4.5262 43.1852L15.7762 51.8532C19.4651 54.7156 25.5349 54.7156 29.2238 51.8532L40.4739 43.1852C42.9594 41.2679 45 37.0824 45 33.896V13.8325C45 10.5111 42.5407 6.83863 39.532 5.67749L26.4768 0.627828C24.2529 -0.209276 20.6948 -0.209276 18.5232 0.627828Z" fill="black"/>
+                </svg>
+                <div class="protected-text">Protected by<br>TrueOrigin</div>
               </div>
             </div>
           </div>
-          
-          <div class="print-controls">
-            <button class="print-button" onclick="window.print()">Print Certificate</button>
-            <button class="print-button" onclick="window.close()">Close</button>
-          </div>
-          
-          <script>
-            // Auto-print when loaded
-            window.onload = function() {
-              // Small delay to ensure rendering is complete
-              setTimeout(() => {
-                window.print();
-              }, 500);
-            };
-          </script>
+          <button class="print-button" onclick="window.print()">Print Certificate</button>
         </body>
+        <script>
+          // Document is ready, focus the window
+          window.focus();
+          
+          // Add keyboard shortcut for printing (Ctrl+P)
+          document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'p') {
+              e.preventDefault();
+              window.print();
+            }
+          });
+        </script>
       </html>
     `);
     
+    // Close the document for writing and trigger print
     printWindow.document.close();
-    logger.info(`Certificate preview opened for product: ${product.id.toText()}`);
+    
+    // Focus on the print window
+    setTimeout(() => {
+      printWindow.focus();
+    }, 300);
   };
 
   return (

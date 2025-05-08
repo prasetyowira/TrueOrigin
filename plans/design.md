@@ -484,7 +484,7 @@ Implement an intuitive mobile-first interface for customers to scan product QR c
 ## Implementation Steps
 
 1.  **Setup:**
-    *   Identify or create routes for the main scan page (e.g., `/verify` or `/`) and potentially separate routes/states for result/redeem steps if not using modals.
+    *   Identify or create routes for the main scan page (e.g., `/verify`) and potentially separate routes/states for result/redeem steps if not using modals.
     *   Ensure React, Tailwind CSS v3.4.10, and shadcn/ui version 2.3.0 are configured.
 
 2.  **QR Scanning Component:**

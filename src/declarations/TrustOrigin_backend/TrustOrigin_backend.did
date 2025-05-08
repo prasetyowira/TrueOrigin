@@ -210,7 +210,6 @@ type ProductSerialNumber = record {
   created_at : nat64;
   created_by : principal;
   print_version : nat8;
-  user_serial_no : text;
   serial_no : principal;
 };
 type ProductSerialNumberResult = variant {
@@ -415,9 +414,7 @@ service : () -> {
   create_organization_for_owner : (OrganizationInput) -> (ApiResponse_2);
   create_organization_v2 : (OrganizationInput) -> (ApiResponse_3);
   create_product : (ProductInput) -> (ProductResult);
-  create_product_serial_number : (principal, opt text) -> (
-      ProductSerialNumberResult,
-    );
+  create_product_serial_number : (principal) -> (ProductSerialNumberResult);
   create_user : (principal, UserDetailsInput) -> (UserResult);
   find_organizations_by_name : (text) -> (vec OrganizationPublic) query;
   find_resellers_by_name_or_id : (text) -> (vec Reseller) query;
@@ -465,7 +462,7 @@ service : () -> {
   update_organization : (principal, OrganizationInput) -> (OrganizationResult);
   update_organization_v2 : (UpdateOrganizationRequest) -> (ApiResponse_3);
   update_product : (principal, ProductInput) -> (ProductResult);
-  update_product_serial_number : (principal, principal, opt text) -> (
+  update_product_serial_number : (principal, principal) -> (
       ProductSerialNumberResult,
     );
   update_self_details : (UserDetailsInput) -> (UserResult);

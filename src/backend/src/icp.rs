@@ -235,40 +235,111 @@ pub fn create_product(input: ProductInput) -> ProductResult {
     }
 
     let organization = authorization_result.ok().unwrap();
-    let id = generate_unique_principal(Principal::anonymous()); // Generate a unique ID for the product
+    let new_product_id = generate_unique_principal(Principal::anonymous()); // Generate a unique ID for the product
 
-    let private_key_bytes = hex::decode(&organization.private_key);
-    if private_key_bytes.is_err() {
+    let private_key_bytes_result = hex::decode(&organization.private_key);
+    if private_key_bytes_result.is_err() {
         return ProductResult::Error(ApiError::invalid_input(&format!(
-            "Invalid private key format: {}",
-            private_key_bytes.err().unwrap()
+            "Invalid private key format for organization {}: {}",
+            organization.id,
+            private_key_bytes_result.err().unwrap()
         )));
     }
-    let private_key = SigningKey::from_slice(&private_key_bytes.unwrap().as_slice());
-    if private_key.is_err() {
+    let private_key_bytes = private_key_bytes_result.unwrap();
+
+    let signing_key_result = SigningKey::from_slice(&private_key_bytes);
+    if signing_key_result.is_err() {
         return ProductResult::Error(ApiError::internal_error(&format!(
-            "Failed to process private key: {}",
-            private_key.err().unwrap()
+            "Failed to process private key for organization {}: {}",
+            organization.id,
+            signing_key_result.err().unwrap()
         )));
     }
-    let private_key_unwrapped = private_key.unwrap();
-    let public_key = private_key_unwrapped.verifying_key();
-    let product = Product {
-        id,
+    let signing_key = signing_key_result.unwrap();
+    let public_key = signing_key.verifying_key();
+    
+    let mut product_metadata = input.metadata;
+
+    // Define the product (without unique code metadata yet)
+    let mut product_to_create = Product {
+        id: new_product_id,
         org_id: input.org_id,
         name: input.name,
         category: input.category,
         description: input.description,
-        metadata: input.metadata,
+        metadata: product_metadata, // Initial metadata from input
         public_key: hex::encode(public_key.to_encoded_point(false).as_bytes()),
         ..Default::default()
     };
 
-    PRODUCTS.with(|products| {
-        products.borrow_mut().insert(id, product.clone());
-    });
+    // Create and store an initial ProductSerialNumber for this new product
+    let new_serial_principal = generate_unique_principal(Principal::anonymous());
+    let initial_product_serial_number = ProductSerialNumber {
+        product_id: new_product_id,
+        serial_no: new_serial_principal,
+        print_version: 0, // Will be incremented to 1 by the "print" logic
+        metadata: vec![],
+        created_at: api::time(),
+        created_by: api::caller(),
+        updated_at: api::time(),
+        updated_by: api::caller(),
+    };
 
-    ProductResult::Product(product)
+    PRODUCT_SERIAL_NUMBERS.with(|serial_numbers_refcell| {
+        let mut serial_numbers_map = serial_numbers_refcell.borrow_mut();
+        // Ensure a Vec exists for this product_id, then add the new serial number
+        let mut sn_vec = serial_numbers_map.get(&new_product_id)
+            .map_or_else(Vec::new, |bytes| decode_product_serial_numbers(&bytes));
+        sn_vec.push(initial_product_serial_number);
+        serial_numbers_map.insert(new_product_id, encode_product_serial_numbers(&sn_vec));
+    });
+    ic_cdk::print(format!("ℹ️ Stored initial serial number {} (version 0) for product {}", new_serial_principal, new_product_id));
+
+    // Now, "print" this serial number to generate its first unique code
+    match generate_and_store_unique_code_for_serial(new_product_id, new_serial_principal, &organization.private_key) {
+        Ok(unique_code_record) => {
+            ic_cdk::print(format!(
+                "ℹ️ Generated initial unique_code {} (print_version {}) for product {} serial {}", 
+                unique_code_record.unique_code, 
+                unique_code_record.print_version, 
+                new_product_id, 
+                new_serial_principal
+            ));
+            // Add the generated unique code and its version to the product's metadata
+            product_to_create.metadata.push(Metadata {
+                key: "initial_unique_code".to_string(),
+                value: unique_code_record.unique_code,
+            });
+            product_to_create.metadata.push(Metadata {
+                key: "initial_print_version".to_string(),
+                value: unique_code_record.print_version.to_string(), // Should be 1
+            });
+        }
+        Err(e) => {
+            ic_cdk::print(format!(
+                "❌ ERROR: Failed to generate initial unique code for product {}: {:?}. Product creation will proceed without it.", 
+                new_product_id, 
+                e
+            ));
+            // Depending on policy, you might want to return ProductResult::Error(e) here.
+            // For now, product creation proceeds, but metadata won't have the code.
+             return ProductResult::Error(ApiError::internal_error(&format!(
+                "Failed to generate initial unique code for product {}: {:?}", new_product_id, e
+            )));
+        }
+    }
+    
+    // Update product's own updated_at and updated_by fields since metadata changed
+    product_to_create.updated_at = api::time();
+    product_to_create.updated_by = api::caller();
+
+    // Store the final product (with unique code metadata) to PRODUCTS
+    PRODUCTS.with(|products_refcell| {
+        products_refcell.borrow_mut().insert(new_product_id, product_to_create.clone());
+    });
+    ic_cdk::print(format!("ℹ️ Successfully created and stored product {} with initial unique code metadata.", new_product_id));
+
+    ProductResult::Product(product_to_create)
 }
 
 #[query]
@@ -1559,7 +1630,6 @@ fn is_product_owned_by_organization(product_id: Principal, org_id: Principal) ->
 #[update]
 pub fn create_product_serial_number(
     product_id: Principal,
-    user_serial_no: Option<String>,
 ) -> ProductSerialNumberResult {
     // Check if the product exists
     let product_opt = PRODUCTS.with(|products| products.borrow().get(&product_id));
@@ -1582,12 +1652,10 @@ pub fn create_product_serial_number(
 
     // Continue with existing logic
     let serial_no = generate_unique_principal(Principal::anonymous());
-    let user_serial = user_serial_no.unwrap_or_else(|| serial_no.to_string());
 
     let product_serial_number = ProductSerialNumber {
         product_id,
         serial_no,
-        user_serial_no: user_serial,
         print_version: 0,
         metadata: vec![],
         created_at: api::time(),
@@ -1621,7 +1689,6 @@ pub fn create_product_serial_number(
 pub fn update_product_serial_number(
     product_id: Principal,
     serial_no: Principal,
-    user_serial_no: Option<String>,
 ) -> ProductSerialNumberResult {
     PRODUCT_SERIAL_NUMBERS.with(|serial_numbers| {
         let mut serial_numbers_mut = serial_numbers.borrow_mut();
@@ -1631,26 +1698,12 @@ pub fn update_product_serial_number(
             // Decode the collection
             let mut product_sn_vec = decode_product_serial_numbers(&serialized_sn_vec);
 
-            // Check for duplicate user_serial_no
-            if let Some(sn) = &user_serial_no {
-                let has_duplicate = product_sn_vec
-                    .iter()
-                    .any(|p_sn| p_sn.user_serial_no == *sn && p_sn.serial_no != serial_no);
-
-                if has_duplicate {
-                    return ProductSerialNumberResult::Error(ApiError::already_exists(
-                        "Existing user serial number already exists",
-                    ));
-                }
-            }
-
             // Find the serial number to update
             let sn_index = product_sn_vec.iter().position(|s| s.serial_no == serial_no);
 
             if let Some(idx) = sn_index {
                 // Update the serial number
                 let mut updated_sn = product_sn_vec[idx].clone();
-                updated_sn.user_serial_no = user_serial_no.unwrap_or_default();
                 updated_sn.updated_at = api::time();
                 updated_sn.updated_by = api::caller();
 
@@ -1673,121 +1726,116 @@ pub fn update_product_serial_number(
     })
 }
 
+fn generate_and_store_unique_code_for_serial(
+    product_id: Principal,
+    serial_no: Principal,
+    organization_private_key_hex: &str,
+) -> Result<ProductUniqueCodeResultRecord, ApiError> {
+    PRODUCT_SERIAL_NUMBERS.with(|serial_numbers_refcell| {
+        let mut serial_numbers_map = serial_numbers_refcell.borrow_mut();
+
+        // Check if the product has any serial numbers stored and get them
+        let mut product_sn_vec = match serial_numbers_map.get(&product_id) {
+            Some(serialized_sn_vec) => decode_product_serial_numbers(&serialized_sn_vec),
+            None => {
+                return Err(ApiError::not_found(
+                    &format!("Product {} has no serial numbers recorded for printing", product_id)
+                ));
+            }
+        };
+
+        // Find the specific serial number to be "printed"
+        let sn_index = product_sn_vec
+            .iter()
+            .position(|sn| sn.serial_no == serial_no);
+
+        if sn_index.is_none() {
+            return Err(ApiError::not_found(&format!(
+                "Serial number {} for product {} not found for printing",
+                serial_no,
+                product_id
+            )));
+        }
+        let sn_idx = sn_index.unwrap();
+
+        // Deserialize the organization's private key
+        let private_key_bytes = match hex::decode(organization_private_key_hex) {
+            Ok(bytes) => bytes,
+            Err(_) => {
+                return Err(ApiError::internal_error(
+                    "Malformed secret key for organization during code generation",
+                ));
+            }
+        };
+        let private_key = match SigningKey::from_slice(&private_key_bytes) {
+            Ok(key) => key,
+            Err(_) => {
+                return Err(ApiError::internal_error(
+                    "Invalid secret key for organization during code generation",
+                ));
+            }
+        };
+
+        // Increment the print version and update timestamps for the serial number
+        product_sn_vec[sn_idx].print_version = product_sn_vec[sn_idx].print_version.saturating_add(1);
+        product_sn_vec[sn_idx].updated_at = api::time();
+        product_sn_vec[sn_idx].updated_by = api::caller();
+
+        let updated_sn_clone = product_sn_vec[sn_idx].clone();
+
+        // Save the updated collection of serial numbers back to stable storage
+        serial_numbers_map.insert(product_id, encode_product_serial_numbers(&product_sn_vec));
+
+        // Create the unique code by signing a message that includes the new print version
+        let msg_to_sign = format!(
+            "{}_{}_{}",
+            product_id.to_string(),
+            serial_no.to_string(),
+            updated_sn_clone.print_version // Use the incremented version
+        );
+        let mut hasher = Sha256::new();
+        hasher.update(msg_to_sign);
+        let hashed_message = hasher.finalize();
+        let signature: Signature = private_key.sign(&hashed_message);
+
+        Ok(ProductUniqueCodeResultRecord {
+            unique_code: hex::encode(signature.to_bytes().as_slice()), // Use .as_slice() for clarity
+            print_version: updated_sn_clone.print_version,
+            product_id: updated_sn_clone.product_id,
+            serial_no: updated_sn_clone.serial_no,
+            created_at: updated_sn_clone.created_at, // This is original created_at of SN, not this record
+        })
+    })
+}
+
 #[update]
 pub fn print_product_serial_number(
     product_id: Principal,
     serial_no: Principal,
 ) -> ProductUniqueCodeResult {
-    // Access product serial numbers and product information from stable storage
-    PRODUCT_SERIAL_NUMBERS.with(|serial_numbers| {
-        let mut serial_numbers_mut = serial_numbers.borrow_mut();
+    // Fetch product to get organization ID
+    let product_opt = PRODUCTS.with(|p| p.borrow().get(&product_id));
+    if product_opt.is_none() {
+        return ProductUniqueCodeResult::Error(ApiError::not_found(
+            &format!("Product with ID {} not found for printing serial", product_id)
+        ));
+    }
+    let product = product_opt.unwrap();
 
-        // Check if the product has any serial numbers
-        if let Some(serialized_sn_vec) = serial_numbers_mut.get(&product_id) {
-            let mut product_sn_vec = decode_product_serial_numbers(&serialized_sn_vec);
+    // Fetch organization to get private key
+    let organization_opt = ORGANIZATIONS.with(|o| o.borrow().get(&product.org_id));
+    if organization_opt.is_none() {
+        return ProductUniqueCodeResult::Error(ApiError::not_found(
+            &format!("Organization with ID {} not found for product {}", product.org_id, product_id)
+        ));
+    }
+    let organization = organization_opt.unwrap();
 
-            // Find the specific serial number
-            let sn_index = product_sn_vec
-                .iter()
-                .position(|sn| sn.serial_no == serial_no);
-            if sn_index.is_none() {
-                return ProductUniqueCodeResult::Error(ApiError::not_found(
-                    "Serial number for product is not present",
-                ));
-            }
-
-            // Get product information
-            let mut product_opt = None;
-            PRODUCTS.with(|products| {
-                let products_ref = products.borrow();
-                match products_ref.get(&product_id) {
-                    Some(product) => product_opt = Some(product.clone()),
-                    None => product_opt = None,
-                }
-            });
-
-            if product_opt.is_none() {
-                return ProductUniqueCodeResult::Error(ApiError::not_found(
-                    "Product reference does not exist",
-                ));
-            }
-
-            let product = product_opt.unwrap();
-
-            // Get organization information
-            let mut organization_opt = None;
-            ORGANIZATIONS.with(|orgs| {
-                let orgs_ref = orgs.borrow();
-                match orgs_ref.get(&product.org_id) {
-                    Some(org) => organization_opt = Some(org.clone()),
-                    None => organization_opt = None,
-                }
-            });
-
-            if organization_opt.is_none() {
-                return ProductUniqueCodeResult::Error(ApiError::not_found(
-                    "Organization does not exist",
-                ));
-            }
-
-            let organization = organization_opt.unwrap();
-
-            // Deserialize private key
-            let private_key_bytes = match hex::decode(&organization.private_key) {
-                Ok(bytes) => bytes,
-                Err(_) => {
-                    return ProductUniqueCodeResult::Error(ApiError::internal_error(
-                        "Malformed secret key for organization",
-                    ))
-                }
-            };
-
-            let private_key = match SigningKey::from_slice(&private_key_bytes.as_slice()) {
-                Ok(key) => key,
-                Err(_) => {
-                    return ProductUniqueCodeResult::Error(ApiError::internal_error(
-                        "Malformed secret key for organization",
-                    ))
-                }
-            };
-
-            // Update the serial number's print version
-            let sn_idx = sn_index.unwrap();
-            product_sn_vec[sn_idx].print_version += 1;
-            product_sn_vec[sn_idx].updated_at = api::time();
-            product_sn_vec[sn_idx].updated_by = api::caller();
-
-            let updated_sn = product_sn_vec[sn_idx].clone();
-
-            // Save an updated serial number collection
-            serial_numbers_mut.insert(product_id, encode_product_serial_numbers(&product_sn_vec));
-
-            // Create unique code by signing a message
-            let msg = format!(
-                "{}_{}_{}",
-                product_id.to_string(),
-                serial_no.to_string(),
-                updated_sn.print_version
-            );
-            let mut hasher = Sha256::new();
-            hasher.update(msg);
-            let hashed_message = hasher.finalize();
-
-            let signature: Signature = private_key.sign(&hashed_message);
-
-            ProductUniqueCodeResult::Result(ProductUniqueCodeResultRecord {
-                unique_code: signature.to_string(),
-                print_version: updated_sn.print_version,
-                product_id: updated_sn.product_id,
-                serial_no: updated_sn.serial_no,
-                created_at: updated_sn.updated_at,
-            })
-        } else {
-            ProductUniqueCodeResult::Error(ApiError::not_found(
-                "Product has no serial number recorded",
-            ))
-        }
-    })
+    // Call the internal helper
+    match generate_and_store_unique_code_for_serial(product_id, serial_no, &organization.private_key) {
+        Ok(record) => ProductUniqueCodeResult::Result(record),
+        Err(err) => ProductUniqueCodeResult::Error(err),
+    }
 }
 
 #[update]

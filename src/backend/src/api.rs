@@ -151,7 +151,6 @@ pub struct ProductsListResponse {
 #[derive(CandidType, Deserialize)]
 pub struct CreateProductSerialNumberRequest {
     pub product_id: Principal,
-    pub user_serial_no: Option<String>,
 }
 
 #[derive(CandidType, Serialize, Deserialize)]

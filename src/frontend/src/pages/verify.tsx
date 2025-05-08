@@ -30,9 +30,9 @@
 
 import React from 'react';
 import { useState } from 'react';
-import QRCodeScanner from '../components/QRCodeScanner';
-import { productApi } from '../api/productApi';
-import type { ProductVerificationStatus } from '../../../declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import QRCodeScanner from '@/components/QRCodeScanner';
+import { productApi } from '@/api/productApi';
+import type { ProductVerificationStatus } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 import { Link } from 'react-router-dom';
 
 interface VerificationState {

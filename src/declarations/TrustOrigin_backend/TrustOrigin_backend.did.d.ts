@@ -222,7 +222,6 @@ export interface ProductSerialNumber {
   'created_at' : bigint,
   'created_by' : Principal,
   'print_version' : number,
-  'user_serial_no' : string,
   'serial_no' : Principal,
 }
 export type ProductSerialNumberResult = { 'result' : ProductSerialNumber } |
@@ -434,7 +433,7 @@ export interface _SERVICE {
   'create_organization_v2' : ActorMethod<[OrganizationInput], ApiResponse_3>,
   'create_product' : ActorMethod<[ProductInput], ProductResult>,
   'create_product_serial_number' : ActorMethod<
-    [Principal, [] | [string]],
+    [Principal],
     ProductSerialNumberResult
   >,
   'create_user' : ActorMethod<[Principal, UserDetailsInput], UserResult>,
@@ -501,7 +500,7 @@ export interface _SERVICE {
   >,
   'update_product' : ActorMethod<[Principal, ProductInput], ProductResult>,
   'update_product_serial_number' : ActorMethod<
-    [Principal, Principal, [] | [string]],
+    [Principal, Principal],
     ProductSerialNumberResult
   >,
   'update_self_details' : ActorMethod<[UserDetailsInput], UserResult>,
