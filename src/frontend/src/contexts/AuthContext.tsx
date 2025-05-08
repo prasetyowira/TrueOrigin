@@ -60,6 +60,7 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
   const [currentActor, setCurrentActor] = useState<ActorSubclass<TrustOriginService> | null>(null);
   const [userPrincipal, setUserPrincipal] = useState<Principal | null>(null);
   const [isAuthContextLoading, setIsAuthContextLoading] = useState(true);
+  const [wasAuthenticated, setWasAuthenticated] = useState(false); // Track previous auth state
 
   const navigate = useNavigate();
 
@@ -214,6 +215,33 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
     logger.debug("AuthContext (getActorWithCurrentIdentity): Returning ANONYMOUS actor.");
     return getAnonymousActor();
   }, [authClient, userPrincipal]);
+
+  // Effect to handle automatic logout based on auth context changes or errors
+  useEffect(() => {
+    if (wasAuthenticated) {
+      if (authQueryError) {
+        logger.warn("AuthContext: Auth query error detected, logging out.", authQueryError);
+        logout();
+        return;
+      }
+      if (userPrincipal && authContextData && !authContextData.is_registered) {
+        logger.warn("AuthContext: User principal exists but backend reports not registered, logging out.");
+        logout();
+        return;
+      }
+    }
+  }, [authQueryError, authContextData, userPrincipal, logout, wasAuthenticated]);
+
+  // Update wasAuthenticated after auth state is determined
+  useEffect(() => {
+    if (!isLoadingAuthQuery && !isAuthContextLoading) {
+      if (userPrincipal && authContextData?.is_registered) {
+        setWasAuthenticated(true);
+      } else {
+        setWasAuthenticated(false);
+      }
+    }
+  }, [userPrincipal, authContextData, isLoadingAuthQuery, isAuthContextLoading]);
 
   const isAuthenticated = !!userPrincipal && !!authContextData?.is_registered;
   const isLoading = isAuthContextLoading || isLoadingAuthQuery || initializeSessionMutation.isPending || logoutMutation.isPending;

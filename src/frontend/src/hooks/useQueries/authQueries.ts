@@ -100,22 +100,25 @@ export type FEAuthContextResponse = {
   };
 };
 
-export const transformAuthContextResponse = (didResponse: DidAuthContextResponse): FEAuthContextResponse => ({
-  is_registered: didResponse.is_registered,
-  user: unwrap(didResponse.user),
-  role: mapDidUserRoleToFEUserRole(unwrap(didResponse.role)!), // Assert ! as role should exist if mapping
-  brand_owner_details: unwrap(didResponse.brand_owner_details) ? {
-    has_organizations: unwrap(didResponse.brand_owner_details)!.has_organizations,
-    active_organization: unwrap(unwrap(didResponse.brand_owner_details)!.active_organization),
-    organizations: unwrapArray(unwrap(didResponse.brand_owner_details)!.organizations),
-  } : undefined,
-  reseller_details: unwrap(didResponse.reseller_details) ? {
-    is_profile_complete_and_verified: unwrap(didResponse.reseller_details)!.is_profile_complete_and_verified,
-    certification_code: unwrap(unwrap(didResponse.reseller_details)!.certification_code),
-    certification_timestamp: unwrap(unwrap(didResponse.reseller_details)!.certification_timestamp),
-    associated_organization: unwrap(unwrap(didResponse.reseller_details)!.associated_organization),
-  } : undefined,
-});
+export const transformAuthContextResponse = (didResponse: DidAuthContextResponse): FEAuthContextResponse => {
+  const unwrappedRole = unwrap(didResponse.role);
+  return {
+    is_registered: didResponse.is_registered,
+    user: unwrap(didResponse.user),
+    role: unwrappedRole ? mapDidUserRoleToFEUserRole(unwrappedRole) : undefined,
+    brand_owner_details: unwrap(didResponse.brand_owner_details) ? {
+      has_organizations: unwrap(didResponse.brand_owner_details)!.has_organizations,
+      active_organization: unwrap(unwrap(didResponse.brand_owner_details)!.active_organization),
+      organizations: unwrapArray(unwrap(didResponse.brand_owner_details)!.organizations),
+    } : undefined,
+    reseller_details: unwrap(didResponse.reseller_details) ? {
+      is_profile_complete_and_verified: unwrap(didResponse.reseller_details)!.is_profile_complete_and_verified,
+      certification_code: unwrap(unwrap(didResponse.reseller_details)!.certification_code),
+      certification_timestamp: unwrap(unwrap(didResponse.reseller_details)!.certification_timestamp),
+      associated_organization: unwrap(unwrap(didResponse.reseller_details)!.associated_organization),
+    } : undefined,
+  };
+};
 
 export const useGetAvailableRoles = () => {
   const queryKey = ['availableRoles'];
