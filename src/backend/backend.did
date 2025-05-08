@@ -24,52 +24,57 @@ type ApiResponse_10 = record {
 };
 type ApiResponse_11 = record {
   metadata : ResponseMetadata;
-  data : opt RateLimitInfo;
+  data : opt OrganizationAnalyticData;
   error : opt ApiError;
 };
 type ApiResponse_12 = record {
   metadata : ResponseMetadata;
-  data : opt OrganizationsListResponse;
+  data : opt RateLimitInfo;
   error : opt ApiError;
 };
 type ApiResponse_13 = record {
   metadata : ResponseMetadata;
-  data : opt LogoutResponse;
+  data : opt OrganizationsListResponse;
   error : opt ApiError;
 };
 type ApiResponse_14 = record {
   metadata : ResponseMetadata;
-  data : opt RedeemRewardResponse;
+  data : opt LogoutResponse;
   error : opt ApiError;
 };
 type ApiResponse_15 = record {
   metadata : ResponseMetadata;
-  data : opt UserResponse;
+  data : opt RedeemRewardResponse;
   error : opt ApiError;
 };
 type ApiResponse_16 = record {
   metadata : ResponseMetadata;
-  data : opt ResetStorageResponse;
+  data : opt UserResponse;
   error : opt ApiError;
 };
 type ApiResponse_17 = record {
   metadata : ResponseMetadata;
-  data : opt null;
+  data : opt ResetStorageResponse;
   error : opt ApiError;
 };
 type ApiResponse_18 = record {
   metadata : ResponseMetadata;
-  data : opt ProductVerificationEnhancedResponse;
+  data : opt null;
   error : opt ApiError;
 };
 type ApiResponse_19 = record {
   metadata : ResponseMetadata;
-  data : opt ResellerVerificationResponse;
+  data : opt ProductVerificationEnhancedResponse;
   error : opt ApiError;
 };
 type ApiResponse_2 = record {
   metadata : ResponseMetadata;
   data : opt OrganizationContextResponse;
+  error : opt ApiError;
+};
+type ApiResponse_20 = record {
+  metadata : ResponseMetadata;
+  data : opt ResellerVerificationResponse;
   error : opt ApiError;
 };
 type ApiResponse_3 = record {
@@ -136,6 +141,7 @@ type GenerateResellerUniqueCodeRequest = record {
   context : opt text;
   reseller_id : principal;
 };
+type GetOrganizationAnalyticRequest = record { org_id : principal };
 type HttpHeader = record { value : text; name : text };
 type HttpResponse = record {
   status : nat;
@@ -148,6 +154,11 @@ type NavigationContextResponse = record {
   user_display_name : text;
   user_avatar_id : opt text;
   current_organization_name : opt text;
+};
+type OrganizationAnalyticData = record {
+  total_products : nat64;
+  active_resellers : nat64;
+  verifications_this_month : nat64;
 };
 type OrganizationContextResponse = record {
   user_auth_context : AuthContextResponse;
@@ -245,6 +256,7 @@ type ProductVerification = record {
   serial_no : principal;
 };
 type ProductVerificationDetail = record {
+  status : ProductVerificationStatus;
   user_email : opt text;
   product_id : principal;
   created_at : nat64;
@@ -440,16 +452,19 @@ service : () -> {
   get_my_reseller_certification : () -> (ApiResponse_8) query;
   get_navigation_context : () -> (ApiResponse_9) query;
   get_openai_api_key : () -> (ApiResponse_10) query;
+  get_organization_analytic : (GetOrganizationAnalyticRequest) -> (
+      ApiResponse_11,
+    ) query;
   get_organization_by_id : (principal) -> (OrganizationResult) query;
   get_organization_by_id_v2 : (principal) -> (ApiResponse_3) query;
   get_organization_private_key : (principal) -> (PrivateKeyResult) query;
   get_product_by_id : (principal) -> (ProductResult) query;
   get_scraper_url : () -> (ApiResponse_10) query;
   get_user_by_id : (principal) -> (opt User) query;
-  get_verification_rate_limit : (principal) -> (ApiResponse_11) query;
+  get_verification_rate_limit : (principal) -> (ApiResponse_12) query;
   greet : (text) -> (text) query;
   initialize_user_session : (opt UserRole) -> (ApiResponse_1);
-  list_organizations_v2 : (FindOrganizationsRequest) -> (ApiResponse_12);
+  list_organizations_v2 : (FindOrganizationsRequest) -> (ApiResponse_13);
   list_product_serial_numbers : (opt principal, opt principal) -> (
       Result,
     ) query;
@@ -458,18 +473,18 @@ service : () -> {
     ) query;
   list_products : (principal) -> (vec Product) query;
   list_resellers_by_org_id : (principal) -> (vec Reseller) query;
-  logout_user : () -> (ApiResponse_13);
+  logout_user : () -> (ApiResponse_14);
   print_product_serial_number : (principal, principal) -> (
       ProductUniqueCodeResult,
     );
-  redeem_product_reward : (RedeemRewardRequest) -> (ApiResponse_14);
+  redeem_product_reward : (RedeemRewardRequest) -> (ApiResponse_15);
   register : () -> (User);
   register_as_organization : (OrganizationInput) -> (UserResult);
-  register_as_reseller_v2 : (ResellerInput) -> (ApiResponse_15);
-  reset_all_stable_storage : () -> (ApiResponse_16);
+  register_as_reseller_v2 : (ResellerInput) -> (ApiResponse_16);
+  reset_all_stable_storage : () -> (ApiResponse_17);
   select_active_organization : (principal) -> (ApiResponse_1);
-  set_openai_api_key : (text) -> (ApiResponse_17);
-  set_scraper_url : (text) -> (ApiResponse_17);
+  set_openai_api_key : (text) -> (ApiResponse_18);
+  set_scraper_url : (text) -> (ApiResponse_18);
   set_self_role : (UserRole) -> (UserResult);
   transform : (TransformArgs) -> (HttpResponse) query;
   update_organization : (principal, OrganizationInput) -> (OrganizationResult);
@@ -481,7 +496,7 @@ service : () -> {
   update_self_details : (UserDetailsInput) -> (UserResult);
   update_user : (principal, UserDetailsInput) -> (UserResult);
   update_user_orgs : (principal, vec principal) -> (UserResult);
-  verify_product_v2 : (VerifyProductEnhancedRequest) -> (ApiResponse_18);
-  verify_reseller_v2 : (VerifyResellerRequest) -> (ApiResponse_19) query;
+  verify_product_v2 : (VerifyProductEnhancedRequest) -> (ApiResponse_19);
+  verify_reseller_v2 : (VerifyResellerRequest) -> (ApiResponse_20) query;
   whoami : () -> (opt User) query;
 }

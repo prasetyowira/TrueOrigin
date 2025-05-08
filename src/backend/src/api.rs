@@ -376,6 +376,7 @@ pub struct ProductVerificationDetail {
     pub product_name: String,
     pub serial_no: Principal,
     pub created_at: u64,
+    pub status: ProductVerificationStatus,
 }
 
 // ===== Reset API Structures =====
@@ -383,4 +384,18 @@ pub struct ProductVerificationDetail {
 #[derive(CandidType, Serialize, Deserialize)]
 pub struct ResetStorageResponse {
     pub message: String,
+}
+
+// ===== Organization Analytic API Structures =====
+
+#[derive(CandidType, Deserialize)]
+pub struct GetOrganizationAnalyticRequest {
+    pub org_id: Principal,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct OrganizationAnalyticData {
+    pub total_products: u64,
+    pub active_resellers: u64,
+    pub verifications_this_month: u64, // Defined as verifications in the last 30 days
 }

@@ -14,7 +14,9 @@ use crate::error::ApiError;
 use crate::models::{Metadata, Organization, OrganizationInput, OrganizationPublic, OrganizationResult, PrivateKeyResult, Product, ProductInput, ProductResult, ProductSerialNumber, ProductSerialNumberResult, ProductUniqueCodeResult, ProductUniqueCodeResultRecord, ProductVerification, ProductVerificationResult, ProductVerificationStatus, Reseller, ResellerInput, ResellerVerificationResult, UniqueCodeResult, User, UserDetailsInput, UserResult, UserRole, UserPublic, AuthContextResponse, BrandOwnerContextDetails, ResellerContextDetails, LogoutResponse, CreateOrganizationWithOwnerContextRequest, OrganizationContextResponse, CompleteResellerProfileRequest, ResellerCertificationPageContext, ResellerPublic, NavigationContextResponse};
 use crate::api::{ // Corrected: Import from crate::api
     RedeemRewardRequest, 
-    RedeemRewardResponse
+    RedeemRewardResponse,
+    GetOrganizationAnalyticRequest, // Added import
+    OrganizationAnalyticData,      // Added import
 };
 use crate::utils::generate_unique_principal;
 use crate::{
@@ -2311,6 +2313,7 @@ pub fn list_product_verifications_by_org_id(org_id: Principal) -> Vec<ProductVer
                         product_name: product.name.clone(), // Use product name from fetched products
                         serial_no: verification.serial_no,
                         created_at: verification.created_at,
+                        status: verification.status.clone(), // Populate the new status field
                     };
                     all_verification_details.push(detail);
                 }
@@ -3152,3 +3155,67 @@ pub fn redeem_product_reward(request: RedeemRewardRequest) -> ApiResponse<Redeem
 
 // Make sure to export the new types if they are in a different module and used by Candid.
 // However, these are directly in models.rs which is part of the crate.
+
+#[query]
+pub fn get_organization_analytic(request: GetOrganizationAnalyticRequest) -> ApiResponse<OrganizationAnalyticData> {
+    let caller = api::caller();
+
+    // Authorize user
+    match authorize_for_organization(caller, request.org_id, Permission::ReadOrganization) {
+        Ok(_) => {
+            // Calculate total products
+            let total_products = PRODUCTS.with(|products_map| {
+                products_map
+                    .borrow()
+                    .iter()
+                    .filter(|(_, product)| product.org_id == request.org_id)
+                    .count() as u64
+            });
+
+            // Calculate active resellers (assuming active means is_verified = true)
+            let active_resellers = RESELLERS.with(|resellers_map| {
+                resellers_map
+                    .borrow()
+                    .iter()
+                    .filter(|(_, reseller)| reseller.org_id == request.org_id && reseller.is_verified)
+                    .count() as u64
+            });
+
+            // Calculate verifications in the last 30 days
+            const THIRTY_DAYS_NS: u64 = 30 * 24 * 60 * 60 * 1_000_000_000;
+            let thirty_days_ago_ns = api::time().saturating_sub(THIRTY_DAYS_NS);
+
+            let mut verifications_this_month: u64 = 0;
+            let products_in_org_ids = PRODUCTS.with(|p_store| {
+                p_store
+                    .borrow()
+                    .iter()
+                    .filter(|(_, p)| p.org_id == request.org_id)
+                    .map(|(p_id, _)| p_id)
+                    .collect::<Vec<Principal>>()
+            });
+
+            PRODUCT_VERIFICATIONS.with(|pv_store| {
+                let store = pv_store.borrow();
+                for product_id in products_in_org_ids {
+                    if let Some(serialized_verifications) = store.get(&product_id) {
+                        let decoded_verifications = decode_product_verifications(&serialized_verifications);
+                        for verification in decoded_verifications {
+                            if verification.created_at >= thirty_days_ago_ns {
+                                verifications_this_month += 1;
+                            }
+                        }
+                    }
+                }
+            });
+
+            let analytic_data = OrganizationAnalyticData {
+                total_products,
+                active_resellers,
+                verifications_this_month,
+            };
+            ApiResponse::success(analytic_data)
+        }
+        Err(e) => ApiResponse::error(e),
+    }
+}

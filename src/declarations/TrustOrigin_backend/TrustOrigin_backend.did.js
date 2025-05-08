@@ -261,6 +261,19 @@ export const idlFactory = ({ IDL }) => {
     'data' : IDL.Opt(IDL.Text),
     'error' : IDL.Opt(ApiError),
   });
+  const GetOrganizationAnalyticRequest = IDL.Record({
+    'org_id' : IDL.Principal,
+  });
+  const OrganizationAnalyticData = IDL.Record({
+    'total_products' : IDL.Nat64,
+    'active_resellers' : IDL.Nat64,
+    'verifications_this_month' : IDL.Nat64,
+  });
+  const ApiResponse_11 = IDL.Record({
+    'metadata' : ResponseMetadata,
+    'data' : IDL.Opt(OrganizationAnalyticData),
+    'error' : IDL.Opt(ApiError),
+  });
   const OrganizationResult = IDL.Variant({
     'error' : ApiError,
     'organization' : OrganizationPublic,
@@ -274,7 +287,7 @@ export const idlFactory = ({ IDL }) => {
     'remaining_attempts' : IDL.Nat32,
     'reset_time' : IDL.Nat64,
   });
-  const ApiResponse_11 = IDL.Record({
+  const ApiResponse_12 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(RateLimitInfo),
     'error' : IDL.Opt(ApiError),
@@ -297,7 +310,7 @@ export const idlFactory = ({ IDL }) => {
     'pagination' : IDL.Opt(PaginationResponse),
     'organizations' : IDL.Vec(OrganizationPublic),
   });
-  const ApiResponse_12 = IDL.Record({
+  const ApiResponse_13 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(OrganizationsListResponse),
     'error' : IDL.Opt(ApiError),
@@ -306,7 +319,13 @@ export const idlFactory = ({ IDL }) => {
     'Ok' : IDL.Vec(ProductSerialNumber),
     'Err' : ApiError,
   });
+  const ProductVerificationStatus = IDL.Variant({
+    'Invalid' : IDL.Null,
+    'MultipleVerification' : IDL.Null,
+    'FirstVerification' : IDL.Null,
+  });
   const ProductVerificationDetail = IDL.Record({
+    'status' : ProductVerificationStatus,
     'user_email' : IDL.Opt(IDL.Text),
     'product_id' : IDL.Principal,
     'created_at' : IDL.Nat64,
@@ -317,7 +336,7 @@ export const idlFactory = ({ IDL }) => {
     'redirect_url' : IDL.Opt(IDL.Text),
     'message' : IDL.Text,
   });
-  const ApiResponse_13 = IDL.Record({
+  const ApiResponse_14 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(LogoutResponse),
     'error' : IDL.Opt(ApiError),
@@ -343,7 +362,7 @@ export const idlFactory = ({ IDL }) => {
     'message' : IDL.Text,
     'success' : IDL.Bool,
   });
-  const ApiResponse_14 = IDL.Record({
+  const ApiResponse_15 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(RedeemRewardResponse),
     'error' : IDL.Opt(ApiError),
@@ -355,18 +374,18 @@ export const idlFactory = ({ IDL }) => {
     'org_id' : IDL.Principal,
   });
   const UserResponse = IDL.Record({ 'user' : User });
-  const ApiResponse_15 = IDL.Record({
+  const ApiResponse_16 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(UserResponse),
     'error' : IDL.Opt(ApiError),
   });
   const ResetStorageResponse = IDL.Record({ 'message' : IDL.Text });
-  const ApiResponse_16 = IDL.Record({
+  const ApiResponse_17 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(ResetStorageResponse),
     'error' : IDL.Opt(ApiError),
   });
-  const ApiResponse_17 = IDL.Record({
+  const ApiResponse_18 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(IDL.Null),
     'error' : IDL.Opt(ApiError),
@@ -390,11 +409,6 @@ export const idlFactory = ({ IDL }) => {
   const VerifyProductEnhancedRequest = IDL.Record({
     'unique_code' : IDL.Text,
     'serial_no' : IDL.Principal,
-  });
-  const ProductVerificationStatus = IDL.Variant({
-    'Invalid' : IDL.Null,
-    'MultipleVerification' : IDL.Null,
-    'FirstVerification' : IDL.Null,
   });
   const VerificationRewards = IDL.Record({
     'special_reward' : IDL.Opt(IDL.Text),
@@ -420,7 +434,7 @@ export const idlFactory = ({ IDL }) => {
     'rewards' : IDL.Opt(VerificationRewards),
     'verification' : IDL.Opt(ProductVerification),
   });
-  const ApiResponse_18 = IDL.Record({
+  const ApiResponse_19 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(ProductVerificationEnhancedResponse),
     'error' : IDL.Opt(ApiError),
@@ -445,7 +459,7 @@ export const idlFactory = ({ IDL }) => {
     'reseller' : IDL.Opt(Reseller),
     'organization' : IDL.Opt(OrganizationPublic),
   });
-  const ApiResponse_19 = IDL.Record({
+  const ApiResponse_20 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(ResellerVerificationResponse),
     'error' : IDL.Opt(ApiError),
@@ -513,6 +527,11 @@ export const idlFactory = ({ IDL }) => {
     'get_my_reseller_certification' : IDL.Func([], [ApiResponse_8], ['query']),
     'get_navigation_context' : IDL.Func([], [ApiResponse_9], ['query']),
     'get_openai_api_key' : IDL.Func([], [ApiResponse_10], ['query']),
+    'get_organization_analytic' : IDL.Func(
+        [GetOrganizationAnalyticRequest],
+        [ApiResponse_11],
+        ['query'],
+      ),
     'get_organization_by_id' : IDL.Func(
         [IDL.Principal],
         [OrganizationResult],
@@ -533,7 +552,7 @@ export const idlFactory = ({ IDL }) => {
     'get_user_by_id' : IDL.Func([IDL.Principal], [IDL.Opt(User)], ['query']),
     'get_verification_rate_limit' : IDL.Func(
         [IDL.Principal],
-        [ApiResponse_11],
+        [ApiResponse_12],
         ['query'],
       ),
     'greet' : IDL.Func([IDL.Text], [IDL.Text], ['query']),
@@ -544,7 +563,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'list_organizations_v2' : IDL.Func(
         [FindOrganizationsRequest],
-        [ApiResponse_12],
+        [ApiResponse_13],
         [],
       ),
     'list_product_serial_numbers' : IDL.Func(
@@ -563,7 +582,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(Reseller)],
         ['query'],
       ),
-    'logout_user' : IDL.Func([], [ApiResponse_13], []),
+    'logout_user' : IDL.Func([], [ApiResponse_14], []),
     'print_product_serial_number' : IDL.Func(
         [IDL.Principal, IDL.Principal],
         [ProductUniqueCodeResult],
@@ -571,7 +590,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'redeem_product_reward' : IDL.Func(
         [RedeemRewardRequest],
-        [ApiResponse_14],
+        [ApiResponse_15],
         [],
       ),
     'register' : IDL.Func([], [User], []),
@@ -580,15 +599,15 @@ export const idlFactory = ({ IDL }) => {
         [UserResult],
         [],
       ),
-    'register_as_reseller_v2' : IDL.Func([ResellerInput], [ApiResponse_15], []),
-    'reset_all_stable_storage' : IDL.Func([], [ApiResponse_16], []),
+    'register_as_reseller_v2' : IDL.Func([ResellerInput], [ApiResponse_16], []),
+    'reset_all_stable_storage' : IDL.Func([], [ApiResponse_17], []),
     'select_active_organization' : IDL.Func(
         [IDL.Principal],
         [ApiResponse_1],
         [],
       ),
-    'set_openai_api_key' : IDL.Func([IDL.Text], [ApiResponse_17], []),
-    'set_scraper_url' : IDL.Func([IDL.Text], [ApiResponse_17], []),
+    'set_openai_api_key' : IDL.Func([IDL.Text], [ApiResponse_18], []),
+    'set_scraper_url' : IDL.Func([IDL.Text], [ApiResponse_18], []),
     'set_self_role' : IDL.Func([UserRole], [UserResult], []),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
     'update_organization' : IDL.Func(
@@ -624,12 +643,12 @@ export const idlFactory = ({ IDL }) => {
       ),
     'verify_product_v2' : IDL.Func(
         [VerifyProductEnhancedRequest],
-        [ApiResponse_18],
+        [ApiResponse_19],
         [],
       ),
     'verify_reseller_v2' : IDL.Func(
         [VerifyResellerRequest],
-        [ApiResponse_19],
+        [ApiResponse_20],
         ['query'],
       ),
     'whoami' : IDL.Func([], [IDL.Opt(User)], ['query']),

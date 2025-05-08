@@ -437,7 +437,7 @@ pub enum UniqueCodeResult {
     Error(ApiError)
 }
 
-#[derive(CandidType, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(CandidType, Serialize, Deserialize, PartialEq, Eq, Clone, Debug)]
 pub enum ProductVerificationStatus {
     FirstVerification,
     MultipleVerification,

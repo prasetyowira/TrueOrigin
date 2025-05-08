@@ -31,7 +31,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 // Import types directly from declarations
-import type { ProductVerificationDetail } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
+import type { ProductVerificationDetail, ProductVerificationStatus } from '@declarations/TrustOrigin_backend/TrustOrigin_backend.did';
 import { Principal } from '@dfinity/principal';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
@@ -45,6 +45,14 @@ import { logger } from '@/utils/logger'; // Import logger
 
 // Constants
 const ITEMS_PER_PAGE = 10;
+
+// Helper function to format ProductVerificationStatus
+const formatVerificationStatus = (status: ProductVerificationStatus): string => {
+  if ('FirstVerification' in status) return 'First Verification';
+  if ('MultipleVerification' in status) return 'Multiple Verifications';
+  if ('Invalid' in status) return 'Invalid';
+  return 'Unknown';
+};
 
 const UserManagementPage: React.FC = () => {
   const { actor, brandOwnerDetails, isLoading: authLoading, isAuthenticated } = useAuth();
@@ -260,18 +268,19 @@ const UserManagementPage: React.FC = () => {
                 <TableHead>Product ID</TableHead>
                 <TableHead>Product Name</TableHead>
                 <TableHead>Scan Date</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     <LoadingSpinner /> {/* Show spinner while loading */}
                   </TableCell>
                 </TableRow>
               ) : verificationsError ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-red-600">
+                  <TableCell colSpan={6} className="h-24 text-center text-red-600">
                     {/* Display error message if fetching fails */}
                     Error loading verification history: {verificationsError.message}
                   </TableCell>
@@ -295,12 +304,14 @@ const UserManagementPage: React.FC = () => {
                       <TableCell>{verification.product_name}</TableCell>
                       {/* Display formatted timestamp */}
                       <TableCell>{formatTimestamp(verification.created_at)}</TableCell>
+                      {/* Display verification status */}
+                      <TableCell>{formatVerificationStatus(verification.status)}</TableCell>
                     </TableRow>
                   );
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     {/* Message when no data matches filters or no data exists */}
                     {verifications.length === 0 
                       ? "No verification records found for this organization."
