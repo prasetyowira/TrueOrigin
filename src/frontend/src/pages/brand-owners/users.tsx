@@ -76,6 +76,7 @@ const UserManagementPage: React.FC = () => {
       try {
         const result: ProductVerificationDetail[] = await actor.list_product_verifications_by_org_id(orgId);
         logger.debug(`[UserScansPage] Fetched ${result.length} verifications.`);
+        logger.debug(`[UserScansPage] Verifications: `, result);
         // Sort directly on the DID type array
         return result.sort((a, b) => Number(b.created_at) - Number(a.created_at));
       } catch (e) {

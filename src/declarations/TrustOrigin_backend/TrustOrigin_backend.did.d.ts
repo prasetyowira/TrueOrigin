@@ -41,25 +41,30 @@ export interface ApiResponse_13 {
 }
 export interface ApiResponse_14 {
   'metadata' : ResponseMetadata,
-  'data' : [] | [UserResponse],
+  'data' : [] | [RedeemRewardResponse],
   'error' : [] | [ApiError],
 }
 export interface ApiResponse_15 {
   'metadata' : ResponseMetadata,
-  'data' : [] | [ResetStorageResponse],
+  'data' : [] | [UserResponse],
   'error' : [] | [ApiError],
 }
 export interface ApiResponse_16 {
   'metadata' : ResponseMetadata,
-  'data' : [] | [null],
+  'data' : [] | [ResetStorageResponse],
   'error' : [] | [ApiError],
 }
 export interface ApiResponse_17 {
   'metadata' : ResponseMetadata,
-  'data' : [] | [ProductVerificationEnhancedResponse],
+  'data' : [] | [null],
   'error' : [] | [ApiError],
 }
 export interface ApiResponse_18 {
+  'metadata' : ResponseMetadata,
+  'data' : [] | [ProductVerificationEnhancedResponse],
+  'error' : [] | [ApiError],
+}
+export interface ApiResponse_19 {
   'metadata' : ResponseMetadata,
   'data' : [] | [ResellerVerificationResponse],
   'error' : [] | [ApiError],
@@ -241,7 +246,9 @@ export interface ProductVerification {
   'id' : Principal,
   'status' : ProductVerificationStatus,
   'product_id' : Principal,
+  'reward_claimed' : boolean,
   'metadata' : Array<Metadata>,
+  'reward_transaction_id' : [] | [string],
   'created_at' : bigint,
   'created_by' : Principal,
   'print_version' : number,
@@ -267,6 +274,16 @@ export interface RateLimitInfo {
   'current_window_start' : bigint,
   'remaining_attempts' : number,
   'reset_time' : bigint,
+}
+export interface RedeemRewardRequest {
+  'wallet_address' : string,
+  'unique_code' : string,
+  'serial_no' : Principal,
+}
+export interface RedeemRewardResponse {
+  'transaction_id' : [] | [string],
+  'message' : string,
+  'success' : boolean,
 }
 export interface Reseller {
   'id' : Principal,
@@ -476,13 +493,14 @@ export interface _SERVICE {
     [Principal, Principal],
     ProductUniqueCodeResult
   >,
+  'redeem_product_reward' : ActorMethod<[RedeemRewardRequest], ApiResponse_14>,
   'register' : ActorMethod<[], User>,
   'register_as_organization' : ActorMethod<[OrganizationInput], UserResult>,
-  'register_as_reseller_v2' : ActorMethod<[ResellerInput], ApiResponse_14>,
-  'reset_all_stable_storage' : ActorMethod<[], ApiResponse_15>,
+  'register_as_reseller_v2' : ActorMethod<[ResellerInput], ApiResponse_15>,
+  'reset_all_stable_storage' : ActorMethod<[], ApiResponse_16>,
   'select_active_organization' : ActorMethod<[Principal], ApiResponse_1>,
-  'set_openai_api_key' : ActorMethod<[string], ApiResponse_16>,
-  'set_scraper_url' : ActorMethod<[string], ApiResponse_16>,
+  'set_openai_api_key' : ActorMethod<[string], ApiResponse_17>,
+  'set_scraper_url' : ActorMethod<[string], ApiResponse_17>,
   'set_self_role' : ActorMethod<[UserRole], UserResult>,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'update_organization' : ActorMethod<
@@ -503,9 +521,9 @@ export interface _SERVICE {
   'update_user_orgs' : ActorMethod<[Principal, Array<Principal>], UserResult>,
   'verify_product_v2' : ActorMethod<
     [VerifyProductEnhancedRequest],
-    ApiResponse_17
+    ApiResponse_18
   >,
-  'verify_reseller_v2' : ActorMethod<[VerifyResellerRequest], ApiResponse_18>,
+  'verify_reseller_v2' : ActorMethod<[VerifyResellerRequest], ApiResponse_19>,
   'whoami' : ActorMethod<[], [] | [User]>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;

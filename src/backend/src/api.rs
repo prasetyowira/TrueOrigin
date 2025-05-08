@@ -225,6 +225,23 @@ pub struct VerificationRewards {
     pub reward_description: Option<String>,
 }
 
+// ===== Reward Redemption API Structures =====
+
+#[derive(CandidType, Deserialize, Clone, Debug)]
+pub struct RedeemRewardRequest {
+    pub wallet_address: String,
+    // We need the original verification details to validate the redemption request
+    pub serial_no: Principal, 
+    pub unique_code: String, 
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct RedeemRewardResponse {
+    pub success: bool,
+    pub transaction_id: Option<String>, // Optional transaction ID from ledger
+    pub message: String, // User-friendly message
+}
+
 // ===== Rate Limiting Structures =====
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]

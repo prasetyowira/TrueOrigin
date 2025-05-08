@@ -333,6 +333,21 @@ export const idlFactory = ({ IDL }) => {
     'result' : ProductUniqueCodeResultRecord,
     'error' : ApiError,
   });
+  const RedeemRewardRequest = IDL.Record({
+    'wallet_address' : IDL.Text,
+    'unique_code' : IDL.Text,
+    'serial_no' : IDL.Principal,
+  });
+  const RedeemRewardResponse = IDL.Record({
+    'transaction_id' : IDL.Opt(IDL.Text),
+    'message' : IDL.Text,
+    'success' : IDL.Bool,
+  });
+  const ApiResponse_14 = IDL.Record({
+    'metadata' : ResponseMetadata,
+    'data' : IDL.Opt(RedeemRewardResponse),
+    'error' : IDL.Opt(ApiError),
+  });
   const ResellerInput = IDL.Record({
     'ecommerce_urls' : IDL.Vec(Metadata),
     'metadata' : IDL.Vec(Metadata),
@@ -340,18 +355,18 @@ export const idlFactory = ({ IDL }) => {
     'org_id' : IDL.Principal,
   });
   const UserResponse = IDL.Record({ 'user' : User });
-  const ApiResponse_14 = IDL.Record({
+  const ApiResponse_15 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(UserResponse),
     'error' : IDL.Opt(ApiError),
   });
   const ResetStorageResponse = IDL.Record({ 'message' : IDL.Text });
-  const ApiResponse_15 = IDL.Record({
+  const ApiResponse_16 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(ResetStorageResponse),
     'error' : IDL.Opt(ApiError),
   });
-  const ApiResponse_16 = IDL.Record({
+  const ApiResponse_17 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(IDL.Null),
     'error' : IDL.Opt(ApiError),
@@ -391,7 +406,9 @@ export const idlFactory = ({ IDL }) => {
     'id' : IDL.Principal,
     'status' : ProductVerificationStatus,
     'product_id' : IDL.Principal,
+    'reward_claimed' : IDL.Bool,
     'metadata' : IDL.Vec(Metadata),
+    'reward_transaction_id' : IDL.Opt(IDL.Text),
     'created_at' : IDL.Nat64,
     'created_by' : IDL.Principal,
     'print_version' : IDL.Nat8,
@@ -403,7 +420,7 @@ export const idlFactory = ({ IDL }) => {
     'rewards' : IDL.Opt(VerificationRewards),
     'verification' : IDL.Opt(ProductVerification),
   });
-  const ApiResponse_17 = IDL.Record({
+  const ApiResponse_18 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(ProductVerificationEnhancedResponse),
     'error' : IDL.Opt(ApiError),
@@ -428,7 +445,7 @@ export const idlFactory = ({ IDL }) => {
     'reseller' : IDL.Opt(Reseller),
     'organization' : IDL.Opt(OrganizationPublic),
   });
-  const ApiResponse_18 = IDL.Record({
+  const ApiResponse_19 = IDL.Record({
     'metadata' : ResponseMetadata,
     'data' : IDL.Opt(ResellerVerificationResponse),
     'error' : IDL.Opt(ApiError),
@@ -552,21 +569,26 @@ export const idlFactory = ({ IDL }) => {
         [ProductUniqueCodeResult],
         [],
       ),
+    'redeem_product_reward' : IDL.Func(
+        [RedeemRewardRequest],
+        [ApiResponse_14],
+        [],
+      ),
     'register' : IDL.Func([], [User], []),
     'register_as_organization' : IDL.Func(
         [OrganizationInput],
         [UserResult],
         [],
       ),
-    'register_as_reseller_v2' : IDL.Func([ResellerInput], [ApiResponse_14], []),
-    'reset_all_stable_storage' : IDL.Func([], [ApiResponse_15], []),
+    'register_as_reseller_v2' : IDL.Func([ResellerInput], [ApiResponse_15], []),
+    'reset_all_stable_storage' : IDL.Func([], [ApiResponse_16], []),
     'select_active_organization' : IDL.Func(
         [IDL.Principal],
         [ApiResponse_1],
         [],
       ),
-    'set_openai_api_key' : IDL.Func([IDL.Text], [ApiResponse_16], []),
-    'set_scraper_url' : IDL.Func([IDL.Text], [ApiResponse_16], []),
+    'set_openai_api_key' : IDL.Func([IDL.Text], [ApiResponse_17], []),
+    'set_scraper_url' : IDL.Func([IDL.Text], [ApiResponse_17], []),
     'set_self_role' : IDL.Func([UserRole], [UserResult], []),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
     'update_organization' : IDL.Func(
@@ -602,12 +624,12 @@ export const idlFactory = ({ IDL }) => {
       ),
     'verify_product_v2' : IDL.Func(
         [VerifyProductEnhancedRequest],
-        [ApiResponse_17],
+        [ApiResponse_18],
         [],
       ),
     'verify_reseller_v2' : IDL.Func(
         [VerifyResellerRequest],
-        [ApiResponse_18],
+        [ApiResponse_19],
         ['query'],
       ),
     'whoami' : IDL.Func([], [IDL.Opt(User)], ['query']),

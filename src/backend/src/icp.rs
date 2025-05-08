@@ -12,6 +12,10 @@ use k256::{
 use crate::auth::{authorize_for_organization, ensure_admin, Permission};
 use crate::error::ApiError;
 use crate::models::{Metadata, Organization, OrganizationInput, OrganizationPublic, OrganizationResult, PrivateKeyResult, Product, ProductInput, ProductResult, ProductSerialNumber, ProductSerialNumberResult, ProductUniqueCodeResult, ProductUniqueCodeResultRecord, ProductVerification, ProductVerificationResult, ProductVerificationStatus, Reseller, ResellerInput, ResellerVerificationResult, UniqueCodeResult, User, UserDetailsInput, UserResult, UserRole, UserPublic, AuthContextResponse, BrandOwnerContextDetails, ResellerContextDetails, LogoutResponse, CreateOrganizationWithOwnerContextRequest, OrganizationContextResponse, CompleteResellerProfileRequest, ResellerCertificationPageContext, ResellerPublic, NavigationContextResponse};
+use crate::api::{ // Corrected: Import from crate::api
+    RedeemRewardRequest, 
+    RedeemRewardResponse
+};
 use crate::utils::generate_unique_principal;
 use crate::{
     global_state::{
@@ -1977,6 +1981,8 @@ pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<P
         created_at: api::time(),
         created_by: caller,
         status: verification_status.clone(),
+        reward_claimed: false, // Initialize as false
+        reward_transaction_id: None, // Initialize as None
     };
     
     PRODUCT_VERIFICATIONS.with(|verifications| {
@@ -2948,6 +2954,199 @@ pub fn get_navigation_context() -> ApiResponse<NavigationContextResponse> {
             ic_cdk::print(format!("ℹ️ [get_navigation_context] User {} not found.", caller));
             ApiResponse::error(ApiError::unauthorized("User not authenticated.")) 
         }
+    }
+}
+
+// ====== Phase 5: Reward Redemption (New Endpoint) ======
+
+#[update]
+pub fn redeem_product_reward(request: RedeemRewardRequest) -> ApiResponse<RedeemRewardResponse> {
+    let caller = api::caller();
+    ic_cdk::print(format!("ℹ️ [redeem_product_reward] Called by: {} for serial: {}", caller, request.serial_no));
+
+    // --- 1. Re-verify the original verification request to ensure legitimacy & get product_id/print_version --- 
+    let mut found_product_id: Option<Principal> = None;
+    let mut found_product_sn_record: Option<ProductSerialNumber> = None;
+
+    PRODUCT_SERIAL_NUMBERS.with(|serial_numbers_map_ref| {
+        let serial_numbers_map = serial_numbers_map_ref.borrow();
+        for (p_id, storable_bytes) in serial_numbers_map.iter() {
+            let sn_vec = decode_product_serial_numbers(&storable_bytes);
+            if let Some(matching_sn) = sn_vec.iter().find(|sn| sn.serial_no == request.serial_no) {
+                found_product_id = Some(p_id);
+                found_product_sn_record = Some(matching_sn.clone());
+                break; 
+            }
+        }
+    });
+
+    let product_id = match found_product_id {
+        Some(id) => id,
+        None => return ApiResponse::error(ApiError::invalid_input("Serial number not found or invalid for redemption.")),
+    };
+
+    let product_sn_record = match found_product_sn_record {
+        Some(psn) => psn,
+        None => return ApiResponse::error(ApiError::internal_error("Inconsistent serial number data during redemption.")), 
+    };
+
+    let product_opt = PRODUCTS.with(|products| products.borrow().get(&product_id).map(|p| p.clone()));
+    if product_opt.is_none() {
+        return ApiResponse::error(ApiError::internal_error("Product data inconsistent: Product not found for existing serial number during redemption."));
+    }
+    let product = product_opt.unwrap();
+    let print_version_from_storage = product_sn_record.print_version;
+
+    // Verify signature again to ensure this request is for the same valid code
+    let public_key_bytes = match hex::decode(&product.public_key) {
+        Ok(bytes) => bytes,
+        Err(_) => return ApiResponse::error(ApiError::internal_error("Malformed public key during redemption.")),
+    };
+    let public_key_encoded_point = match EncodedPoint::from_bytes(public_key_bytes) {
+        Ok(point) => point,
+        Err(_) => return ApiResponse::error(ApiError::internal_error("Malformed public key during redemption.")),
+    };
+    let public_key = match VerifyingKey::from_encoded_point(&public_key_encoded_point) {
+        Ok(key) => key,
+        Err(_) => return ApiResponse::error(ApiError::internal_error("Malformed public key during redemption.")),
+    };
+    let msg_to_verify = format!(
+        "{}_{}_{}",
+        product_id.to_string(),
+        request.serial_no.to_string(),
+        print_version_from_storage
+    );
+    let mut hasher = Sha256::new();
+    hasher.update(msg_to_verify);
+    let hashed_message = hasher.finalize();
+    let decoded_code = match hex::decode(&request.unique_code) {
+        Ok(bytes) => bytes,
+        Err(_) => return ApiResponse::error(ApiError::invalid_input("Malformed unique code during redemption.")),
+    };
+    let signature = match Signature::from_slice(decoded_code.as_slice()) {
+        Ok(sig) => sig,
+        Err(_) => return ApiResponse::error(ApiError::invalid_input("Invalid signature format during redemption.")),
+    };
+    if public_key.verify(&hashed_message, &signature).is_err() {
+        return ApiResponse::error(ApiError::invalid_input("Unique code verification failed during redemption attempt."));
+    }
+
+    // --- 2. Find the specific verification record for this user, product, serial, and version --- 
+    let mut target_verification_opt: Option<ProductVerification> = None;
+    let mut target_verification_index: Option<usize> = None;
+
+    PRODUCT_VERIFICATIONS.with(|verifications_map| {
+        if let Some(verifications_bytes) = verifications_map.borrow().get(&product_id) {
+            let verifications = decode_product_verifications(&verifications_bytes);
+            for (index, verification) in verifications.iter().enumerate() {
+                if verification.created_by == caller 
+                    && verification.serial_no == request.serial_no 
+                    && verification.print_version == print_version_from_storage 
+                {
+                    target_verification_opt = Some(verification.clone());
+                    target_verification_index = Some(index);
+                    break;
+                }
+            }
+        }
+    });
+
+    if target_verification_opt.is_none() {
+        ic_cdk::print(format!("⚠️ [redeem_product_reward] No matching verification found for user {}, serial {}, version {}", caller, request.serial_no, print_version_from_storage));
+        return ApiResponse::error(ApiError::not_found("No eligible verification record found for this redemption request."));
+    }
+
+    let mut verification_to_update = target_verification_opt.unwrap();
+    let verification_index = target_verification_index.unwrap();
+
+    // --- 3. Check if reward was already claimed or if it wasn't a first verification --- 
+    if verification_to_update.reward_claimed {
+        return ApiResponse::success(RedeemRewardResponse {
+            success: false,
+            transaction_id: verification_to_update.reward_transaction_id.clone(),
+            message: "Reward for this verification has already been claimed.".to_string(),
+        });
+    }
+
+    if verification_to_update.status != ProductVerificationStatus::FirstVerification {
+        return ApiResponse::success(RedeemRewardResponse {
+            success: false,
+            transaction_id: None,
+            message: "Reward can only be claimed for the first verification.".to_string(),
+        });
+    }
+
+    // --- 4. Calculate expected reward points (optional, could be stored in verification metadata) ---
+    let rewards = rewards::calculate_verification_rewards(caller, product_id, &verification_to_update.status);
+    if rewards.points == 0 {
+        // This case might happen if reward logic changes or there was an issue during initial calculation
+        // Mark as claimed anyway to prevent future attempts
+        verification_to_update.reward_claimed = true;
+        // Persist the change
+        PRODUCT_VERIFICATIONS.with(|verifications_map| {
+            let mut map_mut = verifications_map.borrow_mut();
+            if let Some(verifications_bytes) = map_mut.get(&product_id) {
+                let mut verifications = decode_product_verifications(&verifications_bytes);
+                if verification_index < verifications.len() {
+                    verifications[verification_index] = verification_to_update.clone();
+                    map_mut.insert(product_id, encode_product_verifications(&verifications));
+                }
+            }
+        });
+        return ApiResponse::success(RedeemRewardResponse {
+            success: false,
+            transaction_id: None,
+            message: "No points were associated with this verification.".to_string(),
+        });
+    }
+
+    // --- 5. Simulate Reward Transfer (TODO: Replace with actual ledger interaction) --- 
+    ic_cdk::print(format!(
+        "✅ [redeem_product_reward] SIMULATING transfer of {} points to wallet {} for user {} verification {}",
+        rewards.points,
+        request.wallet_address,
+        caller,
+        verification_to_update.id
+    ));
+
+    // Simulate success and generate a fake transaction ID
+    let simulated_tx_id = format!("simulated-tx-{}", verification_to_update.id);
+    let redemption_successful = true; // Assume simulation success for now
+
+    // --- 6. Update Verification Record --- 
+    if redemption_successful {
+        verification_to_update.reward_claimed = true;
+        verification_to_update.reward_transaction_id = Some(simulated_tx_id.clone());
+
+        // Persist the updated verification record
+        PRODUCT_VERIFICATIONS.with(|verifications_map| {
+            let mut map_mut = verifications_map.borrow_mut();
+            // Re-fetch the vector in case it was modified concurrently (unlikely in IC but good practice)
+            if let Some(verifications_bytes) = map_mut.get(&product_id) {
+                let mut verifications = decode_product_verifications(&verifications_bytes);
+                // Ensure index is still valid before updating
+                if verification_index < verifications.len() && verifications[verification_index].id == verification_to_update.id {
+                    verifications[verification_index] = verification_to_update.clone();
+                    map_mut.insert(product_id, encode_product_verifications(&verifications));
+                    ic_cdk::print(format!("ℹ️ [redeem_product_reward] Marked verification {} as claimed.", verification_to_update.id));
+                } else {
+                    ic_cdk::print(format!("❌ ERROR [redeem_product_reward] Verification record index {} mismatch for verification {}. Claim status not updated.", verification_index, verification_to_update.id));
+                    // Decide how to handle this: maybe return an internal error? For now, log and proceed.
+                }
+            } else {
+                 ic_cdk::print(format!("❌ ERROR [redeem_product_reward] Could not find verification vector for product {} while trying to update claim status.", product_id));
+                 // Decide how to handle this. For now, log and proceed.
+            }
+        });
+
+        ApiResponse::success(RedeemRewardResponse {
+            success: true,
+            transaction_id: Some(simulated_tx_id),
+            message: format!("Successfully redeemed {} points.", rewards.points),
+        })
+    } else {
+        // Handle simulated failure (or real failure from ledger)
+        ApiResponse::error(ApiError::external_api_error("Failed to process reward transaction."))
     }
 }
 

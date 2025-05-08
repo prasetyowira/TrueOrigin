@@ -244,6 +244,8 @@ pub struct ProductVerification {
     pub created_at: u64,
     pub created_by: Principal,
     pub status: ProductVerificationStatus,
+    pub reward_claimed: bool,
+    pub reward_transaction_id: Option<String>,
 }
 impl_storable_for_candid_type!(ProductVerification);
 
@@ -258,6 +260,8 @@ impl Default for ProductVerification {
             created_at: api::time(),
             created_by: api::caller(), // Default value for Principal
             status: ProductVerificationStatus::FirstVerification,
+            reward_claimed: false,
+            reward_transaction_id: None,
         }
     }
 }

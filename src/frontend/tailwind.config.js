@@ -58,7 +58,27 @@ export default {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
-  		}
+  		},
+      keyframes: {
+        scan: {
+          '0%': { top: '0%' },
+          '50%': { top: '100%' },
+          '100%': { top: '0%' },
+        },
+        pulse: {
+          '0%, 100%': { opacity: 1 },
+          '50%': { opacity: 0.5 },
+        },
+        corner: {
+          '0%, 100%': { borderColor: 'hsl(var(--primary))' },
+          '50%': { borderColor: 'hsl(var(--primary) / 0.5)' },
+        }
+      },
+      animation: {
+        scan: 'scan 2s ease-in-out infinite',
+        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        corner: 'corner 1.5s ease-in-out infinite',
+      },
   	}
   },
   plugins: [require("tailwindcss-animate")],

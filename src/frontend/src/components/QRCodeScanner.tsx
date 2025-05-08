@@ -25,11 +25,11 @@
  * @exports {FC} QRCodeScanner - QR code scanner component
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Camera, AlertCircle } from 'lucide-react';
+import { Camera, AlertCircle, RefreshCw } from 'lucide-react';
 
 interface QRCodeScannerProps {
   onScan: (result: string) => void;
@@ -73,156 +73,256 @@ const QRCodeScanner = ({
   disableFlip = false
 }: QRCodeScannerProps) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
-  const [permissionGranted, setPermissionGranted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isRequesting, setIsRequesting] = useState(false);
+  const [isScanningActive, setIsScanningActive] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
+  const [currentError, setCurrentError] = useState<string | null>(null);
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const scannerId = useRef(`qr-scanner-${Math.random().toString(36).substring(2, 9)}`);
 
-  // Function to request camera permission explicitly
-  const requestCameraPermission = async () => {
-    try {
-      setIsRequesting(true);
-      // Explicitly request camera permission
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      // Stop the stream immediately as we just need the permission
-      stream.getTracks().forEach(track => track.stop());
-      setError(null);
-      initializeScanner();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Camera permission denied';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setIsRequesting(false);
+  const parseErrorMessage = (err: any): string => {
+    if (err instanceof Error) {
+      // Handle specific known error names from getUserMedia or html5-qrcode if possible
+      if (err.name === 'NotAllowedError') {
+        return 'Camera permission was denied. Please grant access in your browser settings.';
+      }
+      if (err.name === 'NotFoundError') {
+        return 'No suitable camera found on this device.';
+      }
+      if (err.name === 'NotReadableError') {
+        return 'The camera is already in use or cannot be accessed.';
+      }
+      return err.message; // Default to the error message
     }
+    if (typeof err === 'string') return err;
+    // Removed Html5QrcodeErrorTypes check as it's not exported
+    return 'An unknown error occurred.'; // Simplified fallback
   };
 
-  // Initialize the scanner after permissions are granted
-  const initializeScanner = () => {
-    // Create scanner container if it doesn't exist
-    if (!document.getElementById(scannerId.current) && containerRef.current) {
+  const calculateQrboxSize = useCallback(() => {
+    if (containerRef.current) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+      const minDimension = Math.min(containerWidth, containerHeight);
+      return Math.floor(minDimension * 0.7) || 250; // Ensure it's at least 250 or a fallback
+    }
+    return qrbox;
+  }, [qrbox]); // containerRef.current changes don't trigger re-calc, but qrbox prop change would
+
+  const startScannerLogic = useCallback(async () => {
+    if (!scannerRef.current || !permissionGranted) {
+      if (!permissionGranted && permissionGranted !== null) setCurrentError("Camera permission is required to start the scanner.");
+      return;
+    }
+
+    if (scannerRef.current.getState() === Html5QrcodeScannerState.SCANNING) {
+      console.log("Scanner is already active.");
+      return;
+    }
+    
+    setCurrentError(null); // Clear previous scanner errors before starting
+    setIsScanningActive(true);
+
+    try {
+      const adjustedQrbox = calculateQrboxSize();
+      const config = {
+        fps,
+        qrbox: { width: adjustedQrbox, height: adjustedQrbox },
+        disableFlip,
+        aspectRatio: 1,
+        showTorchButtonIfSupported: true,
+        showZoomSliderIfSupported: true,
+        defaultZoomValueIfSupported: 1.5, // Slightly zoomed in by default
+      };
+
+      await scannerRef.current.start(
+        { facingMode: 'environment' },
+        config,
+        (decodedText: string) => {
+          onScan(decodedText);
+          // Consider pausing or stopping scanner after successful scan
+          // if (scannerRef.current) scannerRef.current.pause(true);
+        },
+        (errorMessage: string) => {
+          // This callback is for QR code decoding errors, not critical setup errors
+          // console.warn("QR Scan Error (non-critical):", errorMessage);
+          // We generally don't set setCurrentError here unless it's persistent
+        }
+      );
+      setCurrentError(null); // Explicitly clear errors on successful start
+    } catch (err) {
+      const errorMessage = parseErrorMessage(err);
+      setCurrentError(`Failed to start scanner: ${errorMessage}`);
+      if (onError) onError(errorMessage);
+      setIsScanningActive(false);
+    }
+  }, [permissionGranted, fps, disableFlip, onScan, onError, calculateQrboxSize]);
+
+  const initializeAndStartScanner = useCallback(() => {
+    if (document.getElementById(scannerId.current) && scannerRef.current) {
+       // Already initialized, just try to start
+        startScannerLogic();
+        return;
+    }
+    if (containerRef.current && !document.getElementById(scannerId.current)) {
       const scannerElement = document.createElement('div');
       scannerElement.id = scannerId.current;
+      scannerElement.style.width = '100%';
+      scannerElement.style.height = '100%';
       containerRef.current.appendChild(scannerElement);
     }
 
-    // Initialize scanner
-    if (!scannerRef.current) {
-      scannerRef.current = new Html5Qrcode(scannerId.current);
+    if (!scannerRef.current && document.getElementById(scannerId.current)) {
+      try {
+        scannerRef.current = new Html5Qrcode(scannerId.current, { verbose: false });
+      } catch (e) {
+        const initError = parseErrorMessage(e);
+        setCurrentError(`Failed to initialize Html5Qrcode: ${initError}`);
+        if(onError) onError(initError);
+        return;
+      }
     }
+    startScannerLogic();
+  }, [startScannerLogic, onError]);
 
-    // Start scanner
-    startScanner();
-  };
-
-  // Start the scanner
-  const startScanner = async () => {
+  const requestAndInitialize = useCallback(async () => {
+    if (permissionGranted) {
+      initializeAndStartScanner();
+      return;
+    }
+    setIsRequestingPermission(true);
+    setCurrentError(null); // Clear previous errors
     try {
-      setIsScanning(true);
-      await scannerRef.current?.start(
-        { facingMode: 'environment' },
-        {
-          fps,
-          qrbox,
-          disableFlip,
-          aspectRatio: 1
-        },
-        (decodedText) => {
-          // Successfully scanned QR code
-          onScan(decodedText);
-        },
-        () => {
-          // QR code not found - continue scanning
-        }
-      );
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      stream.getTracks().forEach(track => track.stop());
       setPermissionGranted(true);
+      setCurrentError(null); // Clear permission request error on success
+      initializeAndStartScanner();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(errorMessage);
+      const errorMessage = parseErrorMessage(err);
+      setPermissionGranted(false);
+      setCurrentError(errorMessage); // This is likely "Camera permission denied"
       if (onError) onError(errorMessage);
+    } finally {
+      setIsRequestingPermission(false);
     }
-  };
+  }, [initializeAndStartScanner, onError, permissionGranted]);
 
   useEffect(() => {
-    // Initialize scanner on mount
-    requestCameraPermission();
+    // On mount, if permission not yet determined (null), try to request it.
+    if (permissionGranted === null) {
+        requestAndInitialize();
+    }
+    // If permission was granted previously, try to init and start
+    else if (permissionGranted === true) {
+        initializeAndStartScanner();
+    }
+    // If permissionGranted is false, user needs to click retry.
 
-    // Clean up scanner on unmount
     return () => {
-      if (
-        scannerRef.current &&
-        scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED
-      ) {
-        scannerRef.current
-          .stop()
-          .then(() => {
-            scannerRef.current = null;
-          })
-          .catch((err) => {
-            console.error('Error stopping scanner:', err);
-          });
+      if (scannerRef.current && scannerRef.current.getState() !== Html5QrcodeScannerState.NOT_STARTED) {
+        scannerRef.current.stop().catch((err) => {
+          console.error('Error stopping scanner:', parseErrorMessage(err));
+        });
       }
     };
-  }, [fps, qrbox, disableFlip, onScan, onError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [permissionGranted]); // Rerun if permissionGranted state changes (e.g. from null to true/false)
+  
+  // Resize handler
+   useEffect(() => {
+    const handleResize = () => {
+      if (scannerRef.current && scannerRef.current.getState() === Html5QrcodeScannerState.SCANNING && permissionGranted) {
+        scannerRef.current.stop()
+          .then(() => startScannerLogic())
+          .catch(err => console.error("Error restarting scanner on resize:", parseErrorMessage(err)));
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [startScannerLogic, permissionGranted]);
 
   return (
     <div className="qr-scanner-container w-full max-w-md mx-auto">
-      {error && (
+      {currentError && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Accessing Camera</AlertTitle>
+          <AlertTitle>
+            {permissionGranted === false ? "Camera Permission Error" : "Scanner Error"}
+          </AlertTitle>
           <AlertDescription>
-            {error}. Please ensure camera permissions are enabled for this site.
+            {currentError}
+            {permissionGranted === false && " Please ensure camera permissions are enabled for this site."}
           </AlertDescription>
-          <Button
-            onClick={requestCameraPermission}
-            variant="destructive"
-            className="mt-3 w-full"
-            disabled={isRequesting}
-          >
-            {isRequesting ? 'Requesting Access...' : 'Retry Camera Permission'}
-          </Button>
+          {permissionGranted === false && (
+            <Button
+              onClick={requestAndInitialize}
+              variant="destructive"
+              className="mt-3 w-full"
+              disabled={isRequestingPermission}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isRequestingPermission ? 'animate-spin' : ''}`} />
+              {isRequestingPermission ? 'Requesting...' : 'Retry Camera Permission'}
+            </Button>
+          )}
+          {permissionGranted === true && currentError && (
+             <Button
+              onClick={startScannerLogic} 
+              variant="outline"
+              className="mt-3 w-full"
+              disabled={isScanningActive || isRequestingPermission}
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${isScanningActive ? 'animate-spin' : ''}`} />
+              Retry Scanner
+            </Button>
+          )}
         </Alert>
       )}
-      
-      <div 
+
+      <div
         ref={containerRef}
-        className="qr-scanner relative overflow-hidden rounded-lg bg-black"
-        style={{ 
-          width, 
-          height,
-        }}
+        className={`qr-scanner relative overflow-hidden rounded-lg bg-black ${currentError && permissionGranted === false ? 'hidden' : ''}`}
+        style={{ width, height }}
       >
-        {!permissionGranted && !error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white p-4 text-center">
-            <Camera className="h-12 w-12 mb-4 text-gray-400" />
-            <p className="mb-4">
-              {isRequesting ? 'Requesting camera permission...' : 'Camera access is required for scanning'}
-            </p>
-            {!isRequesting && !permissionGranted && (
-              <Button
-                onClick={requestCameraPermission}
-                className="w-full"
-              >
-                Allow Camera Access
-              </Button>
-            )}
+        {permissionGranted === null && !isRequestingPermission && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white p-4 text-center z-10">
+                <Camera className="h-12 w-12 mb-4 text-gray-400" />
+                <p className="mb-4">Checking camera permissions...</p>
+            </div>
+        )}
+        {isRequestingPermission && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white p-4 text-center z-10">
+            <Camera className="h-12 w-12 mb-4 text-gray-400 animate-pulse" />
+            <p className="mb-4">Requesting camera permission...</p>
           </div>
         )}
-        
-        {/* Scanner target indicator */}
-        {isScanning && !error && permissionGranted && (
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-            <div className="w-64 h-64 border-2 border-white rounded-lg opacity-70"></div>
-          </div>
+        {!isRequestingPermission && permissionGranted === false && !currentError && (
+            // This state occurs if permissionGranted was previously false and user hasn't clicked retry yet, or if initial check fails silently.
+            // The error alert above with the retry button is the primary UI for this.
+            // We can add a softer prompt here if needed, or ensure the error alert is always shown.
+             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-70 text-white p-4 text-center z-10">
+                <Camera className="h-12 w-12 mb-4 text-gray-400" />
+                <p className="mb-4">Camera access is needed. Please click the retry button in the message above.</p>
+            </div>
         )}
+        <style>{`
+          #${scannerId.current} video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+            border-radius: 0.5rem; /* Match parent rounding */
+          }
+          #${scannerId.current} {
+            background-color: #000; /* Ensure div itself is black if video fails to load */
+          }
+        `}</style>
       </div>
-      
-      <p className="text-center text-sm mt-2 text-muted-foreground">
-        Position the QR code within the frame to scan
-      </p>
+
+      {permissionGranted && !currentError && (
+        <p className="text-center text-sm mt-2 text-muted-foreground">
+          Position the QR code within the frame to scan
+        </p>
+      )}
     </div>
   );
 };
