@@ -373,12 +373,7 @@ export const idlFactory = ({ IDL }) => {
     'description' : IDL.Text,
   });
   const VerifyProductEnhancedRequest = IDL.Record({
-    'product_id' : IDL.Principal,
-    'metadata' : IDL.Vec(Metadata),
-    'print_version' : IDL.Nat8,
-    'nonce' : IDL.Opt(IDL.Text),
     'unique_code' : IDL.Text,
-    'timestamp' : IDL.Opt(IDL.Nat64),
     'serial_no' : IDL.Principal,
   });
   const ProductVerificationStatus = IDL.Variant({

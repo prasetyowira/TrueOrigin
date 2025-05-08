@@ -205,13 +205,8 @@ pub struct ProductVerificationsListResponse {
 
 #[derive(CandidType, Deserialize)]
 pub struct VerifyProductEnhancedRequest {
-    pub product_id: Principal,
     pub serial_no: Principal,
-    pub print_version: u8,
     pub unique_code: String,
-    pub metadata: Vec<Metadata>,
-    pub timestamp: Option<u64>,  // Client timestamp for replay attack prevention
-    pub nonce: Option<String>,   // Optional nonce for additional security
 }
 
 #[derive(CandidType, Serialize, Deserialize)]

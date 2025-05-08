@@ -405,12 +405,7 @@ export interface VerificationRewards {
   'points' : number,
 }
 export interface VerifyProductEnhancedRequest {
-  'product_id' : Principal,
-  'metadata' : Array<Metadata>,
-  'print_version' : number,
-  'nonce' : [] | [string],
   'unique_code' : string,
-  'timestamp' : [] | [bigint],
   'serial_no' : Principal,
 }
 export interface VerifyResellerRequest {

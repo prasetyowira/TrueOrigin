@@ -391,12 +391,7 @@ type VerificationRewards = record {
   points : nat32;
 };
 type VerifyProductEnhancedRequest = record {
-  product_id : principal;
-  metadata : vec Metadata;
-  print_version : nat8;
-  nonce : opt text;
   unique_code : text;
-  timestamp : opt nat64;
   serial_no : principal;
 };
 type VerifyResellerRequest = record {

@@ -162,9 +162,31 @@ const ProductsPage: React.FC = () => {
       return;
     }
 
-    // Find initial_unique_code from product metadata
+    // Find initial_unique_code and initial_serial_no from product metadata
     const initialUniqueCodeMeta = product.metadata.find(meta => meta.key === 'initial_unique_code');
-    const qrCodeValue = initialUniqueCodeMeta ? initialUniqueCodeMeta.value : 'No Unique Code Available';
+    const initialSerialNoMeta = product.metadata.find(meta => meta.key === 'initial_serial_no');
+    
+    let qrCodeValue = 'No Code Available'; // Default value
+    let displayCode = 'NO-CODE'; // Default display code
+
+    if (initialSerialNoMeta && initialUniqueCodeMeta) {
+      qrCodeValue = `${initialSerialNoMeta.value}:${initialUniqueCodeMeta.value}`;
+      // Truncate unique code for display, or use a placeholder
+      displayCode = initialUniqueCodeMeta.value
+        ? initialUniqueCodeMeta.value.substring(0, 8)
+        : 'NO-CODE'; 
+    } else if (initialUniqueCodeMeta) { // Only unique code available
+      qrCodeValue = `:${initialUniqueCodeMeta.value}`; 
+      displayCode = initialUniqueCodeMeta.value
+        ? initialUniqueCodeMeta.value.substring(0, 8)
+        : 'NO-CODE'; 
+    } else if (initialSerialNoMeta) { // Only serial no available
+      qrCodeValue = `${initialSerialNoMeta.value}:`;
+      // Display part of serial number if unique code is missing
+      displayCode = initialSerialNoMeta.value 
+        ? initialSerialNoMeta.value.substring(0, 8) 
+        : 'NO-SERIAL';
+    }
     
     // Generate QR code as SVG string
     const qrCodeSvg = ReactDOMServer.renderToString(
@@ -176,11 +198,6 @@ const ProductsPage: React.FC = () => {
         level="H"
       />
     );
-    
-    // Truncate unique code for display, or use a placeholder
-    const displayCode = initialUniqueCodeMeta && initialUniqueCodeMeta.value
-      ? initialUniqueCodeMeta.value.substring(0, 8)
-      : 'NO-CODE';
     
     // Format date like in ProductCertificate component
     const date = new Date();

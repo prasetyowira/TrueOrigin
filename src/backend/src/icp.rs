@@ -311,6 +311,10 @@ pub fn create_product(input: ProductInput) -> ProductResult {
                 value: unique_code_record.unique_code,
             });
             product_to_create.metadata.push(Metadata {
+                key: "initial_serial_no".to_string(),
+                value: unique_code_record.serial_no.to_string(),
+            });
+            product_to_create.metadata.push(Metadata {
                 key: "initial_print_version".to_string(),
                 value: unique_code_record.print_version.to_string(), // Should be 1
             });
@@ -1841,69 +1845,53 @@ pub fn print_product_serial_number(
 #[update]
 pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<ProductVerificationEnhancedResponse> {
     let caller = api::caller();
-    
-    // Check for rate limiting
-    let rate_limit_result = rate_limiter::record_verification_attempt(caller, request.product_id);
+
+    // --- 1. Find Product ID and ProductSerialNumber from the given serial_no ---
+    let mut found_product_id: Option<Principal> = None;
+    let mut found_product_sn_record: Option<ProductSerialNumber> = None;
+
+    PRODUCT_SERIAL_NUMBERS.with(|serial_numbers_map_ref| {
+        let serial_numbers_map = serial_numbers_map_ref.borrow();
+        for (p_id, storable_bytes) in serial_numbers_map.iter() {
+            let sn_vec = decode_product_serial_numbers(&storable_bytes);
+            if let Some(matching_sn) = sn_vec.iter().find(|sn| sn.serial_no == request.serial_no) {
+                found_product_id = Some(p_id);
+                found_product_sn_record = Some(matching_sn.clone());
+                break; 
+            }
+        }
+    });
+
+    let product_id = match found_product_id {
+        Some(id) => id,
+        None => return ApiResponse::error(ApiError::not_found("Serial number not valid or not found")),
+    };
+
+    let product_sn_record = match found_product_sn_record {
+        Some(psn) => psn,
+        // This case should ideally not be reached if product_id was found, but as a safeguard:
+        None => return ApiResponse::error(ApiError::internal_error("Inconsistent serial number data")), 
+    };
+
+    // --- 2. Check for rate limiting (using derived product_id) ---
+    let rate_limit_result = rate_limiter::record_verification_attempt(caller, product_id);
     if let Err(error) = rate_limit_result {
         return ApiResponse::error(error);
     }
     
-    // Check if the product exists
-    let product_opt = PRODUCTS.with(|products| products.borrow().get(&request.product_id).map(|p| p.clone()));
+    // --- 3. Get the Product (using derived product_id) ---
+    let product_opt = PRODUCTS.with(|products| products.borrow().get(&product_id).map(|p| p.clone()));
     
     if product_opt.is_none() {
-        return ApiResponse::error(ApiError::not_found("Product is invalid"));
+        // This implies data inconsistency if serial number was found but product wasn't.
+        return ApiResponse::error(ApiError::internal_error("Product data inconsistent: Product not found for existing serial number"));
     }
-    
     let product = product_opt.unwrap();
 
-    // Check for serial number
-    let mut has_serial_numbers = false;
-    let mut product_sn_opt: Option<ProductSerialNumber> = None; // Explicitly type it
-
-    PRODUCT_SERIAL_NUMBERS.with(|serial_numbers| {
-        if let Some(serialized_sn_vec) = serial_numbers.borrow().get(&request.product_id) {
-            has_serial_numbers = true;
-            let product_sn_vec = decode_product_serial_numbers(&serialized_sn_vec);
-            // The fix is to do the assignment here, .cloned() will create an owned Option<ProductSerialNumber>
-            product_sn_opt = product_sn_vec
-                .iter()
-                .find(|p_sn| p_sn.serial_no == request.serial_no)
-                .cloned(); // Use .cloned() here to get Option<ProductSerialNumber>
-        }
-    });
-
-    if !has_serial_numbers {
-        return ApiResponse::error(ApiError::not_found("Product has no serial numbers registered"));
-    }
-
-    if product_sn_opt.is_none() {
-        return ApiResponse::error(ApiError::not_found("Serial number not found for this product"));
-    }
-
-    let product_sn = product_sn_opt.unwrap();
-
-    // Check if the print version is correct/current
-    if product_sn.print_version != request.print_version {
-        return ApiResponse::error(ApiError::invalid_input("Unique code expired"));
-    }
+    // --- 4. Use print_version from storage ---
+    let print_version_from_storage = product_sn_record.print_version;
     
-    // Replay attack prevention - check timestamp if provided
-    if let Some(client_timestamp) = request.timestamp {
-        let current_time = api::time();
-        let time_diff = if current_time > client_timestamp {
-            current_time - client_timestamp
-        } else {
-            client_timestamp - current_time
-        };
-        
-        // If timestamp is more than 5 minutes off, reject as potential replay attack
-        if time_diff > 300 {  // 5 minutes in seconds
-            return ApiResponse::error(ApiError::invalid_input("Request timestamp too old or future dated"));
-        }
-    }
-
-    // Deserialize public key
+    // --- 5. Deserialize public key (remains the same) ---
     let public_key_bytes = match hex::decode(&product.public_key) {
         Ok(bytes) => bytes,
         Err(_) => {
@@ -1925,14 +1913,12 @@ pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<P
         }
     };
 
-    // Create message to verify, including nonce if provided
-    let nonce_suffix = request.nonce.as_deref().unwrap_or("");
+    // --- 6. Create message to verify (using derived product_id and stored print_version) ---
     let msg = format!(
-        "{}_{}_{}_{}",
-        request.product_id.to_string(),
+        "{}_{}_{}",
+        product_id.to_string(),
         request.serial_no.to_string(),
-        request.print_version,
-        nonce_suffix
+        print_version_from_storage // Use print_version from the stored ProductSerialNumber
     );
     
     let mut hasher = Sha256::new();
@@ -1953,7 +1939,7 @@ pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<P
         }
     };
     
-    // Verify the signature
+    // --- 7. Verify the signature ---
     let verify_result = public_key.verify(&hashed_message, &signature);
     
     if verify_result.is_err() {
@@ -1966,29 +1952,28 @@ pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<P
         return ApiResponse::success(response);
     }
     
-    // Determine if this is first verification for the product
-    let verification_status = if rewards::is_first_verification_for_user(caller, request.product_id) {
+    // --- 8. Determine verification status and calculate rewards (using derived product_id) ---
+    let verification_status = if rewards::is_first_verification_for_user(caller, product_id) {
         ProductVerificationStatus::FirstVerification
     } else {
         ProductVerificationStatus::MultipleVerification
     };
     
-    // Calculate rewards
     let rewards_result = rewards::calculate_verification_rewards(
         caller, 
-        request.product_id, 
+        product_id, 
         &verification_status
     );
     
-    // Record the verification in stable storage
+    // --- 9. Record the verification (using derived product_id and stored print_version) ---
     let verification_id = generate_unique_principal(Principal::anonymous());
     
     let verification = ProductVerification {
         id: verification_id,
-        product_id: request.product_id,
+        product_id: product_id, // Use derived product_id
         serial_no: request.serial_no,
-        print_version: request.print_version,
-        metadata: request.metadata.clone(),
+        print_version: print_version_from_storage, // Use stored print_version
+        metadata: Vec::new(), // Metadata removed from request
         created_at: api::time(),
         created_by: caller,
         status: verification_status.clone(),
@@ -1996,26 +1981,20 @@ pub fn verify_product_v2(request: VerifyProductEnhancedRequest) -> ApiResponse<P
     
     PRODUCT_VERIFICATIONS.with(|verifications| {
         let mut verifications_mut = verifications.borrow_mut();
-        
-        // Get or create collection for this product
-        let mut verification_vec = if let Some(serialized_verifications) = verifications_mut.get(&request.product_id) {
+        let mut verification_vec = if let Some(serialized_verifications) = verifications_mut.get(&product_id) {
             decode_product_verifications(&serialized_verifications)
         } else {
             Vec::new()
         };
-        
-        // Add new verification
         verification_vec.push(verification.clone());
-        
-        // Save updated collection
-        verifications_mut.insert(request.product_id, encode_product_verifications(&verification_vec));
+        verifications_mut.insert(product_id, encode_product_verifications(&verification_vec));
     });
     
-    // Record successful verification in rate limiter
-    rate_limiter::record_successful_verification(caller, request.product_id);
+    // --- 10. Record successful verification in rate limiter (using derived product_id) ---
+    rate_limiter::record_successful_verification(caller, product_id);
     
-    // Calculate expiration time (24 hours from now)
-    let expiration_time = api::time() + 86400;
+    // --- 11. Calculate expiration time (remains the same) ---
+    let expiration_time = api::time() + 86400; // 24 hours
     
     let response = ProductVerificationEnhancedResponse {
         status: verification_status,
