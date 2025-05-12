@@ -412,7 +412,7 @@ type UserPublic = record {
 };
 type UserResponse = record { user : User };
 type UserResult = variant { none; user : User; error : ApiError };
-type UserRole = variant { Reseller; Admin; BrandOwner };
+type UserRole = variant { Customer; Reseller; Admin; BrandOwner };
 type VerificationRewards = record {
   special_reward : opt text;
   reward_description : opt text;

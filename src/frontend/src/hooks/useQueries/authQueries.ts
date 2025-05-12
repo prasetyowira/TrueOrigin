@@ -33,6 +33,7 @@ export enum FEUserRole {
   BrandOwner = 'BrandOwner',
   Reseller = 'Reseller',
   Admin = 'Admin',
+  Customer = 'Customer', 
 }
 
 export const mapDidUserRoleToFEUserRole = (didRole: DidUserRole): FEUserRole | undefined => {
@@ -44,6 +45,7 @@ export const mapDidUserRoleToFEUserRole = (didRole: DidUserRole): FEUserRole | u
     if ('BrandOwner' in didRole) return FEUserRole.BrandOwner;
     if ('Reseller' in didRole) return FEUserRole.Reseller;
     if ('Admin' in didRole) return FEUserRole.Admin;
+    if ('Customer' in didRole) return FEUserRole.Customer; 
   }
   logger.warn('Unknown DidUserRole format or value:', didRole);
   return undefined;

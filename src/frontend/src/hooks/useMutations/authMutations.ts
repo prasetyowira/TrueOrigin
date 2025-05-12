@@ -77,6 +77,7 @@ export const useInitializeUserSession = () => {
         if (params.selected_role === FEUserRole.BrandOwner) roleArg = [{BrandOwner: null}];
         else if (params.selected_role === FEUserRole.Reseller) roleArg = [{Reseller: null}];
         else if (params.selected_role === FEUserRole.Admin) roleArg = [{Admin: null}];
+        else if (params.selected_role === FEUserRole.Customer) roleArg = [{Customer: null}]; 
       }
       const response = await actor.initialize_user_session(roleArg);
       // The actor.initialize_user_session returns ApiResponse_1, which is { data: [] | [DidAuthContextResponse], ...}

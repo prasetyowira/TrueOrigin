@@ -128,34 +128,31 @@ const LoginPage = () => {
 
     // --- Event Handlers ---
     const handleRoleSelect = useCallback((roleValue: FEUserRole | 'customer') => {
-        setSelectedRole(roleValue);
+        setSelectedRole(roleValue); 
         if (roleValue === 'customer') {
-            setCurrentSelectedRolePreAuth(null);
+            setCurrentSelectedRolePreAuth(FEUserRole.Customer); 
         } else {
             setCurrentSelectedRolePreAuth(roleValue as FEUserRole); 
         }
-        logger.debug(`Role selected: ${roleValue}`);
+        logger.debug(`Role selected: ${roleValue}, PreAuth Role set to: ${roleValue === 'customer' ? FEUserRole.Customer : roleValue}`);
     }, [setCurrentSelectedRolePreAuth]);
 
     const handleLoginClick = useCallback(async () => {
-        if (selectedRole === 'customer') {
-            toast({ title: "Customer Flow", description: "Redirecting to verification..." });
-            navigate('/verify');
-            return;
-        }
-        if (!currentSelectedRolePreAuth) {
+        if (!currentSelectedRolePreAuth) { 
             toast({ title: "Role not selected", description: "Please select a role before proceeding.", variant: "destructive" });
             return;
         }
+
         setShowLoadingOverlay(true);
         setLoadingText('Authenticating with Internet Identity...');
         try {
             await loginWithII();
+            // Navigation is now handled by the useEffect hook after successful authentication and session initialization
         } catch (error) {
             toast({ title: "Login Failed", description: (error as Error).message || "An unknown error occurred during login.", variant: "destructive" });
-            setShowLoadingOverlay(false);
+            setShowLoadingOverlay(false); // Ensure overlay is hidden on direct loginWithII error
         }
-    }, [selectedRole, currentSelectedRolePreAuth, loginWithII, navigate, toast]);
+    }, [currentSelectedRolePreAuth, loginWithII, toast]);
 
     const handleModalInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -330,10 +327,15 @@ const LoginPage = () => {
                 setLoadingText('Redirecting to Admin dashboard...');
                 navigate('/admin/dashboard'); 
                 navigatedOrModalOpened = true;
+            } else if (authenticatedRole === FEUserRole.Customer) { 
+                logger.info("LoginPage: Authenticated as Customer. Redirecting to verification page...");
+                setLoadingText('Redirecting to verification page...');
+                navigate('/verify'); 
+                navigatedOrModalOpened = true;
             } else {
-                logger.warn("LoginPage: Authenticated but role is unclear or not handled post-login.");
-                setLoadingText('Redirecting to homepage...');
-                navigate('/');
+                logger.warn("LoginPage: Authenticated but role is unrecognized or not handled post-login. Assuming customer flow.");
+                setLoadingText('Redirecting to verification page...');
+                navigate('/verify'); 
                 navigatedOrModalOpened = true;
             }
             

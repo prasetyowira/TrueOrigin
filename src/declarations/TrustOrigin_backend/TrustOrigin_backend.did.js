@@ -48,6 +48,7 @@ export const idlFactory = ({ IDL }) => {
     'is_profile_complete_and_verified' : IDL.Bool,
   });
   const UserRole = IDL.Variant({
+    'Customer' : IDL.Null,
     'Reseller' : IDL.Null,
     'Admin' : IDL.Null,
     'BrandOwner' : IDL.Null,

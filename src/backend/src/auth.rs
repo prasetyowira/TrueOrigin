@@ -72,6 +72,10 @@ pub fn get_role_permissions(role: &UserRole) -> HashSet<Permission> {
             permissions.insert(Permission::ReadProduct);
             permissions.insert(Permission::ReadReseller);
             permissions.insert(Permission::ManageVerifications);
+        },
+        UserRole::Customer => {
+            permissions.insert(Permission::ReadProduct); 
+            // Add any other specific customer permissions here if needed in the future
         }
     }
     

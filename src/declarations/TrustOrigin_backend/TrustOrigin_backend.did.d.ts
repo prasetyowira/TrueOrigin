@@ -424,7 +424,8 @@ export interface UserResponse { 'user' : User }
 export type UserResult = { 'none' : null } |
   { 'user' : User } |
   { 'error' : ApiError };
-export type UserRole = { 'Reseller' : null } |
+export type UserRole = { 'Customer' : null } |
+  { 'Reseller' : null } |
   { 'Admin' : null } |
   { 'BrandOwner' : null };
 export interface VerificationRewards {

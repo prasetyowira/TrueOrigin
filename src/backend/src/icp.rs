@@ -2454,29 +2454,35 @@ pub fn initialize_user_session(selected_role: Option<UserRole>) -> ApiResponse<A
     // Corrected AGAIN: Use .clone() on Option<&User> to get Option<User>
     let user_record_opt = USERS.with(|users| users.borrow().get(&user_principal_key).clone());
 
-    let mut final_user_state: User = match user_record_opt {
+    let final_user_state: User = match user_record_opt {
         Some(mut user) => { // User exists
             ic_cdk::print(format!("ℹ️ [initialize_user_session] Existing user {} found: {:?}", user_principal_key, user));
-            // Assign role if missing
+            
             if user.user_role.is_none() {
-                if let Some(role) = selected_role {
-                    user.user_role = Some(role);
-                    ic_cdk::print(format!("ℹ️ [initialize_user_session] Assigned role {:?} to existing user {}", role, user.id));
+                if let Some(role_to_assign) = selected_role {
+                    user.user_role = Some(role_to_assign);
+                    ic_cdk::print(format!("ℹ️ [initialize_user_session] Assigned role {:?} to existing user {} who had no role.", role_to_assign, user.id));
                 } else {
-                    // Role is mandatory if user has no role yet
-                    ic_cdk::print(format!("⚠️ [initialize_user_session] Role selection required for user {} to complete registration.", user_principal_key));
+                    // This case should ideally not be hit if frontend always sends a role (including Customer)
+                    ic_cdk::print(format!("⚠️ [initialize_user_session] Role selection was None for existing user {} who had no role. This is unexpected.", user_principal_key));
                     return ApiResponse::error(ApiError::invalid_input(
-                        "Role selection is required to complete your registration.",
+                        "A role must be selected to complete registration for an unassigned user.",
                     ));
                 }
-            } else if let Some(new_role) = selected_role {
-                 // Check for role change attempt
-                 if user.user_role != Some(new_role) {
-                     ic_cdk::print(format!("⚠️ [initialize_user_session] User {} attempted to change role from {:?} to {:?}", user.id, user.user_role, new_role));
+            } else if let Some(new_role_selected) = selected_role {
+                 // User has an existing role, check if the selected role matches
+                 if user.user_role != Some(new_role_selected) {
+                     ic_cdk::print(format!("⚠️ [initialize_user_session] User {} attempted to change role from {:?} to {:?}", user.id, user.user_role, new_role_selected));
                      return ApiResponse::error(ApiError::unauthorized(
-                         "User role has already been set and cannot be changed.",
+                         "User role has already been set and cannot be changed through this flow.",
                      ));
                  }
+                 // If roles match, it's fine, proceed to session key update
+                 ic_cdk::print(format!("ℹ️ [initialize_user_session] User {} already has role {:?}, which matches selection.", user.id, user.user_role));
+            } else {
+                // User has an existing role, but no role was selected in this session init (e.g. subsequent logins)
+                // This is fine, just proceed with the existing role.
+                ic_cdk::print(format!("ℹ️ [initialize_user_session] User {} has existing role {:?}. No new role selected in this session.", user.id, user.user_role));
             }
 
             // ALWAYS add the current session_principal to session_keys if not already present
@@ -2499,7 +2505,7 @@ pub fn initialize_user_session(selected_role: Option<UserRole>) -> ApiResponse<A
                     // Create user with the calling principal as ID and also add it as the first session key
                     let new_user = User {
                         id: user_principal_key, // User ID is the principal that called this
-                        user_role: Some(role),
+                        user_role: Some(role), // Assign the selected role (e.g., Customer)
                         session_keys: vec![session_principal], // Always add the session key used for creation
                         created_by: user_principal_key, // Created by the root identity (same as caller here)
                         updated_by: session_principal, // Updated by the session identity during this call
@@ -2510,9 +2516,10 @@ pub fn initialize_user_session(selected_role: Option<UserRole>) -> ApiResponse<A
                     new_user
                 }
                 None => {
-                    ic_cdk::print(format!("⚠️ [initialize_user_session] Role selection required for new user {}", user_principal_key));
+                    // This case should ideally not be hit if frontend always sends a role for new users (including Customer)
+                    ic_cdk::print(format!("⚠️ [initialize_user_session] Role selection was None for new user {}. This is unexpected if FE sends Customer role.", user_principal_key));
                     return ApiResponse::error(ApiError::invalid_input(
-                        "Role selection is required for new users.",
+                        "A role must be selected for new user registration.",
                     ));
                 }
             }

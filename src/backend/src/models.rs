@@ -271,6 +271,7 @@ pub enum UserRole {
     Admin,
     BrandOwner,
     Reseller,
+    Customer,
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]

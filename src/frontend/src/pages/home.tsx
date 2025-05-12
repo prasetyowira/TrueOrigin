@@ -51,8 +51,6 @@ function Homepage() {
                         <img src={logo} alt="TrueOrigin Logo" className="w-[120px] md:w-[150px]" />
                         <div className="hidden md:flex gap-4 md:gap-8 items-center">
                             <a href="#" className="text-gray-600 hover:text-[#0B0AFF] transition-colors">Homepage</a>
-                            <a href="#" className="text-gray-600 hover:text-[#0B0AFF] transition-colors">Brand Owners Dashboard</a>
-                            <a href="#" className="text-gray-600 hover:text-[#0B0AFF] transition-colors">Resellers Dashboard</a>
                             <Button 
                                 onClick={() => navigate('/verify')} 
                                 variant="ghost" 
@@ -97,12 +95,6 @@ function Homepage() {
                         <div className="md:hidden flex flex-col items-center bg-white shadow-lg py-4">
                             <a href="#" className="py-2 text-gray-600 hover:text-[#0B0AFF]" onClick={toggleMenu}>
                                 Homepage
-                            </a>
-                            <a href="#" className="py-2 text-gray-600 hover:text-[#0B0AFF]" onClick={toggleMenu}>
-                                Brand Owners Dashboard
-                            </a>
-                            <a href="#" className="py-2 text-gray-600 hover:text-[#0B0AFF]" onClick={toggleMenu}>
-                                Resellers Dashboard
                             </a>
                             <a className="py-2 text-[#0B0AFF] font-medium" onClick={() => {toggleMenu(); navigate('/verify');}}>
                                 Verify Product

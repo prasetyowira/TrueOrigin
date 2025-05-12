@@ -112,11 +112,20 @@ function App() {
         <AuthContextProvider>
           <Suspense fallback={<LoadingFallback />}>
             <Routes>
-              {/* Public routes - All routes are public for now */}
+              {/* Public routes */}
               <Route path="/" element={<Homepage />} />
               <Route path="/auth/login" element={<LoginPage />} />
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              <Route path="/verify" element={<VerifyPage />} />
+              
+              {/* Authenticated routes (no specific role needed) */}
+              <Route 
+                path="/verify" 
+                element={
+                  <ProtectedRoute>
+                    <VerifyPage />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Brand Owner routes - Protection applied inside wrapper */}
               <Route path="/brand-owners" element={<BrandOwnerLayoutWrapper />}>

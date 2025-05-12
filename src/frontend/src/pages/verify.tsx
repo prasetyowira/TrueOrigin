@@ -194,10 +194,16 @@ const RedeemWalletModal = ({
 }) => {
   const [walletAddress, setWalletAddress] = useState("");
   const [showScanner, setShowScanner] = useState(false);
+  const [walletScannerError, setWalletScannerError] = useState<string | null>(null);
 
   const handleWalletScan = (result: string) => {
     setWalletAddress(result);
     setShowScanner(false);
+    setWalletScannerError(null);
+  };
+
+  const handleWalletScanError = (errorMsg: string) => {
+    setWalletScannerError(errorMsg);
   };
 
   const handleSubmit = () => {
@@ -222,28 +228,31 @@ const RedeemWalletModal = ({
               <QRCodeScanner 
                 onScan={handleWalletScan}
                 height="250px"
+                onError={handleWalletScanError}
               />
               
               {/* Custom QR scanning overlay for wallet */}
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-56 h-56 relative">
-                  {/* Scanning frame with animated corners */}
-                  <div className="absolute top-0 left-0 w-8 h-2 bg-primary animate-corner"></div>
-                  <div className="absolute top-0 left-0 w-2 h-8 bg-primary animate-corner"></div>
-                  
-                  <div className="absolute top-0 right-0 w-8 h-2 bg-primary animate-corner"></div>
-                  <div className="absolute top-0 right-0 w-2 h-8 bg-primary animate-corner"></div>
-                  
-                  <div className="absolute bottom-0 left-0 w-8 h-2 bg-primary animate-corner"></div>
-                  <div className="absolute bottom-0 left-0 w-2 h-8 bg-primary animate-corner"></div>
-                  
-                  <div className="absolute bottom-0 right-0 w-8 h-2 bg-primary animate-corner"></div>
-                  <div className="absolute bottom-0 right-0 w-2 h-8 bg-primary animate-corner"></div>
-                  
-                  {/* Scanning animation */}
-                  <div className="absolute top-0 left-0 right-0 w-full h-1 bg-primary opacity-70 animate-scan"></div>
+              {!walletScannerError && (
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-56 h-56 relative">
+                    {/* Scanning frame with animated corners */}
+                    <div className="absolute top-0 left-0 w-8 h-2 bg-primary animate-corner"></div>
+                    <div className="absolute top-0 left-0 w-2 h-8 bg-primary animate-corner"></div>
+                    
+                    <div className="absolute top-0 right-0 w-8 h-2 bg-primary animate-corner"></div>
+                    <div className="absolute top-0 right-0 w-2 h-8 bg-primary animate-corner"></div>
+                    
+                    <div className="absolute bottom-0 left-0 w-8 h-2 bg-primary animate-corner"></div>
+                    <div className="absolute bottom-0 left-0 w-2 h-8 bg-primary animate-corner"></div>
+                    
+                    <div className="absolute bottom-0 right-0 w-8 h-2 bg-primary animate-corner"></div>
+                    <div className="absolute bottom-0 right-0 w-2 h-8 bg-primary animate-corner"></div>
+                    
+                    {/* Scanning animation */}
+                    <div className="absolute top-0 left-0 right-0 w-full h-1 bg-primary opacity-70 animate-scan"></div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
             <Button 
               variant="outline" 
@@ -641,25 +650,27 @@ const VerifyPage: React.FC = () => {
                 />
                 
                 {/* Custom QR scanning overlay */}
-                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-64 h-64 relative">
-                    {/* Scanning frame with animated corners */}
-                    <div className="absolute top-0 left-0 w-10 h-2 bg-primary animate-corner"></div>
-                    <div className="absolute top-0 left-0 w-2 h-10 bg-primary animate-corner"></div>
-                    
-                    <div className="absolute top-0 right-0 w-10 h-2 bg-primary animate-corner"></div>
-                    <div className="absolute top-0 right-0 w-2 h-10 bg-primary animate-corner"></div>
-                    
-                    <div className="absolute bottom-0 left-0 w-10 h-2 bg-primary animate-corner"></div>
-                    <div className="absolute bottom-0 left-0 w-2 h-10 bg-primary animate-corner"></div>
-                    
-                    <div className="absolute bottom-0 right-0 w-10 h-2 bg-primary animate-corner"></div>
-                    <div className="absolute bottom-0 right-0 w-2 h-10 bg-primary animate-corner"></div>
-                    
-                    {/* Scanning animation */}
-                    <div className="absolute top-0 left-0 right-0 w-full h-1 bg-primary opacity-70 animate-scan"></div>
+                {!verification.error && (
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                    <div className="w-64 h-64 relative">
+                      {/* Scanning frame with animated corners */}
+                      <div className="absolute top-0 left-0 w-10 h-2 bg-primary animate-corner"></div>
+                      <div className="absolute top-0 left-0 w-2 h-10 bg-primary animate-corner"></div>
+                      
+                      <div className="absolute top-0 right-0 w-10 h-2 bg-primary animate-corner"></div>
+                      <div className="absolute top-0 right-0 w-2 h-10 bg-primary animate-corner"></div>
+                      
+                      <div className="absolute bottom-0 left-0 w-10 h-2 bg-primary animate-corner"></div>
+                      <div className="absolute bottom-0 left-0 w-2 h-10 bg-primary animate-corner"></div>
+                      
+                      <div className="absolute bottom-0 right-0 w-10 h-2 bg-primary animate-corner"></div>
+                      <div className="absolute bottom-0 right-0 w-2 h-10 bg-primary animate-corner"></div>
+                      
+                      {/* Scanning animation */}
+                      <div className="absolute top-0 left-0 right-0 w-full h-1 bg-primary opacity-70 animate-scan"></div>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
               
               {verification.error && (

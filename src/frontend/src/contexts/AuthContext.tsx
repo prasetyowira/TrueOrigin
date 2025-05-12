@@ -121,11 +121,8 @@ export const AuthContextProvider: React.FC<PropsWithChildren<{}>> = ({ children 
       initializeSessionMutation.reset();
       return;
     }
-    if (!currentSelectedRolePreAuth) {
-      logger.warn("AuthContext: Role not selected before II login attempt.");
-      initializeSessionMutation.reset();
-      return;
-    }
+    // Allow login even if currentSelectedRolePreAuth is null (e.g., for customer flow)
+    // The initialize_user_session mutation will handle null role appropriately.
 
     try {
       const dfxNetwork = process.env.DFX_NETWORK;

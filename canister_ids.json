@@ -1,8 +1,14 @@
 {
-    "backend": {
-      "ic": "wwf6q-riaaa-aaaap-qpywq-cai"
-    },
-    "frontend": {
-      "ic": "w7gvm-haaaa-aaaap-qpyxa-cai"
-    }
+  "TrustOrigin_backend": {
+    "ic": "oypnj-pqaaa-aaaap-qp2ma-cai"
+  },
+  "TrustOrigin_frontend": {
+    "ic": "o7ol5-ciaaa-aaaap-qp2mq-cai"
+  },
+  "backend": {
+    "ic": "wwf6q-riaaa-aaaap-qpywq-cai"
+  },
+  "frontend": {
+    "ic": "w7gvm-haaaa-aaaap-qpyxa-cai"
   }
+}
