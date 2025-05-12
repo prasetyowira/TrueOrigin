@@ -1,240 +1,502 @@
-type Metadata = record {
-    key: text;
-    value: text;
+type ApiError = variant {
+  InvalidInput : record { details : ErrorDetails };
+  NotFound : record { details : ErrorDetails };
+  ExternalApiError : record { details : ErrorDetails };
+  Unauthorized : record { details : ErrorDetails };
+  AlreadyExists : record { details : ErrorDetails };
+  MalformedData : record { details : ErrorDetails };
+  InternalError : record { details : ErrorDetails };
 };
-
-type Organization = record {
-    id: principal;
-    name: text;
-    description: text;
-    metadata: vec Metadata;
-    private_key: text;
-    created_at: nat64;
-    created_by: principal;
-    updated_at: nat64;
-    updated_by: principal;
+type ApiResponse = record {
+  metadata : ResponseMetadata;
+  data : opt bool;
+  error : opt ApiError;
 };
-
-type OrganizationPublic = record {
-    id: principal;
-    name: text;
-    description: text;
-    metadata: vec Metadata;
-    created_at: nat64;
-    created_by: principal;
-    updated_at: nat64;
-    updated_by: principal;
+type ApiResponse_1 = record {
+  metadata : ResponseMetadata;
+  data : opt AuthContextResponse;
+  error : opt ApiError;
 };
-
+type ApiResponse_10 = record {
+  metadata : ResponseMetadata;
+  data : opt text;
+  error : opt ApiError;
+};
+type ApiResponse_11 = record {
+  metadata : ResponseMetadata;
+  data : opt OrganizationAnalyticData;
+  error : opt ApiError;
+};
+type ApiResponse_12 = record {
+  metadata : ResponseMetadata;
+  data : opt RateLimitInfo;
+  error : opt ApiError;
+};
+type ApiResponse_13 = record {
+  metadata : ResponseMetadata;
+  data : opt OrganizationsListResponse;
+  error : opt ApiError;
+};
+type ApiResponse_14 = record {
+  metadata : ResponseMetadata;
+  data : opt LogoutResponse;
+  error : opt ApiError;
+};
+type ApiResponse_15 = record {
+  metadata : ResponseMetadata;
+  data : opt RedeemRewardResponse;
+  error : opt ApiError;
+};
+type ApiResponse_16 = record {
+  metadata : ResponseMetadata;
+  data : opt UserResponse;
+  error : opt ApiError;
+};
+type ApiResponse_17 = record {
+  metadata : ResponseMetadata;
+  data : opt ResetStorageResponse;
+  error : opt ApiError;
+};
+type ApiResponse_18 = record {
+  metadata : ResponseMetadata;
+  data : opt null;
+  error : opt ApiError;
+};
+type ApiResponse_19 = record {
+  metadata : ResponseMetadata;
+  data : opt ProductVerificationEnhancedResponse;
+  error : opt ApiError;
+};
+type ApiResponse_2 = record {
+  metadata : ResponseMetadata;
+  data : opt OrganizationContextResponse;
+  error : opt ApiError;
+};
+type ApiResponse_20 = record {
+  metadata : ResponseMetadata;
+  data : opt ResellerVerificationResponse;
+  error : opt ApiError;
+};
+type ApiResponse_3 = record {
+  metadata : ResponseMetadata;
+  data : opt OrganizationResponse;
+  error : opt ApiError;
+};
+type ApiResponse_4 = record {
+  metadata : ResponseMetadata;
+  data : opt ProductResponse;
+  error : opt ApiError;
+};
+type ApiResponse_5 = record {
+  metadata : ResponseMetadata;
+  data : opt ResellerUniqueCodeResponse;
+  error : opt ApiError;
+};
+type ApiResponse_6 = record {
+  metadata : ResponseMetadata;
+  data : opt vec UserRole;
+  error : opt ApiError;
+};
+type ApiResponse_7 = record {
+  metadata : ResponseMetadata;
+  data : opt vec OrganizationPublic;
+  error : opt ApiError;
+};
+type ApiResponse_8 = record {
+  metadata : ResponseMetadata;
+  data : opt ResellerCertificationPageContext;
+  error : opt ApiError;
+};
+type ApiResponse_9 = record {
+  metadata : ResponseMetadata;
+  data : opt NavigationContextResponse;
+  error : opt ApiError;
+};
+type AuthContextResponse = record {
+  reseller_details : opt ResellerContextDetails;
+  role : opt UserRole;
+  user : opt UserPublic;
+  brand_owner_details : opt BrandOwnerContextDetails;
+  is_registered : bool;
+};
+type BrandOwnerContextDetails = record {
+  active_organization : opt OrganizationPublic;
+  has_organizations : bool;
+  organizations : opt vec OrganizationPublic;
+};
+type CompleteResellerProfileRequest = record {
+  ecommerce_urls : vec Metadata;
+  additional_metadata : opt vec Metadata;
+  contact_email : opt text;
+  contact_phone : opt text;
+  target_organization_id : principal;
+  reseller_name : text;
+};
+type ErrorDetails = record { message : text; details : vec Metadata };
+type FindOrganizationsRequest = record {
+  pagination : opt PaginationRequest;
+  name : text;
+};
+type GenerateResellerUniqueCodeRequest = record {
+  context : opt text;
+  reseller_id : principal;
+};
+type GetOrganizationAnalyticRequest = record { org_id : principal };
+type HttpHeader = record { value : text; name : text };
+type HttpResponse = record {
+  status : nat;
+  body : blob;
+  headers : vec HttpHeader;
+};
+type LogoutResponse = record { redirect_url : opt text; message : text };
+type Metadata = record { key : text; value : text };
+type NavigationContextResponse = record {
+  user_display_name : text;
+  user_avatar_id : opt text;
+  current_organization_name : opt text;
+};
+type OrganizationAnalyticData = record {
+  total_products : nat64;
+  active_resellers : nat64;
+  verifications_this_month : nat64;
+};
+type OrganizationContextResponse = record {
+  user_auth_context : AuthContextResponse;
+  organization : OrganizationPublic;
+};
 type OrganizationInput = record {
-    name: text;
-    description: text;
-    metadata: vec Metadata;
+  metadata : vec Metadata;
+  name : text;
+  description : text;
 };
-
+type OrganizationPublic = record {
+  id : principal;
+  updated_at : nat64;
+  updated_by : principal;
+  metadata : vec Metadata;
+  name : text;
+  description : text;
+  created_at : nat64;
+  created_by : principal;
+};
+type OrganizationResponse = record { organization : OrganizationPublic };
 type OrganizationResult = variant {
-    organization: Organization;
-    error: GenericError;
+  error : ApiError;
+  organization : OrganizationPublic;
 };
-
+type OrganizationsListResponse = record {
+  pagination : opt PaginationResponse;
+  organizations : vec OrganizationPublic;
+};
+type PaginationRequest = record { page : opt nat32; limit : opt nat32 };
+type PaginationResponse = record {
+  total : nat64;
+  page : nat32;
+  limit : nat32;
+  has_more : bool;
+};
+type PrivateKeyResult = variant { key : text; error : ApiError };
 type Product = record {
-    id: principal;
-    name: text;
-    org_id: principal;
-    category: text;
-    description: text;
-    metadata: vec Metadata;
-    public_key: text;
-    created_at: nat64;
-    created_by: principal;
-    updated_at: nat64;
-    updated_by: principal;
+  id : principal;
+  updated_at : nat64;
+  updated_by : principal;
+  public_key : text;
+  metadata : vec Metadata;
+  name : text;
+  org_id : principal;
+  description : text;
+  created_at : nat64;
+  created_by : principal;
+  category : text;
 };
-
 type ProductInput = record {
-    name: text;
-    org_id: principal;
-    category: text;
-    description: text;
-    metadata: vec Metadata;
+  metadata : vec Metadata;
+  name : text;
+  org_id : principal;
+  description : text;
+  category : text;
 };
-
-type ProductResult = variant {
-    none: null;
-    product: Product;
-    error: GenericError;
-};
-
+type ProductResponse = record { product : Product };
+type ProductResult = variant { none; error : ApiError; product : Product };
 type ProductSerialNumber = record {
-    product_id: principal;
-    serial_no: principal;
-    user_serial_no: text;
-    print_version: nat8;
-    metadata: vec Metadata;
-    created_at: nat64;
-    created_by: principal;
-    updated_at: nat64;
-    updated_by: principal;
+  updated_at : nat64;
+  updated_by : principal;
+  product_id : principal;
+  metadata : vec Metadata;
+  created_at : nat64;
+  created_by : principal;
+  print_version : nat8;
+  serial_no : principal;
 };
-
-type ProductVerification = record {
-    id: principal;
-    product_id: principal;
-    serial_no: principal;
-    print_version: nat8;
-    metadata: vec Metadata;
-    created_at: nat64;
-    created_by: principal;
-};
-
-type User = record {
-    id: principal;
-    is_principal: bool;
-    is_enabled: bool;
-    user_role: opt UserRole;
-    org_ids: vec principal;
-    first_name: opt text;
-    last_name: opt text;
-    phone_no: opt text;
-    email: opt text;
-    detail_meta: vec Metadata;
-    created_at: nat64;
-    created_by: principal;
-    updated_at: nat64;
-    updated_by: principal;
-};
-
-type UserDetailsInput = record {
-    first_name: text;
-    last_name: text;
-    phone_no: text;
-    email: text;
-    detail_meta: vec Metadata;
-};
-
-type GenericError = record {
-    message: text;
-    details: vec Metadata;
-};
-
-type UserResult = variant {
-    none: null;
-    user: User;
-    error: GenericError;
-};
-
-type UserRole = variant {
-    Admin;
-    Reseller;
-    BrandOwner;
-};
-
-type Reseller = record {
-    id: principal;
-    org_id: principal;
-    reseller_id: text;
-    name: text;
-    date_joined: nat64;
-    metadata: vec Metadata;
-    ecommerce_urls: vec Metadata;
-    created_at: nat64;
-    created_by: principal;
-    updated_at: nat64;
-    updated_by: principal;
-};
-
-type ResellerInput = record {
-    org_id: principal;
-    name: text;
-    metadata: vec Metadata;
-    ecommerce_urls: vec Metadata;
-};
-
 type ProductSerialNumberResult = variant {
-    result: ProductSerialNumber;
-    error: GenericError;
+  result : ProductSerialNumber;
+  error : ApiError;
 };
-
-type UniqueCodeResult = variant {
-    unique_code: text;
-    error: GenericError;
-};
-
-type ProductVerificationStatus = variant {
-    FirstVerification;
-    MultipleVerification;
-    Invalid;
-};
-
-type ProductVerificationResult = variant {
-    status: ProductVerificationStatus;
-    error: GenericError;
-};
-
-type PrivateKeyResult = variant {
-    key: text;
-    error: GenericError;
-};
-
-type VerificationStatus = variant {
-    Success;
-    Invalid;
-};
-
-type ResellerVerificationResultRecord = record {
-    status: VerificationStatus;
-    organization: OrganizationPublic;
-    registered_at: opt nat64;
-};
-
-type ResellerVerificationResult = variant {
-    result: ResellerVerificationResultRecord;
-    error: GenericError;
-};
-
-type ProductUniqueCodeResultRecord = record {
-    unique_code: text;
-    print_version: nat8;
-    product_id: principal;
-    serial_no: principal;
-    created_at: nat64;
-};
-
 type ProductUniqueCodeResult = variant {
-    result: ProductUniqueCodeResultRecord;
-    error: GenericError;
+  result : ProductUniqueCodeResultRecord;
+  error : ApiError;
 };
-
-service : {
-    "get_organization_by_id": (id: principal) -> (OrganizationPublic) query;
-    "create_organization": (input: OrganizationInput) -> (OrganizationPublic);
-    "update_organization": (id: principal, input: OrganizationInput) -> (OrganizationPublic);
-    "get_organization_private_key": (id: principal) -> (PrivateKeyResult) query;
-    "find_organizations_by_name": (text) -> (vec OrganizationPublic) query;
-    "create_product": (input: ProductInput) -> (ProductResult);
-    "list_products": (organization_id: principal) -> (vec Product) query;
-    "get_product_by_id": (id: principal) -> (ProductResult) query;
-    "update_product": (id: principal, input: ProductInput) -> (Product);
-    "register": () -> (User);
-    "set_self_role": (role_id: UserRole) -> (UserResult);
-    "register_as_reseller": (ResellerInput) -> (UserResult);
-    "register_as_organization": (OrganizationInput) -> (UserResult);
-    "get_user_by_id": (id: principal) -> (opt User) query;
-    "whoami": () -> (opt User) query;
-    "update_self_details": (input: UserDetailsInput) -> (UserResult);
-    "create_user": (id: principal, input: UserDetailsInput) -> (UserResult);
-    "update_user": (id: principal, input: UserDetailsInput) -> (UserResult);
-    "update_user_orgs": (id: principal, org_ids: vec principal) -> (UserResult);
-    "greet" : (text) -> (text) query;
-    "generate_product_review": (product_id: principal) -> (opt Product);
-    "find_resellers_by_name_or_id": (text) -> (vec Reseller) query;
-    "verify_reseller": (reseller_id: principal, public_key: text) -> (ResellerVerificationResult) query;
-    "generate_reseller_unique_code": (reseller_id: principal) -> (UniqueCodeResult) query;
-    "list_product_serial_number": (organization_id: opt principal, product_id: opt principal) -> (vec ProductSerialNumber) query;
-    "create_product_serial_number": (product_id: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
-    "update_product_serial_number": (product_id: principal, serial_no: principal, user_serial_no: opt text) -> (ProductSerialNumberResult);
-    "print_product_serial_number": (product_id: principal, serial_no: principal) -> (ProductUniqueCodeResult);
-    "verify_product": (product_id: principal, serial_no: principal, print_version: nat8, unique_code: text, metadata: vec Metadata) -> (ProductVerificationResult);
-    "list_product_verifications": (organization_id: opt principal, product_id: opt principal, serial_number: opt principal) -> (vec ProductVerification) query;
-    "list_product_verifications_by_user": (user_id: principal, organization_id: opt principal) -> (vec ProductVerification) query;
+type ProductUniqueCodeResultRecord = record {
+  product_id : principal;
+  created_at : nat64;
+  print_version : nat8;
+  unique_code : text;
+  serial_no : principal;
 };
+type ProductVerification = record {
+  id : principal;
+  status : ProductVerificationStatus;
+  product_id : principal;
+  reward_claimed : bool;
+  metadata : vec Metadata;
+  reward_transaction_id : opt text;
+  created_at : nat64;
+  created_by : principal;
+  print_version : nat8;
+  serial_no : principal;
+};
+type ProductVerificationDetail = record {
+  status : ProductVerificationStatus;
+  user_email : opt text;
+  product_id : principal;
+  created_at : nat64;
+  product_name : text;
+  serial_no : principal;
+};
+type ProductVerificationEnhancedResponse = record {
+  status : ProductVerificationStatus;
+  expiration : opt nat64;
+  rewards : opt VerificationRewards;
+  verification : opt ProductVerification;
+};
+type ProductVerificationStatus = variant {
+  Invalid;
+  MultipleVerification;
+  FirstVerification;
+};
+type RateLimitInfo = record {
+  current_window_start : nat64;
+  remaining_attempts : nat32;
+  reset_time : nat64;
+};
+type RedeemRewardRequest = record {
+  wallet_address : text;
+  unique_code : text;
+  serial_no : principal;
+};
+type RedeemRewardResponse = record {
+  transaction_id : opt text;
+  message : text;
+  success : bool;
+};
+type Reseller = record {
+  id : principal;
+  updated_at : nat64;
+  updated_by : principal;
+  ecommerce_urls : vec Metadata;
+  public_key : text;
+  metadata : vec Metadata;
+  additional_metadata : opt vec Metadata;
+  name : text;
+  org_id : principal;
+  contact_email : opt text;
+  certification_code : opt text;
+  certification_timestamp : opt nat64;
+  date_joined : nat64;
+  created_at : nat64;
+  created_by : principal;
+  user_id : principal;
+  is_verified : bool;
+  contact_phone : opt text;
+};
+type ResellerCertificationPageContext = record {
+  certification_code : text;
+  certification_timestamp : nat64;
+  reseller_profile : ResellerPublic;
+  user_details : UserPublic;
+  associated_organization : OrganizationPublic;
+};
+type ResellerContextDetails = record {
+  certification_code : opt text;
+  certification_timestamp : opt nat64;
+  associated_organization : opt OrganizationPublic;
+  is_profile_complete_and_verified : bool;
+};
+type ResellerInput = record {
+  ecommerce_urls : vec Metadata;
+  metadata : vec Metadata;
+  name : text;
+  org_id : principal;
+};
+type ResellerPublic = record {
+  id : principal;
+  updated_at : nat64;
+  ecommerce_urls : vec Metadata;
+  public_key : text;
+  additional_metadata : opt vec Metadata;
+  name : text;
+  contact_email : opt text;
+  certification_code : opt text;
+  certification_timestamp : opt nat64;
+  created_at : nat64;
+  user_id : principal;
+  is_verified : bool;
+  contact_phone : opt text;
+  organization_id : principal;
+};
+type ResellerUniqueCodeResponse = record {
+  context : opt text;
+  unique_code : text;
+  timestamp : nat64;
+  reseller_id : principal;
+};
+type ResellerVerificationResponse = record {
+  status : ResellerVerificationStatus;
+  reseller : opt Reseller;
+  organization : opt OrganizationPublic;
+};
+type ResellerVerificationStatus = variant {
+  ExpiredCode;
+  Success;
+  ReplayAttackDetected;
+  InvalidCode;
+  OrganizationNotFound;
+  InternalError;
+  ResellerNotFound;
+};
+type ResetStorageResponse = record { message : text };
+type ResponseMetadata = record {
+  request_id : opt text;
+  version : text;
+  timestamp : nat64;
+};
+type Result = variant { Ok : vec ProductSerialNumber; Err : ApiError };
+type TransformArgs = record { context : blob; response : HttpResponse };
+type UpdateOrganizationRequest = record {
+  id : principal;
+  metadata : vec Metadata;
+  name : text;
+  description : text;
+};
+type User = record {
+  id : principal;
+  updated_at : nat64;
+  updated_by : principal;
+  user_role : opt UserRole;
+  org_ids : vec principal;
+  is_principal : bool;
+  is_enabled : bool;
+  created_at : nat64;
+  created_by : principal;
+  email : opt text;
+  active_org_id : opt principal;
+  first_name : opt text;
+  detail_meta : vec Metadata;
+  last_name : opt text;
+  phone_no : opt text;
+  session_keys : vec principal;
+};
+type UserDetailsInput = record {
+  email : text;
+  first_name : text;
+  detail_meta : vec Metadata;
+  last_name : text;
+  phone_no : text;
+};
+type UserPublic = record {
+  id : principal;
+  created_at : nat64;
+  email : opt text;
+  first_name : opt text;
+  last_name : opt text;
+};
+type UserResponse = record { user : User };
+type UserResult = variant { none; user : User; error : ApiError };
+type UserRole = variant { Customer; Reseller; Admin; BrandOwner };
+type VerificationRewards = record {
+  special_reward : opt text;
+  reward_description : opt text;
+  is_first_verification : bool;
+  points : nat32;
+};
+type VerifyProductEnhancedRequest = record {
+  unique_code : text;
+  serial_no : principal;
+};
+type VerifyResellerRequest = record {
+  context : opt text;
+  unique_code : text;
+  timestamp : nat64;
+  reseller_id : principal;
+};
+service : () -> {
+  check_reseller_verification : (principal) -> (ApiResponse) query;
+  complete_reseller_profile : (CompleteResellerProfileRequest) -> (
+      ApiResponse_1,
+    );
+  create_organization : (OrganizationInput) -> (OrganizationPublic);
+  create_organization_for_owner : (OrganizationInput) -> (ApiResponse_2);
+  create_organization_v2 : (OrganizationInput) -> (ApiResponse_3);
+  create_product : (ProductInput) -> (ProductResult);
+  create_product_serial_number : (principal) -> (ProductSerialNumberResult);
+  create_user : (principal, UserDetailsInput) -> (UserResult);
+  find_organizations_by_name : (text) -> (vec OrganizationPublic) query;
+  find_resellers_by_name_or_id : (text) -> (vec Reseller) query;
+  generate_product_review_v2 : (principal) -> (ApiResponse_4);
+  generate_reseller_unique_code_v2 : (GenerateResellerUniqueCodeRequest) -> (
+      ApiResponse_5,
+    );
+  get_auth_context : () -> (ApiResponse_1) query;
+  get_available_roles : () -> (ApiResponse_6) query;
+  get_my_organizations : () -> (ApiResponse_7) query;
+  get_my_reseller_certification : () -> (ApiResponse_8) query;
+  get_navigation_context : () -> (ApiResponse_9) query;
+  get_openai_api_key : () -> (ApiResponse_10) query;
+  get_organization_analytic : (GetOrganizationAnalyticRequest) -> (
+      ApiResponse_11,
+    ) query;
+  get_organization_by_id : (principal) -> (OrganizationResult) query;
+  get_organization_by_id_v2 : (principal) -> (ApiResponse_3) query;
+  get_organization_private_key : (principal) -> (PrivateKeyResult) query;
+  get_product_by_id : (principal) -> (ProductResult) query;
+  get_scraper_url : () -> (ApiResponse_10) query;
+  get_user_by_id : (principal) -> (opt User) query;
+  get_verification_rate_limit : (principal) -> (ApiResponse_12) query;
+  greet : (text) -> (text) query;
+  initialize_user_session : (opt UserRole) -> (ApiResponse_1);
+  list_organizations_v2 : (FindOrganizationsRequest) -> (ApiResponse_13);
+  list_product_serial_numbers : (opt principal, opt principal) -> (
+      Result,
+    ) query;
+  list_product_verifications_by_org_id : (principal) -> (
+      vec ProductVerificationDetail,
+    ) query;
+  list_products : (principal) -> (vec Product) query;
+  list_resellers_by_org_id : (principal) -> (vec Reseller) query;
+  logout_user : () -> (ApiResponse_14);
+  print_product_serial_number : (principal, principal) -> (
+      ProductUniqueCodeResult,
+    );
+  redeem_product_reward : (RedeemRewardRequest) -> (ApiResponse_15);
+  register : () -> (User);
+  register_as_organization : (OrganizationInput) -> (UserResult);
+  register_as_reseller_v2 : (ResellerInput) -> (ApiResponse_16);
+  reset_all_stable_storage : () -> (ApiResponse_17);
+  select_active_organization : (principal) -> (ApiResponse_1);
+  set_openai_api_key : (text) -> (ApiResponse_18);
+  set_scraper_url : (text) -> (ApiResponse_18);
+  set_self_role : (UserRole) -> (UserResult);
+  transform : (TransformArgs) -> (HttpResponse) query;
+  update_organization : (principal, OrganizationInput) -> (OrganizationResult);
+  update_organization_v2 : (UpdateOrganizationRequest) -> (ApiResponse_3);
+  update_product : (principal, ProductInput) -> (ProductResult);
+  update_product_serial_number : (principal, principal) -> (
+      ProductSerialNumberResult,
+    );
+  update_self_details : (UserDetailsInput) -> (UserResult);
+  update_user : (principal, UserDetailsInput) -> (UserResult);
+  update_user_orgs : (principal, vec principal) -> (UserResult);
+  verify_product_v2 : (VerifyProductEnhancedRequest) -> (ApiResponse_19);
+  verify_reseller_v2 : (VerifyResellerRequest) -> (ApiResponse_20) query;
+  whoami : () -> (opt User) query;
+}

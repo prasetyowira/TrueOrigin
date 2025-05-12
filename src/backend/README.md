@@ -8,7 +8,7 @@ This will be filled with information about what features are implemented. Should
 - DFX
 
 ### Steps
-1. Ensure you couuld do `cargo build` in this directory
+1. Ensure you could do `cargo build --target wasm32-unknown-unknown` in this directory
 2. Go to the main directory `cd ..`
 3. Run `dfx start --background`
 4. Run `dfx deploy`

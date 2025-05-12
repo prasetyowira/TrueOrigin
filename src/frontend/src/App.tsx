@@ -1,23 +1,164 @@
-import './App.css';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import TestPage from './pages/test-page';
-import Homepage from './pages/home';
-import Dashboard from './pages/dashboard';
-import LoginPage from './pages/auth/login';
-import ChooseRolePage from './pages/auth/choose-role';
+/**
+ * @file Main application component
+ * @fileoverview Root component that sets up routing and global context providers.
+ * 
+ * Functions:
+ * - App: Main application component with routing configuration
+ * 
+ * Constants:
+ * - None
+ * 
+ * Flow:
+ * 1. Set up routing with react-router
+ * 2. (Auth removed) Define routes for different sections
+ * 
+ * Error Handling:
+ * - (Auth removed)
+ * 
+ * @module App
+ * @requires react-router-dom - For routing
+ * @exports {FC} App - Main application component
+ */
 
+import './App.css';
+import { BrowserRouter as Router, Route, Routes, Outlet } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { Toaster } from "@/components/ui/toaster";
+import { AuthContextProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import BrandOwnerLayout from '@/layouts/BrandOwnerLayout';
+import ResellerLayout from '@/layouts/ResellerLayout';
+import { QueryProvider } from '@/providers/QueryProvider';
+import { DebugToggle } from '@/components/DebugToggle';
+
+// Lazy load components to improve initial load performance
+const Homepage = lazy(() => import('@/pages/home'));
+const LoginPage = lazy(() => import('@/pages/auth/login'));
+const UnauthorizedPage = lazy(() => import('@/pages/unauthorized'));
+const VerifyPage = lazy(() => import('@/pages/verify'));
+const ProductsPage = lazy(() => import('@/pages/brand-owners/products'));
+const AddProductPage = lazy(() => import('@/pages/brand-owners/add-product'));
+
+const ResellerCertificationPage = lazy(() => import('@/pages/reseller/certification'));
+
+// Lazy load placeholders for future development
+const ResellerManagementPage = lazy(() => import('@/pages/brand-owners/resellers'));
+const UserManagementPage = lazy(() => import('@/pages/brand-owners/users'));
+
+// Brand Owner Pages
+const BrandOwnerAnalytics = lazy(() => import('@/pages/brand-owners/analytics'));
+
+// Reseller Pages
+const ResellerDashboard = lazy(() => import('@/pages/reseller/dashboard'));
+
+// Admin Pages (Placeholder)
+const AdminDashboard = lazy(() => 
+  import('@/pages/placeholder').then(module => ({ 
+    default: () => module.default({ title: 'Admin Dashboard' }) 
+  }))
+);
+
+// Import FEUserRole for ProtectedRoute roles prop
+import { FEUserRole } from '@/hooks/useQueries/authQueries'; 
+
+// Layout wrapper component applies layout FIRST, then protects the Outlet (content)
+const BrandOwnerLayoutWrapper = () => (
+  <BrandOwnerLayout>
+    <ProtectedRoute roles={[FEUserRole.BrandOwner]}>
+      <Outlet />
+    </ProtectedRoute>
+  </BrandOwnerLayout>
+);
+
+const ResellerLayoutWrapper = () => (
+  <ResellerLayout>
+    <ProtectedRoute roles={[FEUserRole.Reseller]}>
+      <Outlet />
+    </ProtectedRoute>
+  </ResellerLayout>
+);
+
+// Basic Admin Layout Wrapper (Placeholder)
+const AdminLayoutWrapper = () => (
+  <div>
+    <nav>Admin Navigation</nav>
+    <ProtectedRoute roles={[FEUserRole.Admin]}>
+      <Outlet />
+    </ProtectedRoute>
+  </div>
+);
+
+// Loading fallback for lazy-loaded components
+const LoadingFallback = () => (
+  <div className="flex h-screen items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+  </div>
+);
+
+/**
+ * Main application component with routing configuration
+ * 
+ * Sets up the application routes.
+ * Wraps the application with necessary providers (Auth, Query, etc.)
+ * 
+ * @returns {JSX.Element} The application component
+ * @example
+ * <App />
+ */
 function App() {
   return (
-    <Router>
-      <Routes>
-          <Route path="/" element={<Homepage />} />
-          <Route path="/auth/login" element={<LoginPage />} />
-          <Route path="/auth/choose-role" element={<ChooseRolePage />} />
-          <Route path="/test" element={<TestPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-        </Routes>
-    </Router>
-  )
+    <QueryProvider>
+      <Router>
+        <AuthContextProvider>
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Homepage />} />
+              <Route path="/auth/login" element={<LoginPage />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              
+              {/* Authenticated routes (no specific role needed) */}
+              <Route 
+                path="/verify" 
+                element={
+                  <ProtectedRoute>
+                    <VerifyPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Brand Owner routes - Protection applied inside wrapper */}
+              <Route path="/brand-owners" element={<BrandOwnerLayoutWrapper />}>
+                <Route index element={<BrandOwnerAnalytics />} />
+                <Route path="analytics" element={<BrandOwnerAnalytics />} />
+                <Route path="products" element={<ProductsPage />} /> 
+                <Route path="add-product" element={<AddProductPage />} /> 
+                <Route path="resellers" element={<ResellerManagementPage />} /> 
+                <Route path="users" element={<UserManagementPage />} /> 
+              </Route>
+              
+              {/* Reseller routes - Protection applied inside wrapper */}
+              <Route path="/reseller" element={<ResellerLayoutWrapper />}>
+                <Route index element={<ResellerDashboard />} />
+                <Route path="dashboard" element={<ResellerDashboard />} />
+                <Route path="certification" element={<ResellerCertificationPage />} /> 
+              </Route>
+              
+              {/* Admin routes - Placeholder */}
+              <Route path="/admin" element={<AdminLayoutWrapper />}>
+                <Route index element={<AdminDashboard />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
+              </Route>
+              
+            </Routes>
+          </Suspense>
+          <Toaster />
+          {/* Conditionally render DebugToggle based on DFX_NETWORK */}
+          {process.env.DFX_NETWORK !== 'ic' && <DebugToggle />}
+        </AuthContextProvider>
+      </Router>
+    </QueryProvider>
+  );
 }
 
-export default App
+export default App;
